@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 
 from tools.csv_parser import loadBeacons, loadConfig
-
+#beacon sensor node
 class BeaconSensor(Node):
     '''
     Node in charge of listening to beacon data published to /rf_signal
