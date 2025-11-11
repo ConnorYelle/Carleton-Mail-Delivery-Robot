@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Editor files
+.vscode/
+.idea/
+
+# Local packages or binaries
+sllidar_ros2/
