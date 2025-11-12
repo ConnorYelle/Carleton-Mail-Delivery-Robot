@@ -10,7 +10,6 @@ def generate_launch_description():
 
     nodes = [
         Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='camera_sensor', name='camera_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='lidar_sensor', name='lidar_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='beacon_sensor', name='beacon_sensor', parameters=sim_time),

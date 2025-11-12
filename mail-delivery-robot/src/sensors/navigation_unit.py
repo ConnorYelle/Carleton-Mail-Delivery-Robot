@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from tools.nav_parser import loadConnections
-from src.tools.map import Map
+from tools.map import Map
 
 class NavigationUnit(Node):
     '''

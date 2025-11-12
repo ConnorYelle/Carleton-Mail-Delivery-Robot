@@ -18,13 +18,12 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='create3',
-    maintainer_email='deniscengu@cmail.carleton.ca',
+    maintainer_email='connoryelle@cmail.carleton.ca',
     description='Carleton mail delivery robot',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'camera_sensor = sensors.camera_sensor:main',
             'beacon_sensor = sensors.beacon_sensor:main',
             'bumper_sensor = sensors.bumper_sensor:main',
             'lidar_sensor = sensors.lidar_sensor:main',

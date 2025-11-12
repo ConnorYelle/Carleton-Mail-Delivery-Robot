@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-from src.control.action_translator import ActionTranslator
+from control.action_translator import ActionTranslator
 from rclpy.action import ActionClient
 from irobot_create_msgs.action import Dock, Undock
 import subprocess
@@ -78,6 +78,7 @@ class Captain(Node):
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info(str(result))
+        
 
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
