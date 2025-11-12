@@ -35,6 +35,7 @@ setup(
             'music_player = communication.music_player:main',
             'captain = control.captain:main',
             'travel_analyzer = tests.travel_analyzer:main',
+            'navigation_unit_AI = sensors.navigation_unit_AI:main',
             'navigation_unit = sensors.navigation_unit:main',
             'intersection_detection_unit = sensors.intersection_detection_unit:main',
             'battery_monitor = sensors.battery_monitor:main',
