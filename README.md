@@ -8,9 +8,11 @@ The objective of this project is to create a fully autonomous robot which is cap
 
 ## Team Members:
 
-- [Denis Cengu](https://github.com/deniscengu)
-- [Douglas Lytle](https://github.com/douglytle)
-- [Cholen Premjeyanth](https://github.com/cholenpremjeyanth)
+- [Connor Yelle](https://github.com/ConnorYelle)
+- [Tommy Phang](https://github.com/tphang46)
+- [Owen McKibbon](https://github.com/OwenMcKibbon1)
+- [Umniyah Mohammed](https://github.com/UMNIYAH)
+- [Jonas Andaya](https://github.com/jonasandaya)
 
 ## Demonstration:
 
@@ -20,16 +22,17 @@ Demonstration videos of the project in action can be found here:
 
 ## Documentation
 
-For a detailed document which describes the design and implementation of the project, please see the [Final Report](https://github.com/deniscengu/carleton-mail-delivery-robot-gazebo/blob/main/documents/Final%20Report.pdf).
+For a detailed document which describes the design and implementation of the project, please see the [Final Report](https://github.com/UMNIYAH/Mail-Delivery-Robot/blob/main/documents/Carleton%20Mail%20Delivery%20Robot%20Report.pdf).
 
 ## Setting up and Running the Project
 
-Please see appendices B and C of the [Final Report](https://github.com/deniscengu/carleton-mail-delivery-robot-gazebo/blob/main/documents/Final%20Report.pdf) for instructions on how to set up and run the project.
+
+Please see appendices B and C of the [Final Report](https://github.com/UMNIYAH/Mail-Delivery-Robot/blob/main/documents/SYSC%204907%20Project%20Proposal%20Mail%20Delivery%20Robot.pdf) for instructions on how to set up and run the project.
 
 ## Previous Iterations of the Project
 
 This is a continuation project which builds on the work of past teams. You can find the previous iterations of this project here:
-
+- [2024-2025](https://github.com/deniscengu/carleton-mail-delivery-robot)
 - [2023-2024](https://github.com/bardia-p/carleton-mail-delivery-robot)
 - [2022-2023](https://github.com/Em-kale/carleton-mail-delivery-robot)
 - [2021-2022](https://github.com/SteveWick/carleton-mail-delivery-robot)
