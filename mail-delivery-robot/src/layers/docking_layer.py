@@ -75,7 +75,7 @@ class DockingLayer(Node):
         The timer callback. Updates the internal state of this node and sends
         updates to /actions when necessary
         '''
-        if self.state == DockingLayerStates.NO_DEST and self.last_navigation_message != 'NONE':
+        if self.state == DockingLayerStates.NO_DEST and self.last_navigation_message == 'UNDOCK':
             self.state = DockingLayerStates.HAS_DEST
             if self.is_docked:
                 self.action_publisher.publish(self.undock_msg)

@@ -57,7 +57,7 @@ class LidarSensor(Node):
 
         @param scan: The current lidar scan.
         ''' 
-        count = len(scan.ranges)
+        count = int(scan.scan_time / scan.time_increment)
         angle = 0
         min_left = self.config["LARGE_DEFAULT_DISTANCE"]
         min_right = self.config["LARGE_DEFAULT_DISTANCE"]
@@ -126,4 +126,5 @@ def main():
     
 if __name__ == '__main__':
     main()
+
 

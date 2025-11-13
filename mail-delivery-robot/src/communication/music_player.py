@@ -185,11 +185,43 @@ class MusicPlayer(Node):
                 
             ]
         )
+        
+        self.song2 = AudioNoteVector(append = False,
+            notes = [
+                note_d_low_quarter,
+                note_d_low_quarter,
+                note_f_quarter,
+                note_g_quarter,
+                note_a_quarter,
+                note_g_quarter,
+                note_f_quarter,
+                note_d_low_half,
+                rest_quarter,
+
+                note_d_low_quarter,
+                note_f_quarter,
+                note_g_quarter,
+                note_a_quarter,
+                note_a_quarter,
+                note_g_quarter,
+                note_f_quarter,
+                note_d_low_half,
+                rest_quarter,
+
+                note_d_low_quarter,
+                note_d_low_quarter,
+                note_f_quarter,
+                note_g_quarter,
+                note_a_quarter,
+                note_g_quarter,
+                note_f_quarter,
+                note_d_low_half,
+            ])
     
     def play_music(self):
         if self.delay_counter <= 0:
             self.delay_counter = self.song_length
-            self.music_publisher.publish(self.song)
+            self.music_publisher.publish(self.song2)
         self.delay_counter -= 1
 
 def main():

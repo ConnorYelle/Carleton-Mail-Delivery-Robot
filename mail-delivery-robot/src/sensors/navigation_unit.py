@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from tools.nav_parser import loadConnections
-from src.tools.map import Map
+from tools.map import Map
 
 class NavigationUnit(Node):
     '''
@@ -47,6 +47,8 @@ class NavigationUnit(Node):
         self.uturn_msg.data = 'U_TURN'
         self.dock_msg = String()
         self.dock_msg.data = 'DOCK'
+        self.undock_msg = String()
+        self.undock_msg.data = 'UNDOCK'
         self.no_msg = String()
         self.no_msg.data = 'NONE'
     
@@ -57,6 +59,8 @@ class NavigationUnit(Node):
         '''
         self.prev_beacon = data.data.split(':')[0]
         self.current_destination = data.data.split(':')[1]
+
+        self.navigation_publisher.publish(self.undock_msg)
     
     def beacon_data_callback(self, data):
         '''

@@ -1,93 +1,121 @@
 from std_msgs.msg import String
 import rclpy
 from rclpy.node import Node
+from bluepy.btle import Scanner, DefaultDelegate
 
 from tools.csv_parser import loadBeacons, loadConfig
 
-class BeaconSensor(Node):
+class ScanDelegate(DefaultDelegate):
     '''
-    Node in charge of listening to beacon data published to /rf_signal
-    in the format "Beacon=<mac>;SignalStrength=<rssi>"
-    
-    @Subscribers:
-    - Subscribes to /rf_signal for simulated RSSI readings.
-
-    @Publishers:
-    - Publishes to /beacon_data with processed beacon data.
+    A default delegate for the scanner class.
+    This enables handleNotification and handleDiscovery debugging logs
     '''
     def __init__(self):
+        DefaultDelegate.__init__(self)
+
+class BeaconSensor(Node):
+    '''
+    The Node in charge of listening to beacons.
+
+    @Subscribers:
+    - Uses the Scanner to scan for Bluetooth devices.
+
+    @Publishers:
+    - Publishes to /beacon_data with new beacon data.
+    '''
+    def __init__(self):
+        '''
+        The constructor for the node.
+        Defines the necessary publishers and subscribers.
+        '''
         super().__init__('beacon_sensor')
         
         self.initBeacons()
+
+        # Load the global config.
         self.config = loadConfig()
 
+        # The publishers for the node.
         self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
-        self.subscriber_ = self.create_subscription(String, '/rf_signal', self.rf_callback, 10)
+
+        # The subscribers for the node.
+        self.scanner = Scanner().withDelegate(ScanDelegate()) # Create Scanner Class
+
+        # Timer set up.
+        self.timer = self.create_timer(self.config["BEACON_SCAN_TIMER"], self.checkForBeacons) # call checkForBeacons() every 0.5 seconds
 
         self.scan_counter = 0
         self.scan = dict()
 
     def initBeacons(self):
         '''
-        Initializes known beacon MAC-to-location mappings.
+        Initializes all the beacons and their values.
         '''
         self.beacons = loadBeacons()
 
-    def rf_callback(self, msg: String):
+    def checkForBeacons(self):
         '''
-        Callback for /rf_signal topic.
-        Parses RSSI values from simulated beacon publisher.
+        The callback for the timer.
+        Performs a scan for the available Bluetooth devices.
         '''
+        devices = self.scanner.scan(self.config["BEACON_SCAN_DURATION"]) # Listen for ADV_IND packages.
+        beaconData = String()
+
         self.scan_counter += 1
 
-        try:
-            data = msg.data.strip()
-            parts = dict(pair.split('=') for pair in data.split(';'))
-            mac = parts["Beacon"].replace('_', ':')
-            rssi = float(parts["SignalStrength"])
+        # For each scanned device check if device address matches beacon in list
+        for dev in devices:
+            for beacon in self.beacons.keys():
+                if(beacon  == dev.addr):
+                    # Log successful device detection and signal strength
+                    #self.get_logger().info("Device {} ({}), RSSI={} dB".format(dev.addr, dev.addrType, dev.rssi))
 
-            if mac in self.beacons:
-                key = self.beacons[mac]
-                beacon_rssi = abs(int(rssi))
+                    # Publishes the observed beacon only if it is within the RSSI range.
+                    beacon_rssi = abs(int(dev.rssi))
+                    if beacon_rssi < abs(self.config["BEACON_RSSI_THRESHOLD"]):
+                        key = self.beacons[beacon]
+                        if key in self.scan:
+                            self.scan[key] = self.scan[key] + [beacon_rssi]
+                        else:
+                            self.scan[key] = [beacon_rssi]
 
-                if beacon_rssi < abs(self.config["BEACON_RSSI_THRESHOLD"]):
-                    if key in self.scan:
-                        self.scan[key].append(beacon_rssi)
-                    else:
-                        self.scan[key] = [beacon_rssi]
-        except Exception as e:
-            self.get_logger().warn(f"Failed to parse /rf_signal message: {msg.data} ({e})")
+                    break
 
+        #self.get_logger().info(str(self.scan))
         if self.scan_counter >= self.config["BEACON_SCAN_COUNT"]:
-            self.publish_strongest_beacon()
+            best_beacon = ""
+            best_rssi = 100
+            for beacon in self.scan.keys():
+                beacon_scan = self.scan[beacon]
+               
+                # Not enough data
+                if len(beacon_scan) < 2:
+                    continue
 
-    def publish_strongest_beacon(self):
-        '''
-        Publishes the most relevant beacon based on recent scans.
-        '''
-        best_beacon = ""
-        best_rssi = 100
-        for beacon, readings in self.scan.items():
-            if len(readings) < 2:
-                continue
-            if readings[-1] > readings[-2]:
-                continue
-            if readings[-1] < best_rssi:
-                best_beacon = beacon
-                best_rssi = readings[-1]
+                # We are getting away from this beacon.
+                if beacon_scan[-1] > beacon_scan[-2]:
+                    continue
 
-        if best_beacon:
-            msg = String()
-            msg.data = f"{best_beacon},{best_rssi}"
-            self.publisher_.publish(msg)
-
-        self.scan = dict()
-        self.scan_counter = 0
+                # Finds the strongest beacon.
+                if beacon_scan[-1] < best_rssi:
+                    best_beacon = beacon
+                    best_rssi = beacon_scan[-1]
+            
+            if best_beacon != "":
+                beaconData.data = best_beacon + "," + str(best_rssi) 
+                #self.get_logger().info(beaconData.data)
+                self.publisher_.publish(beaconData)
+            
+                self.scan = dict()
+                self.scan_counter = 0
 
 def main():
+    '''
+    Starts up the node. 
+    '''
     rclpy.init()
-    node = BeaconSensor()
-    rclpy.spin(node)
-
+    beacon_sensor = BeaconSensor()
+    rclpy.spin(beacon_sensor)
+    
 if __name__ == '__main__':
     main()

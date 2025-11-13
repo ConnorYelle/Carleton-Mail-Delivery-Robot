@@ -13,10 +13,11 @@ class IntersectionDetectionUnit(Node):
 
     @Subscribers:
     - Subscribes to /camera_data for information about intersection markers.
-    - Subscribes to /lidar_data for information about nearby walls
+    - Subscribes to /lidar_data for information about nearby walls.
+    - Subscribes to /odom for information about the robot's current position.
 
     @Publishers:
-    - Publishes intersection detection data to /intersection_detection
+    - Publishes intersection detection data to /intersection_detection.
     '''
     def __init__(self):
         '''

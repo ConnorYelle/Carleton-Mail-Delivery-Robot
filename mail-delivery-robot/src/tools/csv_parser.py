@@ -5,6 +5,7 @@ import sys
 CONFIG_DIR = sys.path[0] + "/config/"
 BEACONS_FILE = "beacons.csv"
 CONFIG_FILE = "config.csv"
+BATTERY_CONFIG_FILE = "battery_config.csv" 
 
 def parseCSVFile(filename, parse_numbers = False):
     '''
@@ -32,3 +33,9 @@ def loadConfig():
     Loads the global config from the config file.
     '''
     return parseCSVFile(CONFIG_FILE, True)
+
+def loadBatteryDockMapping():  
+    '''
+    Loads the battery dock mapping from the battery_config file.
+    '''
+    return parseCSVFile(BATTERY_CONFIG_FILE)
