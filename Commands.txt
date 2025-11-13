@@ -1,0 +1,14 @@
+OS: Ubuntu 24.04 LTS
+ROS 2: Jazzy
+Gazebo Sim: Version 8.9.0
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws
+git clone https://github.com/ConnorYelle/Carleton-Mail-Delivery-Robot
+mv ~/Capstone/Carleton-Mail-Delivery-Robot/external_files/dashboard.py ~/
+mkdir -p ~/.gazebo/worlds
+mkdir -p ~/.gazebo/models
+mv ~/Capstone/Carleton-Mail-Delivery-Robot/external_files/demo_video.world ~/.gazebo/worlds/
+mv ~/Capstone/Carleton-Mail-Delivery-Robot/external_files/d*_*/ ~/.gazebo/models/
+mv ~/Capstone/Carleton-Mail-Delivery-Robot/external_files/intersection_marker ~/.gazebo/models/
+cd ~/testing_ws
+colcon build --symlink-install
