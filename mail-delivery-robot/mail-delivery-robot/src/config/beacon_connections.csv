@@ -1,0 +1,16 @@
+﻿,Loeb,Southam,TunnelJunction,Library,Azrieli/Tory,Steacie,Richcraft,UC,Canal,Nicol,Mackenzie/Minto,Frontenac,ResComms,CTTC,Robertson
+Loeb,0,1,-,-,-,2,-,-,-,-,-,-,-,-,-
+Southam,3,0,1,-,-,-,-,-,-,-,-,-,-,-,-
+TunnelJunction,-,4,0,1,3,-,-,-,-,-,-,-,-,-,-
+Library,-,-,3,0,2,-,-,-,-,-,-,-,-,-,-
+Azrieli/Tory,-,-,3,4,0,-,-,1,-,-,-,-,-,-,-
+Steacie,4,-,-,-,-,0,3,1,-,-,-,-,-,-,-
+Richcraft,-,-,-,-,-,1,0,-,-,-,-,-,-,-,-
+UC,-,-,-,-,4,3,-,0,1,-,-,-,-,-,-
+Canal,-,-,-,-,-,-,-,4,0,2,-,-,-,-,-
+Nicol,-,-,-,-,-,-,-,-,4,0,1,,-,2,-
+Mackenzie/Minto,-,-,-,-,-,-,-,-,-,3,0,1,-,-,-
+Frontenac,-,-,-,-,-,-,-,-,-,-,3,0,1,-,-
+ResComms,-,-,-,-,-,-,-,-,-,-,-,3,0,-,-
+CTTC,-,-,-,-,-,-,-,-,-,-,-,-,-,0,3
+Robertson,-,-,-,-,-,-,-,-,-,-,-,-,-,1,0
