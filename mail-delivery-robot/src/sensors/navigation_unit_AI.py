@@ -22,13 +22,15 @@ class NavigationUnit_AI(Node):
         '''
         super().__init__('navigation_unit')
 
-        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
-        self.beacon_data_sub = self.create_subscription(String, 'beacon_data', self.beacon_data_callback, 10)
+        self.destinations_sub = self.create_subscription(String, '/destinations', self.destinations_callback, 10)
+        self.beacon_data_sub = self.create_subscription(String, '/beacon_data', self.beacon_data_callback, 10)
 
-        self.navigation_publisher = self.create_publisher(String, 'navigation', 10)
+        self.navigation_publisher = self.create_publisher(String, '/navigation', 10)
         self.navigation_timer = self.create_timer(1, self.update_navigation)
 
         self.beacon_connections = loadConnections()
+        self.get_logger().info(f"Beacon_Connections: {self.beacon_connections}")
+
         self.map = Map()
 
         self.current_destination = None
@@ -85,6 +87,7 @@ class NavigationUnit_AI(Node):
             self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
             self.can_send_direction = True
         self.prev_beacon = self.current_beacon
+        self.get_logger().info(f"Current beacon: {self.current_beacon}")
 
     def update_navigation(self):
         '''
@@ -107,11 +110,13 @@ class NavigationUnit_AI(Node):
                 case 'NAV_DOCK':
                     self.navigation_publisher.publish(self.dock_msg)
                 case _:
+                    #ollama fallback
                     #error
+                    
                     self.navigation_publisher.publish(self.no_msg)
                     
-
-            
+    def query_ollama():
+        prompt = ""
 
 def main():
     rclpy.init()

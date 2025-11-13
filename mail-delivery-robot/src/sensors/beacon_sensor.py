@@ -17,12 +17,11 @@ class BeaconSensor(Node):
     '''
     def __init__(self):
         super().__init__('beacon_sensor')
-        
         self.initBeacons()
         self.config = loadConfig()
 
-        self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
-        self.subscriber_ = self.create_subscription(String, '/rf_signal', self.rf_callback, 10)
+        self.publisher_ = self.create_publisher(String, '/beacon_data', 10)
+        self.subscriber_ = self.create_subscription(String, 'rf_signal', self.rf_callback, 10)
 
         self.scan_counter = 0
         self.scan = dict()
@@ -39,7 +38,7 @@ class BeaconSensor(Node):
         Parses RSSI values from simulated beacon publisher.
         '''
         self.scan_counter += 1
-
+        self.get_logger().debug(f"Processing /rf_signal message: {msg}")
         try:
             data = msg.data.strip()
             parts = dict(pair.split('=') for pair in data.split(';'))
@@ -77,8 +76,10 @@ class BeaconSensor(Node):
                 best_rssi = readings[-1]
 
         if best_beacon:
+            self.get_logger().info(f"Strongest beacon detected: {best_beacon} with RSSI {best_rssi}")
             msg = String()
             msg.data = f"{best_beacon},{best_rssi}"
+            self.get_logger().info(f"Publishing strongest beacon: {msg.data}")
             self.publisher_.publish(msg)
 
         self.scan = dict()
