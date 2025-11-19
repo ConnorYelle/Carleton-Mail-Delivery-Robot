@@ -13,7 +13,7 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='lidar_sensor', name='lidar_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='beacon_sensor', name='beacon_sensor', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='navigation_unit', name='navigation_unit', parameters=sim_time),
+        Node(package='mail-delivery-robot', executable='navigation_unit_AI', name='navigation_unit_AI', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='avoidance_layer', name='avoidance_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),

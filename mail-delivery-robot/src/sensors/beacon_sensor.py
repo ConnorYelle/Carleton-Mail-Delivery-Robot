@@ -1,9 +1,11 @@
 from std_msgs.msg import String
 import rclpy
+from collections import deque
+import statistics
 from rclpy.node import Node
 
 from tools.csv_parser import loadBeacons, loadConfig
-
+#beacon sensor node
 class BeaconSensor(Node):
     '''
     Node in charge of listening to beacon data published to /rf_signal
@@ -17,12 +19,15 @@ class BeaconSensor(Node):
     '''
     def __init__(self):
         super().__init__('beacon_sensor')
-        
         self.initBeacons()
         self.config = loadConfig()
-
-        self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
-        self.subscriber_ = self.create_subscription(String, '/rf_signal', self.rf_callback, 10)
+        self.MAX_HISTORY = 5                # how many past readings to keep per beacon
+        self.MIN_READINGS_TO_PUBLISH = 1    # require at least this many readings per beacon to consider it
+        # ensure self.scan is a dict mapping beacon -> deque
+        self.scan = {}                      # will hold beacon -> deque(maxlen=self.MAX_HISTORY)
+        self.scan_counter = 0
+        self.publisher_ = self.create_publisher(String, '/beacon_data', 10)
+        self.subscriber_ = self.create_subscription(String, 'rf_signal', self.rf_callback, 10)
 
         self.scan_counter = 0
         self.scan = dict()
@@ -34,12 +39,12 @@ class BeaconSensor(Node):
         self.beacons = loadBeacons()
 
     def rf_callback(self, msg: String):
+        #works
         '''
         Callback for /rf_signal topic.
         Parses RSSI values from simulated beacon publisher.
         '''
         self.scan_counter += 1
-
         try:
             data = msg.data.strip()
             parts = dict(pair.split('=') for pair in data.split(';'))
@@ -60,30 +65,45 @@ class BeaconSensor(Node):
 
         if self.scan_counter >= self.config["BEACON_SCAN_COUNT"]:
             self.publish_strongest_beacon()
-
     def publish_strongest_beacon(self):
-        '''
-        Publishes the most relevant beacon based on recent scans.
-        '''
-        best_beacon = ""
-        best_rssi = 100
-        for beacon, readings in self.scan.items():
-            if len(readings) < 2:
+        """
+        Publish the strongest/most relevant beacon using a short history per beacon.
+        Uses median of recent RSSI readings (smaller = better). Publishes the beacon with
+        the lowest median RSSI. Keeps history across scans (with max length).
+        """
+        if not self.scan:
+            # nothing to do
+            return
+
+        best_beacon = None
+        best_score = None  # lower is better (assuming smaller RSSI value = stronger)
+
+        for beacon, readings in list(self.scan.items()):
+            if not isinstance(readings, deque):
+                readings = deque(readings, maxlen=self.MAX_HISTORY)
+                self.scan[beacon] = readings
+
+            if len(readings) < self.MIN_READINGS_TO_PUBLISH:
+                self.get_logger().debug(f"Skipping {beacon}: only {len(readings)} reading(s)")
                 continue
-            if readings[-1] > readings[-2]:
+
+            try:
+                median_rssi = int(statistics.median(readings))
+            except Exception as e:
+                self.get_logger().warn(f"Failed to compute median for {beacon}: {e}")
                 continue
-            if readings[-1] < best_rssi:
+
+            if best_score is None or median_rssi < best_score:
+                best_score = median_rssi
                 best_beacon = beacon
-                best_rssi = readings[-1]
 
-        if best_beacon:
+        if best_beacon is not None:
             msg = String()
-            msg.data = f"{best_beacon},{best_rssi}"
+            msg.data = f"{best_beacon},{best_score}"
+            #self.get_logger().info(f"Publishing beacon data: {msg.data}")
             self.publisher_.publish(msg)
-
-        self.scan = dict()
-        self.scan_counter = 0
-
+        else:
+            self.get_logger().debug("No beacon qualified to publish this cycle")
 def main():
     rclpy.init()
     node = BeaconSensor()

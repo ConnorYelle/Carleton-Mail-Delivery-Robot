@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from src.sensors.bumper_sensor import Bump_Event
+from sensors.bumper_sensor import Bump_Event
 from enum import Enum
 from tools.csv_parser import loadConfig
 

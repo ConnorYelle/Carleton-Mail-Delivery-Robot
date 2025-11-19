@@ -42,7 +42,7 @@ class DockingLayer(Node):
             depth=10
         ))
         
-        self.action_publisher = self.create_publisher(String, 'actions', 10)
+        self.action_publisher = self.create_publisher(String, 'actions', 10,)
 
         self.no_msg = String()
         self.no_msg.data = '1:NONE'
@@ -51,7 +51,7 @@ class DockingLayer(Node):
         self.undock_msg = String()
         self.undock_msg.data = '1:UNDOCK'
 
-        self.timer = self.create_timer(0.2, self.update_actions)
+        self.timer = self.create_timer(0.1, self.update_actions)
 
         self.action_publisher.publish(self.no_msg)
 
@@ -75,6 +75,8 @@ class DockingLayer(Node):
         The timer callback. Updates the internal state of this node and sends
         updates to /actions when necessary
         '''
+        #this is to test if the layer is working
+        #self.get_logger().info(f"Docking Layer State: {self.state}, Last Nav Msg: {self.last_navigation_message}, Dock Visible: {self.dock_visible}, Is Docked: {self.is_docked}")
         if self.state == DockingLayerStates.NO_DEST and self.last_navigation_message != 'NONE':
             self.state = DockingLayerStates.HAS_DEST
             if self.is_docked:
@@ -82,6 +84,7 @@ class DockingLayer(Node):
         elif self.state == DockingLayerStates.HAS_DEST and self.last_navigation_message == 'DOCK':
             if self.dock_visible:
                 self.action_publisher.publish(self.dock_msg)
+                
             elif self.is_docked:
                 self.state = DockingLayerStates.NO_DEST
             else:
