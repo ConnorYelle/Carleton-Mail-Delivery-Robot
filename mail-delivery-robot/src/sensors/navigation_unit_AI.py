@@ -104,7 +104,7 @@ class NavigationUnit_AI(Node):
         if not self.can_send_direction:
             return
         
-        #self.can_send_direction = False
+        self.can_send_direction = False
 
         try:
 

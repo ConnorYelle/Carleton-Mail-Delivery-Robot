@@ -51,12 +51,14 @@ class NavigationUnit(Node):
         self.no_msg.data = 'NONE'
     
     def destinations_callback(self, data):
+        #works
         '''
         The callback for /destinations.
         Reads the robot's current destination when one is published.
         '''
         self.prev_beacon = data.data.split(':')[0]
         self.current_destination = data.data.split(':')[1]
+
     
     def beacon_data_callback(self, data):
         '''
@@ -64,14 +66,17 @@ class NavigationUnit(Node):
         Reads information about nearby beacons.
         '''
         # No trip was defined
+        #self.get_logger().info(f"Beacon Data Received: {data.data}")
+        #self.get_logger().info(f"Current Destination: {self.current_destination}, Previous Beacon: {self.prev_beacon}")
         if self.current_destination is None or self.prev_beacon is None:
             return
-
+        
         beacon_orientation = "0"
 
         self.current_beacon = data.data.split(',')[0]
 
         if self.current_beacon == self.prev_beacon:
+            #self.get_logger().info("============Same beacon as before, no movement detected.=============")
             return
         else:
             beacon_orientation = self.beacon_connections[self.current_beacon][self.prev_beacon]
@@ -82,7 +87,9 @@ class NavigationUnit(Node):
                     if self.map.exists(self.current_beacon + str(i)):
                         beacon_orientation = str(i)
                         break
+            #self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
             self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
+            self.get_logger().info(f"Determined Direction: {self.direction}")
             self.can_send_direction = True
         self.prev_beacon = self.current_beacon
 
@@ -91,6 +98,8 @@ class NavigationUnit(Node):
         The timer callback. Sends updates to /navigation when necessary.
         '''
         #wait for things to be initialized
+        #this is broken
+        #self.get_logger().info(f"Current Direction: {self.direction}, Can Send: {self.can_send_direction}")
         if self.direction is not None and self.can_send_direction:
             #don't send the message more than once
             self.can_send_direction = False

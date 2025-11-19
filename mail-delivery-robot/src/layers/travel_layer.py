@@ -43,6 +43,8 @@ class TravelLayer(Node):
         # Subscribe to lidar data (from the lidar sensor node).
         self.lidar_data_sub = self.create_subscription(String, 'lidar_data', self.lidar_data_callback, 10)
         self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
+        self.navigation_sub = self.create_subscription(String, 'navigation', self.navigation_callback, 10)
+
         self.dock_status_sub = self.create_subscription(DockStatus, 'dock_status', self.dock_status_callback, qos_profile=QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             depth=10
@@ -72,7 +74,7 @@ class TravelLayer(Node):
         Expected format from lidar sensor: "feedback:angle:right:left:front"
         '''
         try:
-            parts = data.data.split(":")
+            parts = data.data.split(":")            
             if len(parts) != 5:
                 self.get_logger().warning("Lidar data format incorrect")
                 return
@@ -96,6 +98,7 @@ class TravelLayer(Node):
         try:
             # Assume destination is the part after the colon.
             self.current_destination = data.data.split(":")[1]
+            self.get_logger().info(f"Updated destination to: {self.current_destination}")
         except Exception as e:
             self.get_logger().error(f"Error parsing destination: {e}")
             self.current_destination = 'NONE'
@@ -107,6 +110,12 @@ class TravelLayer(Node):
         '''
         self.was_docked = self.is_docked
         self.is_docked = data.is_docked
+
+    def navigation_callback(self, msg: String):
+        if msg.data == 'DOCK':
+            dock_msg = String()
+            dock_msg.data = '3:DOCK'  
+            self.action_publisher.publish(dock_msg)
 
     def compute_wall_follow(self):
         '''
