@@ -1,0 +1,35 @@
+name: ROS 2 CI (Humble)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+name: Checkout repository
+    uses: actions/checkout@v4
+
+    
+name: Setup ROS 2 Humble
+    uses: ros-tooling/setup-ros@v0.7
+    with:
+      required-ros-distributions: humble
+
+    
+name: Install dependencies
+    run: |
+      sudo apt update
+      rosdep update --rosdistro humble
+      rosdep install --from-paths . --ignore-src -r -y
+
+    
+name: Build workspace
+    uses: ros-tooling/action-ros-ci@v0.3
+    with:
+      target-ros2-distro: humble
+      package-name: "."
