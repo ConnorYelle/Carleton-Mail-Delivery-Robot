@@ -21,7 +21,7 @@ class ReportGenerator(Node):
         self.create_subscription(BatteryState, '/battery_state', self.battery_callback, qos_profile)
 
         # Jinja2 setup
-        self.template_dir = "/home/capstone2526/cmdr_ws/src/carleton-mail-delivery-robot"
+        self.template_dir = "/home/capstone2526/cmdr_ws/src/Carleton-Mail-Delivery-Robot"
         self.env = Environment(loader=FileSystemLoader(self.template_dir))
         self.template = self.env.get_template("template.html")
 
@@ -38,7 +38,7 @@ class ReportGenerator(Node):
         html_content = self.template.render(battery_level=self.battery_level, 
                                             voltage_level=self.voltage_level, 
                                             temperature_level=self.temperature_level)
-        output_path = "/home/capstone2526/robot_report.html"
+        output_path = "/home/capstone2526/cmdr_ws/src/Carleton-Mail-Delivery-Robot/robot_report.html"
         with open(output_path, "w") as f:
             f.write(html_content)
 
