@@ -1,7 +1,7 @@
 import os
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import rclpy
 from rclpy.node import Node
@@ -25,6 +25,7 @@ class GeneralLogger(Node):
 
         # Start of trip
         self.trip_start_time = time.perf_counter()
+        self.trip_start_timestamp = datetime.now()
 
         # Record battery at start
         self.battery_start = self.get_battery_data()["level"]
@@ -95,6 +96,15 @@ class GeneralLogger(Node):
 
         self.get_logger().info("DOCKED detected → ending trip…")
 
+        # Trip end
+        self.trip_end_timestamp = datetime.now()
+
+        # Delivery time in seconds
+        delivery_time_sec = time.perf_counter() - self.trip_start_time
+
+        # Convert seconds to HH:MM:SS
+        delivery_time_str = str(timedelta(seconds=int(delivery_time_sec)))
+
         # Battery at end
         battery = self.get_battery_data()
         self.battery_end = battery["level"]
@@ -139,7 +149,7 @@ class GeneralLogger(Node):
 
 
     # Function to generate HTML report
-    def generate_html_report(self, battery, wall_time, delivery_time):
+    def generate_html_report(self, battery, wall_time, delivery_time, delivery_time_str):
         template_dir = os.path.dirname(os.path.realpath(__file__))
         env = Environment(loader=FileSystemLoader(template_dir))
         template = env.get_template("template.html")
@@ -149,10 +159,12 @@ class GeneralLogger(Node):
             voltage_level=battery["voltage"],
             temperature_level=battery["temperature"],
             wall_follow_time=wall_time,
-            delivery_time=delivery_time,
+            delivery_time=delivery_time_str,
             battery_start=self.battery_start,
             battery_end=self.battery_end,
-            battery_used=self.battery_used
+            battery_used=self.battery_used,
+            trip_start_time=self.trip_start_timestamp,
+            trip_end_time=self.trip_end_timestamp
         )
 
         html_path = os.path.join(self.log_dir, "robot_report.html")

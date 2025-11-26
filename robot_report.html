@@ -53,6 +53,24 @@
 
     <div class="metric-grid">
 
+         <!-- Start Time -->
+        <div class="card">
+            <div class="metric-title">Trip Start</div>
+            <div class="metric-value">{{ trip_start_time }}</div>
+        </div>
+
+        <!-- End Time -->
+        <div class="card">
+            <div class="metric-title">Trip End</div>
+            <div class="metric-value">{{ trip_end_time }}</div>
+        </div>
+
+        <!-- Trip Duration -->
+        <div class="card">
+            <div class="metric-title">Trip Duration</div>
+            <div class="metric-value">{{ delivery_time }}</div>
+        </div>
+
         <!-- Current Battery -->
         <div class="card">
             <div class="metric-title">Current Battery Level</div>
@@ -100,6 +118,7 @@
             <div class="metric-title">Battery Used During Trip</div>
             <div class="metric-value highlight">{{ battery_used | round(1) }}%</div>
         </div>
+
 
     </div>
 
