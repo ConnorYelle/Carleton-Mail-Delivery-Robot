@@ -1,128 +1,103 @@
 import os
-import threading
-from datetime import datetime
 import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
-from sensors.lidar_sensor import LidarSensor
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
-from sensor_msgs.msg import BatteryState
-from jinja2 import Environment, FileSystemLoader
-import re
 import time
+from datetime import datetime, timedelta
+from rclpy.node import Node
+from sensor_msgs.msg import BatteryState
+from std_msgs.msg import String
 
-class Logger(Node):
-    """
-    Logger node that logs messages from multiple topics into a .txt file, 
-    and tracks how long the robot is wall-following.
-    To run: ros2 run mail-delivery-robot logger
 
-    """
-
+UPDATE_ACTIONS_INTERVAL = 0.2 #this is the amount of time between each actions update
 
 class GeneralLogger(Node):
     def __init__(self):
         super().__init__('general_logger')
 
-        start_time = self.start_timer()
-
-        self.declare_parameter('log_dir', './tools/logs')
-        self.log_dir = self.get_parameter('log_dir').value
+        #Logs directory in src
+        self.log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "logs")
         os.makedirs(self.log_dir, exist_ok=True)
 
-        self.log_path = os.path.join(self.log_dir, "robot_log_wallFollowing.txt")
-        self.wall_log_file = open(self.log_path, "a")
-        self.write_log("SYSTEM", f"Logging all data to {self.log_path}", wall_log_file)
+        #Time log
+        self.time_log_path = os.path.join(self.log_dir, "robot_log_time.txt")
+        with open(self.time_log_path, 'w') as file:
+            file.truncate(0)
+        self.time_log_file = open(self.time_log_path, "a")
 
-        self.log_path = os.path.join(self.log_dir, "robot_log_tripTime.txt")
-        self.delivery_log_file = open(self.log_path, "a")
-        self.end_timer(start_time)
-        self.write_log("SYSTEM", f"Logging all data to {self.log_path}", delivery_log_file)
+        #Battery log
+        self.battery_log_path = os.path.join(self.log_dir, "robot_log_battery.txt")
+        with open(self.battery_log_path, 'w') as file:
+            file.truncate(0)    
+        self.battery_log_file = open(self.battery_log_path, "a")
 
-        self.generate_report()
+        #Wall-follow log
+        self.wall_log_path = os.path.join(self.log_dir, "robot_log_wallFollowing.txt")
+        with open(self.wall_log_path, 'w') as file:
+            file.truncate(0)  # reset file
+        self.wall_log_file = open(self.wall_log_path, "a")
 
-    def start_timer():
-        time.perf_counter()
+        self.get_logger().info(f"Logging battery to {self.battery_log_path}")
+        self.get_logger().info(f"Logging wall-follow to {self.wall_log_path}")
+
+        # Subscribe to battery updates
+        self.create_subscription(BatteryState, '/battery_state', self.battery_callback, 10)
+        self.create_subscription(String, '/actions', self.log_wall_follow_callback, 10)
+
+        #start the timer for metric collection
+        self.start_time = self.start_timer()
+        self.trip_start_timestamp = datetime.now()
+
+        #variable for storing the amount of time spent wall following
+        self.wall_following_time = 0.0
+
+
+    def start_timer(self):
+        start_time = time.perf_counter()
+        return start_time
+
+    def end_timer(self):
+        end_time = time.perf_counter()  
+        return end_time
+
+    def battery_callback(self, msg):
+        self.battery_log_file.write(
+            f"[BATTERY] Percentage: {msg.percentage*100:.1f}%, "
+            f"Voltage: {msg.voltage:.2f}V, Temp: {msg.temperature:.1f}C\n"
+        )
+        self.battery_log_file.flush()
+
+    def log_wall_follow_callback(self, action):
+        if "WALL_FOLLOW" in action.data:
+            self.wall_log_file.write(action.data + "\n")
+            self.wall_following_time += UPDATE_ACTIONS_INTERVAL
+        self.wall_log_file.flush()
+
     
-    def end_timer(start_time):
-        end_time = time.perf_counter()
-        elapsed_time = end_time - start_time
 
-    def write_log(self, source, message, file):
-        self.file.write(f"[{source}] {message}\n")
-        self.file.flush()
+    def destroy_node_and_log_time(self):
 
-    def generate_report(self):
-        battery_data = {}
-
-        def battery_callback(msg):
-            battery_data['level'] = msg.percentage * 100
-            battery_data['temperature'] = msg.temperature
-
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            depth=1
-        )
-
-        sub = self.create_subscription(BatteryState, '/battery_state', battery_callback, qos_profile)
-
-        start_time = self.get_clock().now()
-        timeout_sec = 2.0
-        while 'level' not in battery_data:
-            rclpy.spin_once(self, timeout_sec=0.1)
-            elapsed = (self.get_clock().now() - start_time).nanoseconds / 1e9
-            if elapsed > timeout_sec:
-                self.get_logger().warn("No battery message received, using default values.")
-                battery_data = {'level': 0.0, 'voltage': 0.0, 'temperature': 0.0}
-                break
-
-        self.destroy_subscription(sub)
-
-        battery_level = battery_data['level']
-        temperature_level = battery_data['temperature']
-
-        wall_follow_time = "N/A"
-        if os.path.exists(self.log_path):
-            with open(self.log_path, "r") as f:
-                lines = f.readlines()
-            for line in reversed(lines):
-                match = re.search(r"Total wall-following time:\s*([\d.]+)s", line)
-                if match:
-                    wall_follow_time = f"{match.group(1)} s"
-                    break
-
-       
-        template_dir = os.path.dirname(os.path.realpath(__file__))
-        env = Environment(loader=FileSystemLoader(template_dir))
-        try:
-            template = env.get_template("template.html")
-        except Exception as e:
-            self.get_logger().error(f"template.html not found in {template_dir}: {e}")
-            return
-
-        html_content = template.render(
-            battery_level=battery_level,
-            voltage_level=voltage_level,
-            temperature_level=temperature_level,
-            wall_follow_time=wall_follow_time
-            delivery_time=delivery_time
-        )
-
-        output_path = os.path.join(self.log_dir, "robot_report.html")
-        with open(output_path, "w") as f:
-            f.write(html_content)
-
-        self.get_logger().info(f"Report generated at {output_path}!")
-
-        open(self.log_path, 'w').close()
-        self.get_logger().info(f"Cleared wall-following log: {self.log_path}")
-
+        end_time = self.end_timer()
+        trip_end_timestamp = datetime.now()
+        elapsed_time = end_time - self.start_time
+        self.time_log_file.write("Total Elapsed Time: "+str(elapsed_time)+"\n")
+        self.time_log_file.write("Total Wall Following Time: "+str(self.wall_following_time)+"\n")
+        self.time_log_file.write("Trip Start Timestamp: "+self.trip_start_timestamp.strftime("%Y-%m-%d %H:%M:%S")+"\n")
+        self.time_log_file.write("Trip End Timestamp: "+trip_end_timestamp.strftime("%Y-%m-%d %H:%M:%S")+"\n")
+        self.time_log_file.flush()
+        self.time_log_file.close()
+        self.battery_log_file.close()
+        self.wall_log_file.close()
+        super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
     node = GeneralLogger()
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node_and_log_time()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":
