@@ -3,11 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <title>Robot Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .metric-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .metric-value {
+            font-size: 1.4em;
+            margin-top: 5px;
+            color: #222;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #0077cc;
+        }
+    </style>
 </head>
 <body>
-    <h1>Robot Dashboard</h1>
-    <p>Battery: 64.99999761581421%</p>
-    <p>Voltage: 15.425999641418457</p>
-    <p>Temperature: 36.75 degrees</p>
+
+    <h1>Robot Delivery Report</h1>
+
+    <div class="metric-grid">
+
+         <!-- Start Time -->
+        <div class="card">
+            <div class="metric-title">Trip Start</div>
+            <div class="metric-value">{{ trip_start_time }}</div>
+        </div>
+
+        <!-- End Time -->
+        <div class="card">
+            <div class="metric-title">Trip End</div>
+            <div class="metric-value">{{ trip_end_time }}</div>
+        </div>
+
+        <!-- Trip Duration -->
+        <div class="card">
+            <div class="metric-title">Trip Duration</div>
+            <div class="metric-value">{{ delivery_time }}</div>
+        </div>
+
+        <!-- Current Battery -->
+        <div class="card">
+            <div class="metric-title">Current Battery Level</div>
+            <div class="metric-value">{{ battery_level | round(1) }}%</div>
+        </div>
+
+        <!-- Voltage -->
+        <div class="card">
+            <div class="metric-title">Voltage</div>
+            <div class="metric-value">{{ voltage_level | round(2) }} V</div>
+        </div>
+
+        <!-- Temperature -->
+        <div class="card">
+            <div class="metric-title">Temperature</div>
+            <div class="metric-value">{{ temperature_level | round(1) }} °C</div>
+        </div>
+
+        <!-- Wall-follow Time -->
+        <div class="card">
+            <div class="metric-title">Wall-following Time</div>
+            <div class="metric-value">{{ wall_follow_time }}</div>
+        </div>
+
+        <!-- Delivery Time -->
+        <div class="card">
+            <div class="metric-title">Total Delivery Time</div>
+            <div class="metric-value">{{ delivery_time | round(1) }} s</div>
+        </div>
+
+        <!-- Battery Start -->
+        <div class="card">
+            <div class="metric-title">Battery at Start</div>
+            <div class="metric-value">{{ battery_start | round(1) }}%</div>
+        </div>
+
+        <!-- Battery End -->
+        <div class="card">
+            <div class="metric-title">Battery at Docking</div>
+            <div class="metric-value">{{ battery_end | round(1) }}%</div>
+        </div>
+
+        <!-- Battery Used -->
+        <div class="card">
+            <div class="metric-title">Battery Used During Trip</div>
+            <div class="metric-value highlight">{{ battery_used | round(1) }}%</div>
+        </div>
+
+
+    </div>
+
 </body>
 </html>
