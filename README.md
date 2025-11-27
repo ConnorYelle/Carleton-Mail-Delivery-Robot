@@ -39,4 +39,4 @@ This is a continuation project which builds on the work of past teams. You can f
 
 # Link To Dashboard
 
-https://connoryelle.github.io/Carleton-Mail-Delivery-Robot/robot_report.html
+[https://connoryelle.github.io/Carleton-Mail-Delivery-Robot/robot_report.html](https://github.com/ConnorYelle/Carleton-Mail-Delivery-Robot/tree/main/mail-delivery-robot/src/tools)
