@@ -4,6 +4,8 @@ import re
 from datetime import datetime, timedelta
 
 import rclpy
+import time
+from datetime import datetime, timedelta
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 
@@ -13,6 +15,7 @@ from irobot_create_msgs.msg import DockStatus
 
 from jinja2 import Environment, FileSystemLoader
 
+UPDATE_ACTIONS_INTERVAL = 0.2 #this is the amount of time between each actions update
 
 class GeneralLogger(Node):
     def __init__(self):

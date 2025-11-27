@@ -91,12 +91,20 @@ def main(args=None):
     rclpy.init(args=args)
     node = ReportGenerator()
 
+    # If --once is passed, generate immediately and quit
+    import sys
+    if "--once" in sys.argv:
+        node.generate_report()
+        node.destroy_node()
+        rclpy.shutdown()
+        return
+
+    # Otherwise spin as usual
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         node.get_logger().info("Generating final report...")
 
-    # Generate the report once at shutdown
     node.generate_report()
     node.destroy_node()
     rclpy.shutdown()
