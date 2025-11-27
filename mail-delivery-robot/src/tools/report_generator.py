@@ -106,7 +106,8 @@ class ReportGenerator:
             trip_end_timestamp=trip_end_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         )
 
-        output_path = os.path.join(self.src_dir, "robot_report.html")
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        output_path = os.path.join(repo_root, "robot_report.html")
         with open(output_path, 'w') as f:
             f.write(html_content)
         print(f"Report generated at {output_path}!")

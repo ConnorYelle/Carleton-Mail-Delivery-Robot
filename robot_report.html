@@ -56,71 +56,54 @@
          <!-- Start Time -->
         <div class="card">
             <div class="metric-title">Trip Start</div>
-            <div class="metric-value">{{ trip_start_time }}</div>
+            <div class="metric-value">2025-11-27 14:03:01</div>
         </div>
 
         <!-- End Time -->
         <div class="card">
             <div class="metric-title">Trip End</div>
-            <div class="metric-value">{{ trip_end_time }}</div>
+            <div class="metric-value">2025-11-27 14:05:12</div>
         </div>
 
         <!-- Trip Duration -->
         <div class="card">
             <div class="metric-title">Trip Duration</div>
-            <div class="metric-value">{{ delivery_time }}</div>
+            <div class="metric-value"> 131.46 seconds</div>
         </div>
 
         <!-- Current Battery -->
         <div class="card">
             <div class="metric-title">Current Battery Level</div>
-            <div class="metric-value">{{ battery_level | round(1) }}%</div>
+            <div class="metric-value"> 97.90%</div>
         </div>
 
         <!-- Voltage -->
         <div class="card">
             <div class="metric-title">Voltage</div>
-            <div class="metric-value">{{ voltage_level | round(2) }} V</div>
+            <div class="metric-value"> 16.37 V</div>
         </div>
 
         <!-- Temperature -->
         <div class="card">
             <div class="metric-title">Temperature</div>
-            <div class="metric-value">{{ temperature_level | round(1) }} °C</div>
+            <div class="metric-value"> 27.00 °C</div>
         </div>
 
         <!-- Wall-follow Time -->
         <div class="card">
             <div class="metric-title">Wall-following Time</div>
-            <div class="metric-value">{{ wall_follow_time }}</div>
+            <div class="metric-value"> 64.20 seconds</div>
         </div>
-
-        <!-- Delivery Time -->
+        
         <div class="card">
-            <div class="metric-title">Total Delivery Time</div>
-            <div class="metric-value">{{ delivery_time | round(1) }} s</div>
+            <div class="metric-title">Average Wall Distance</div>
+            <div class="metric-value">0.34 meters</div>
         </div>
-
-        <!-- Battery Start -->
-        <div class="card">
-            <div class="metric-title">Battery at Start</div>
-            <div class="metric-value">{{ battery_start | round(1) }}%</div>
-        </div>
-
-        <!-- Battery End -->
-        <div class="card">
-            <div class="metric-title">Battery at Docking</div>
-            <div class="metric-value">{{ battery_end | round(1) }}%</div>
-        </div>
-
         <!-- Battery Used -->
         <div class="card">
             <div class="metric-title">Battery Used During Trip</div>
-            <div class="metric-value highlight">{{ battery_used | round(1) }}%</div>
+            <div class="metric-value highlight"> 1.10%</div>
         </div>
-
-
     </div>
-
 </body>
 </html>
