@@ -6,6 +6,7 @@ import re
 class ReportGenerator:
     def __init__(self):
         self.src_dir = os.path.dirname(os.path.realpath(__file__))
+        self.root_dir = os.path.dirname(os.path.join(self.src_dir,"..","..","..", ".."))
         self.log_dir = os.path.join(self.src_dir, "logs")
 
         self.battery_log_path = os.path.join(self.log_dir, "robot_log_battery.txt")
@@ -106,7 +107,7 @@ class ReportGenerator:
             trip_end_timestamp=trip_end_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         )
 
-        output_path = os.path.join(self.src_dir, "robot_report.html")
+        output_path = os.path.join(self.root_dir, "robot_report.html")
         with open(output_path, 'w') as f:
             f.write(html_content)
         print(f"Report generated at {output_path}!")
