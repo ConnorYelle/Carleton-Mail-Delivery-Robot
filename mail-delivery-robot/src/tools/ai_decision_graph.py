@@ -6,7 +6,7 @@ class NavState(dict):
     destination: str
     direction: str | None
 
-def build_nav_graph():
+def build_nav_graph(node):
 
     #llm = Ollama(model="qwen2.5:0.5b", temperature=0.1)
 
@@ -23,12 +23,23 @@ def build_nav_graph():
         - NAV_DOCK
         Provide only one of these directions as the output.
         """
+        node.get_logger().info(f"Prompt to LLM: {prompt}")
 
-        response = ollama.run(mode = "qwen2.5:0.5b",prompt = prompt)
+        response = ollama.generate(
+            model="gemma2:2b-instruct-q4_0",
+            prompt=prompt
+        )
 
-        state["direction"] = response.strip().split()[0]
+        node.get_logger().info(f"Raw LLM Response: {response}")
 
+        # Extract only the first token-like output, in case model returns explanation
+        result = response["response"].strip().split()[0]
+
+        node.get_logger().info(f"LLM Response: {result}")
+
+        state["direction"] = result
         return state
+
     
     graph.add_node("Decide Direction", decide_direction)
     graph.set_entry_point("Decide Direction")
