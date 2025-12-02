@@ -54,10 +54,9 @@ def make_mock_scan():
 
 
 #test to verify that LidarSensor initializes correctly
-def test_lidar_sensor_initialization(rclpy_init_shutdown):
-    #instead of loading actual config file, we patch the loadConfig function to return our mock_config
-    with patch("sensors.lidar_sensor.loadConfig", return_value=MOCK_CONFIG):
-        node = lidar_sensor.LidarSensor()
+def test_lidar_sensor_initialization(rclpy_init_shutdown, lidar_node):
+
+    node = lidar_node
 
     assert node is not None
 
@@ -93,7 +92,6 @@ def test_calculate_function(lidar_node):
 
     #angle should be within valid range
     assert -90 <= angle <= 90
-
 
 #test to verify that scan_callback is sending messages correctly
 def test_scan_callback_publish(lidar_node):
