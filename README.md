@@ -4,7 +4,7 @@ This is the Gazebo environment setup for the Carleton Mail Delivery Robot 2024-2
 
 The objective of this project is to create a fully autonomous robot which is capable of delivering mail between buildings on the Carleton University campus by traveling through the tunnels. The robot relies on Bluetooth beacons placed at the intersections of the tunnel system for navigation, while it relies on data from a LiDAR sensor and a camera to maneuver through intersections, around obstacles, and to perform wall following while traveling towards its destination.
 
-
+![Tests](https://img.shields.io/github/actions/workflow/status/ConnorYelle/Carleton-Mail-Delivery-Robot/unit-tests.yml?label=Unit%20Tests)
 
 ## Team Members:
 
