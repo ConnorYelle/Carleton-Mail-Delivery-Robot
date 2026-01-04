@@ -1,0 +1,16 @@
+services:
+  ros_robot:
+    build: .
+    image: carleton_mail_robot:latest
+    container_name: mail_robot_sim
+    environment:
+      - DISPLAY=${DISPLAY}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - PULSE_SERVER=${PULSE_SERVER}
+    volumes:
+      - .:/ros2_ws/src/carleton_mail_robot
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /mnt/wslg:/mnt/wslg
+    network_mode: host
+    privileged: true

@@ -34,7 +34,7 @@ sleep 2
 
 echo "===== Sourcing ROS2 workspace ====="
 source /opt/ros/humble/setup.bash
-source ~/testing_ws/install/setup.bash
+source /ros2_ws/install/setup.bash
 
 echo "===== Launching Create3 Gazebo Simulation ====="
 
