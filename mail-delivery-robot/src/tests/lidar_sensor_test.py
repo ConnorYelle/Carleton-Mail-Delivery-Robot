@@ -125,6 +125,7 @@ def test_calculate_returns_negative_until_stack_full(lidar_node):
         result = node.calculate(scan)
         assert result == (-1, -1, -1, -1, -1)
 
+#test to check if the calculate function correctly ignores infinite ranges
 def test_calculate_ignores_infinite_ranges(lidar_node):
     node = lidar_node
     scan = make_mock_scan()
@@ -142,4 +143,22 @@ def test_calculate_ignores_infinite_ranges(lidar_node):
     # Ensure that infinite ranges did not affect the results
     assert left == -1 
     assert right == -1 
+    assert front == -1
+
+def test_lost_wall_front_distance_threshold(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    # Fill the distance stacks to avoid early return (-1 values)
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        node.calculate(scan)
+
+    # Modify scan to simulate lost wall in front
+    for i in range(175, 185):
+        scan.ranges[i] = MOCK_CONFIG["LARGE_DEFAULT_DISTANCE"] + 1  # No wall in front
+
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"] + 1):
+        feedback, angle, right, left, front = node.calculate(scan)
+
+    # Front distance should exceed the lost wall threshold
     assert front == -1
