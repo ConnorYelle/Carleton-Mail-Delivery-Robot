@@ -124,3 +124,22 @@ def test_calculate_returns_negative_until_stack_full(lidar_node):
     for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
         result = node.calculate(scan)
         assert result == (-1, -1, -1, -1, -1)
+
+def test_calculate_ignores_infinite_ranges(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    # Set some ranges to infinity
+    scan.ranges = [math.inf] * 360
+
+    # Fill the distance stacks to avoid early return (-1 values)
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        node.calculate(scan)
+
+    # Call calculate once more to get real distances
+    feedback, angle, right, left, front = node.calculate(scan)
+
+    # Ensure that infinite ranges did not affect the results
+    assert left == -1 
+    assert right == -1 
+    assert front == -1
