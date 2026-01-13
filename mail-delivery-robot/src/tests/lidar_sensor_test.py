@@ -164,6 +164,7 @@ def test_lost_wall_right_distance_threshold(lidar_node):
     # Front distance should exceed the lost wall threshold
     assert right == -1
 
+#test to verify that lost wall detection works correctly for right distance with high standard deviation
 def test_lost_wall_right_high_stdev(lidar_node):
     node = lidar_node
     scan = make_mock_scan()
@@ -178,3 +179,15 @@ def test_lost_wall_right_high_stdev(lidar_node):
         feedback, angle, right, left, front = node.calculate(scan)
     
     assert right == -1
+
+#test to verify that distance stacks do not grow beyond configured length
+def test_distance_stack_does_not_grow_unbounded(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"] + 5):
+        node.calculate(scan)
+
+    assert len(node.left_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]
+    assert len(node.right_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]
+    assert len(node.front_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]
