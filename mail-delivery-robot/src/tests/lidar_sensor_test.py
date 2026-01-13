@@ -115,4 +115,6 @@ def test_scan_callback_publish(lidar_node):
     feedback, angle, right, left, front = fields
     assert len(fields) == 5
 
-    
+
+
+#object in front of sensor should not change the left and right distances
