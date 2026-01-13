@@ -115,6 +115,12 @@ def test_scan_callback_publish(lidar_node):
     feedback, angle, right, left, front = fields
     assert len(fields) == 5
 
+#test to verify that calculate returns -1 distances until stacks are full
+def test_calculate_returns_negative_until_stack_full(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
 
-
-#object in front of sensor should not change the left and right distances
+    # Fill the stacks to the required length
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        result = node.calculate(scan)
+        assert result == (-1, -1, -1, -1, -1)
