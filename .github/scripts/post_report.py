@@ -1,17 +1,16 @@
 import os
 import pandas as pd
+import json
 from github import Github
 
 GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 GITHUB_EVENT_PATH = os.environ.get("GITHUB_EVENT_PATH")
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
-# Folder containing your run logs
 LOG_DIR = "src/tools/logs/runs"
 EXEMPT_KEYS = ["temperature_level", "voltage_level"]
 METRIC_RULES = { "delivery_time": "lower", "battery_used": "lower" }
 
-# Load all runs
 runs = []
 for file in sorted(os.listdir(LOG_DIR)):
     if file.endswith(".txt"):
@@ -23,20 +22,15 @@ for file in sorted(os.listdir(LOG_DIR)):
                     data[k.strip()] = float(v) if v.strip().replace(".","",1).isdigit() else v.strip()
             data["run"] = file
             parts = file.split("_")
-            if len(parts) > 1:
-                data["date"] = parts[1]
-            else:
-                data["date"] = "unknown"
+            data["date"] = parts[1] if len(parts) > 1 else "unknown"
             runs.append(data)
 
 if not runs:
-    print("No runs found, skipping comment.")
     exit(0)
 
 df = pd.DataFrame(runs)
 metrics = [c for c in df.columns if c not in EXEMPT_KEYS + ["run", "trip_start_time", "trip_end_time", "battery_start", "battery_end", "date"]]
 
-import json
 with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
 
@@ -44,8 +38,7 @@ target_date = None
 if "pull_request" in event:
     target_date = event["pull_request"]["created_at"][:10].replace("-", "")
 elif "commits" in event:
-    commit_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
-    target_date = commit_date
+    target_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
 
 if target_date in df["date"].values:
     latest = df[df["date"] == target_date].iloc[-1]
@@ -62,9 +55,9 @@ for m in metrics:
     avg_val = avg[m]
     rule = METRIC_RULES.get(m, "higher")
     if rule == "higher":
-        status = "Improved" if val > avg_val else "Worst" if val < avg_val else "Same"
+        status = "Improved" if val > avg_val else "Worse" if val < avg_val else "Same"
     else:
-        status = "Improved" if val < avg_val else "Worst" if val > avg_val else "Same"
+        status = "Improved" if val < avg_val else "Worse" if val > avg_val else "Same"
     comparison.append({"metric": m, "value": val, "avg": avg_val, "status": status})
 
 md = f"## Robot Metrics Report - Run Date: {report_date}\n\n"
@@ -73,18 +66,14 @@ md += "|--------|-------------|---------|--------|\n"
 for c in comparison:
     md += f"| {c['metric']} | {c['value']:.2f} | {c['avg']:.2f} | {c['status']} |\n"
 
-# Optional summary line
-good_count = sum(1 for c in comparison if c['status'] == 'Improved')
-bad_count = sum(1 for c in comparison if c['status'] == 'Worst')
-same_count = sum(1 for c in comparison if c['status'] == 'Stayed The Same')
-md = f"**Summary:** {good_count} improved , {bad_count} worse , {same_count} same ️\n\n" + md
-
-from github import Github
+improved_count = sum(1 for c in comparison if c['status'] == 'Improved')
+worse_count = sum(1 for c in comparison if c['status'] == 'Worse')
+same_count = sum(1 for c in comparison if c['status'] == 'Same')
+md = f"**Summary:** {improved_count} improved, {worse_count} worse, {same_count} same\n\n" + md
 
 g = Github(GITHUB_TOKEN)
 repo = g.get_repo(GITHUB_REPOSITORY)
 
-# Detect PR number
 pr_number = None
 if "pull_request" in event:
     pr_number = event["pull_request"]["number"]
@@ -95,7 +84,15 @@ elif "ref" in event and event["ref"].startswith("refs/heads/"):
 
 if pr_number:
     pr = repo.get_pull(pr_number)
-    pr.create_issue_comment(md)
-    print(f"Posted metrics comment to PR #{pr_number}")
-else:
-    print("No PR found, skipping comment.")
+    marker = "<!-- ROBOT_METRICS_COMMENT -->"
+    existing_comments = pr.get_issue_comments()
+    metrics_comment = None
+    for c in existing_comments:
+        if marker in c.body:
+            metrics_comment = c
+            break
+    md_with_marker = f"{marker}\n\n{md}"
+    if metrics_comment:
+        metrics_comment.edit(md_with_marker)
+    else:
+        pr.create_issue_comment(md_with_marker)
