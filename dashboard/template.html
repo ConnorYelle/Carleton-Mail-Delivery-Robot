@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robot Dashboard - {{BRANCH}}</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #121212; color: #ffffff; }
+        h1, h2, h3 { margin-bottom: 15px; }
+        button { margin: 5px; padding: 6px 12px; border-radius: 4px; border: 1px solid #888; background-color: #1f1f1f; color: #fff; cursor: pointer; }
+        button:hover { background-color: #333; }
+        #cards, #average-cards, #latest-cards, #day-cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .card { border: 1px solid #444; border-radius: 8px; padding: 10px; width: 170px; background-color: #1f1f1f; }
+        .good { color: #00e676; }
+        .bad { color: #ff5252; }
+        .legend { margin-top: 10px; }
+        .legend span { margin-right: 20px; }
+        #graphs { display: flex; flex-direction: column; gap: 20px; }
+        .graph { width: 100%; height: 300px; }
+        a { color: #ffffff; text-decoration: underline; }
+        a:hover { color: #bbbbbb; }
+        .page { display: none; }
+    </style>
+</head>
+<body>
+
+<h1>Robot Dashboard Report</h1>
+
+<p>
+<strong>Repository:</strong> {{REPO}}<br>
+<strong>Branch:</strong> {{BRANCH}}<br>
+<strong>Commit:</strong>
+<a href="https://github.com/{{REPO}}/commit/{{SHA}}" target="_blank">{{SHA}}</a><br>
+<strong>Triggered by:</strong> {{ACTOR}}<br>
+<strong>Generated:</strong> {{TIME}}
+</p>
+
+<div id="home-page" class="page">
+    <h3>Average of Each Metric</h3>
+    <div id="average-cards"></div>
+
+    <h3>Latest Iteration Information</h3>
+    <div class="legend">
+        <span class="good">Green: Metric Improved With Update</span>
+        <span class="bad">Red: Metric Got Worse With Update</span>
+    </div>
+    <div id="latest-info">
+      <strong>Latest commits:</strong><br>
+      {{COMMITS}}
+      <br><br>
+      <strong>Latest PRs:</strong><br>
+      {{PRS}}
+    </div>
+    <div id="latest-cards"></div>
+
+    <h3>Data On Our Runs Grouped By Day</h3>
+    <div id="run-list"></div>
+</div>
+
+<div id="graphs-page" class="page">
+    <h2>Graphs</h2>
+    <div id="graphs"></div>
+</div>
+
+<div id="day-page" class="page">
+    <h2 id="day-title">Day Runs</h2>
+    <div id="day-cards"></div>
+    <h3>Commits & PRs</h3>
+    <div id="day-commits-prs"></div>
+</div>
+
+<script>
+const OWNER = "tphang46";
+const REPO = "Carleton-Mail-Delivery-Robot";
+const COMMITS_OWNER = "ConnorYelle";
+const COMMITS_REPO = "Carleton-Mail-Delivery-Robot";
+const EXEMPT_KEYS = ["temperature_level", "voltage_level"];
+const metricRules = { "delivery_time": "lower", "battery_used": "lower" };
+let BRANCH;
+let allRunsData = [], metricsKeys = [], dayRunsData = [];
+const colors = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd'];
+
+function getBranchFromURL() {
+    const p = new URLSearchParams(window.location.search);
+    return p.get("branch");
+}
+
+async function fetchRepoInfo() {
+    return await (await fetch(`https://api.github.com/repos/${COMMITS_OWNER}/${COMMITS_REPO}`)).json();
+}
+
+async function fetchLatestCommit(branch) {
+    const c = await (await fetch(
+        `https://api.github.com/repos/${COMMITS_OWNER}/${COMMITS_REPO}/commits?sha=${branch}&per_page=1`
+    )).json();
+    return c[0];
+}
+
+async function fetchLatestPR(branch) {
+    const r = await (await fetch(
+        `https://api.github.com/search/issues?q=repo:${COMMITS_OWNER}/${COMMITS_REPO}+type:pr+is:merged+base:${branch}&sort=updated&order=desc&per_page=1`
+    )).json();
+    return r.items?.[0];
+}
+
+async function fetchRunFiles() {
+    const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/src/tools/logs/runs?ref=${BRANCH}`
+    );
+    const files = await res.json();
+    return files.filter(f => f.name.endsWith(".txt"));
+}
+
+async function fetchRunFileContent(url) { return (await fetch(url)).text(); }
+
+function parseRunText(text) {
+    const d = {};
+    text.split("\n").forEach(l => {
+        if (l.includes("=")) {
+            const [k, v] = l.split("=");
+            d[k.trim()] = isNaN(v) ? v.trim() : parseFloat(v);
+        }
+    });
+    return d;
+}
+
+function extractRunDate(filename) { return filename.split("_")[1]; }
+
+function calculateAverages(runs, keys) {
+    const avg = {};
+    keys.forEach(k => {
+        let s = 0, c = 0;
+        runs.forEach(r => typeof r[k] === "number" && (s += r[k], c++));
+        if (c) avg[k] = s / c;
+    });
+    return avg;
+}
+
+function getMetricClass(metric, value, avgValue) {
+    if (EXEMPT_KEYS.includes(metric)) return "";
+    const r = metricRules[metric] || "higher";
+    if (r === "higher") return value > avgValue ? "good" : value < avgValue ? "bad" : "";
+    if (r === "lower") return value < avgValue ? "good" : value > avgValue ? "bad" : "";
+    return "";
+}
+
+async function buildRunList() {
+    const repoInfo = await fetchRepoInfo();
+    BRANCH = getBranchFromURL() || repoInfo.default_branch;
+
+    document.getElementById("dashboard-title").textContent = `Dashboard for ${BRANCH}`;
+
+    const latestCommit = await fetchLatestCommit(BRANCH);
+    const latestPR = await fetchLatestPR(BRANCH);
+
+    document.getElementById("branch-info").innerHTML =
+        `<strong>Latest Commit:</strong><br>
+         <a target="_blank" href="${latestCommit.html_url}">${latestCommit.commit.message}</a><br><br>
+         <strong>Latest Merged PR:</strong><br>` +
+        (latestPR
+            ? `<a target="_blank" href="https://github.com/${COMMITS_OWNER}/${COMMITS_REPO}/pull/${latestPR.number}">#${latestPR.number} ${latestPR.title}</a>`
+            : `None`);
+
+    const files = await fetchRunFiles();
+    const byDate = {};
+    files.forEach(f => {
+        const d = extractRunDate(f.name);
+        byDate[d] ??= [];
+        byDate[d].push(f);
+    });
+
+    const list = document.getElementById("run-list");
+    list.innerHTML = "";
+
+    Object.keys(byDate).forEach(d => {
+        const b = document.createElement("button");
+        b.textContent = `${d} (${byDate[d].length} runs)`;
+        b.onclick = async () => {
+            dayRunsData = [];
+            for (const f of byDate[d]) {
+                const t = await fetchRunFileContent(f.download_url);
+                const m = parseRunText(t);
+                m.run = f.name;
+                dayRunsData.push(m);
+            }
+            metricsKeys = Object.keys(dayRunsData[0]).filter(k => !["run","trip_start_time","trip_end_time","battery_start","battery_end"].includes(k));
+            const [commits, prs] = await Promise.all([
+                fetchLatestCommit(BRANCH),
+                fetchLatestPR(BRANCH)
+            ]);
+            document.getElementById("home-page").style.display = "none";
+            document.getElementById("graphs-page").style.display = "none";
+            document.getElementById("day-page").style.display = "block";
+            document.getElementById("back-btn").style.display = "inline";
+            document.getElementById("day-commits-prs").innerHTML =
+                `<strong>Latest Commit:</strong><br>
+                 <a target="_blank" href="${commits.html_url}">${commits.commit.message}</a><br><br>
+                 <strong>Latest PR:</strong><br>` +
+                (prs
+                    ? `<a target="_blank" href="https://github.com/${COMMITS_OWNER}/${COMMITS_REPO}/pull/${prs.number}">#${prs.number} ${prs.title}</a>`
+                    : `None`);
+            document.getElementById("day-title").textContent = `Runs for ${d}`;
+            const cards = document.getElementById("day-cards");
+            cards.innerHTML = "";
+            dayRunsData.forEach(run => {
+                const c = document.createElement("div");
+                c.className = "card";
+                let html = `<strong>${run.run}</strong><br>`;
+                Object.keys(run).forEach(k => {
+                    if (!["run","trip_start_time","trip_end_time","battery_start","battery_end"].includes(k))
+                        html += `${k}: ${run[k]}<br>`;
+                });
+                c.innerHTML = html;
+                cards.appendChild(c);
+            });
+        };
+        list.appendChild(b);
+    });
+
+    document.getElementById("home-btn").onclick = () => location.reload();
+}
+
+buildRunList();
+</script>
+</body>
+</html>
