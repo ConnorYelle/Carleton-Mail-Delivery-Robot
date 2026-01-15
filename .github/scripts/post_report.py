@@ -11,6 +11,7 @@ LOG_DIR = "tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
 METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "lower"}
 EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
+IN_DE_METRICS = ["lidar_front_avg","wall_distance_avg"]
 
 runs = []
 for file in sorted(os.listdir(LOG_DIR)):
@@ -65,7 +66,7 @@ md_header = f"**Commit:** `{commit_hash}`\n\n"
 if is_fallback:
     md_header += "**NO TEST RUNS TODAY. SHOWING LATEST DATA.**\n\n"
 
-summary_counts = {"Improved": 0, "Worse": 0, "Same": 0}
+summary_counts = {"Improved": 0, "Worse": 0, "Same": 0, "Increased": 0, "Decreased": 0}
 temp_body = f"## Robot Metrics Report: {report_date}\n\n"
 
 for _, run in day_runs.iterrows():
@@ -77,18 +78,26 @@ for _, run in day_runs.iterrows():
         if pd.isna(val):
             continue
         avg_val = avg[m]
-        rule = METRIC_RULES.get(m, "higher")
-        if abs(val - avg_val) < 0.001:
-            status = "Same"
-        elif (rule == "lower" and val < avg_val) or (rule == "higher" and val > avg_val):
-            status = "Improved"
+        if m in IN_DE_METRICS:
+            if abs(val-avg_val) < 0.001:
+                status = "Same"
+            elif val > avg_val:
+                status = "Increased"
+            else:
+                status = "Decreased"
         else:
-            status = "Worse"
-        summary_counts[status] += 1
+            rule = METRIC_RULES.get(m, "higher")
+            if abs(val - avg_val) < 0.001:
+                status = "Same"
+            elif (rule == "lower" and val < avg_val) or (rule == "higher" and val > avg_val):
+                status = "Improved"
+            else:
+                status = "Worse"
+        summary_counts[status] = summary_counts.get(status, 0) + 1
         temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
     temp_body += "\n"
 
-summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same\n\n"
+summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same, {summary_counts['Increased']} Increased, {summary_counts['Decreased']} Decreased\n\n"
 full_md = md_header + summary_line + temp_body
 
 g = Github(GITHUB_TOKEN)
