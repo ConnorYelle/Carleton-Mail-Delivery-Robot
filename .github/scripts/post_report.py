@@ -76,6 +76,52 @@ else:
     report_date = day_runs.iloc[0]["date"]
     is_fallback = True
 
+g = Github(GITHUB_TOKEN)
+repo = g.get_repo(GITHUB_REPOSITORY)
+commit = repo.get_commit(commit_sha)
+prs = commit.get_pulls()
+pr_number = None
+for pr in prs:
+    if pr.state == "open":
+        pr_number = pr.number
+        break
+
+if not pr_number:
+    exit(0)
+
+pr = repo.get_pull(pr_number)
+
+commits = list(pr.get_commits())
+prev_commit_sha = None
+for i, c in enumerate(commits):
+    if c.sha == commit_sha and i > 0:
+        prev_commit_sha = commits[i-1].sha
+        break
+
+prev_metrics = {}
+if prev_commit_sha:
+    prev_commit = repo.get_commit(prev_commit_sha)
+    prev_runs = [r for r in runs if prev_commit_sha[:7] in r["run"]]
+    if prev_runs:
+        prev_df = pd.DataFrame(prev_runs)
+        prev_metrics = prev_df[metrics].iloc[0].to_dict()
+
+current_metrics = day_runs[metrics].iloc[0].to_dict()
+all_same = True
+for m in metrics:
+    val_current = current_metrics.get(m)
+    val_prev = prev_metrics.get(m)
+    if pd.isna(val_current) and pd.isna(val_prev):
+        continue
+    if val_current != val_prev:
+        all_same = False
+        break
+
+if all_same and prev_commit_sha:
+    body = f"No metric changes compared to previous commit `{prev_commit_sha[:7]}`."
+    pr.create_issue_comment(body)
+    exit(0)
+
 md_header = "**NO TEST RUNS TODAY. SHOWING LATEST DATA.**\n\n" if is_fallback else ""
 summary_counts = {"Improved": 0, "Worse": 0, "Same": 0}
 
@@ -105,20 +151,4 @@ for _, run in day_runs.iterrows():
 
 body += f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same\n"
 
-if not (GITHUB_TOKEN and GITHUB_REPOSITORY):
-    exit(0)
-
-g = Github(GITHUB_TOKEN)
-repo = g.get_repo(GITHUB_REPOSITORY)
-
-pr_number = None
-if "pull_request" in event:
-    pr_number = event["pull_request"]["number"]
-elif "ref" in event and event["ref"].startswith("refs/heads/"):
-    branch = event["ref"].split("/")[-1]
-    prs = repo.get_pulls(state="open", head=f"{repo.owner.login}:{branch}")
-    pr_number = prs[0].number if prs.totalCount > 0 else None
-
-if pr_number:
-    pr = repo.get_pull(pr_number)
-    pr.create_issue_comment(body)
+pr.create_issue_comment(body)
