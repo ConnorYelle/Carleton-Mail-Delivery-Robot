@@ -10,7 +10,6 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 LOG_DIR = "RobotDashboard/mail-delivery-robot/tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
 METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "lower"}
-MARKER = "<!-- ROBOT_METRICS_REPORT -->"
 
 if not os.path.isdir(LOG_DIR):
     exit(0)
@@ -49,6 +48,19 @@ if GITHUB_EVENT_PATH and os.path.isfile(GITHUB_EVENT_PATH):
     with open(GITHUB_EVENT_PATH) as f:
         event = json.load(f)
 
+commit_sha = None
+if "pull_request" in event:
+    commit_sha = event["pull_request"]["head"]["sha"]
+elif "after" in event:
+    commit_sha = event["after"]
+elif "commits" in event and event["commits"]:
+    commit_sha = event["commits"][-1]["id"]
+
+if not commit_sha:
+    exit(0)
+
+short_sha = commit_sha[:7]
+
 target_date = None
 if "pull_request" in event:
     target_date = event["pull_request"]["created_at"][:10].replace("-", "")
@@ -66,12 +78,15 @@ else:
 
 md_header = "**NO TEST RUNS TODAY. SHOWING LATEST DATA.**\n\n" if is_fallback else ""
 summary_counts = {"Improved": 0, "Worse": 0, "Same": 0}
-temp_body = f"## Robot Metrics Report: {report_date}\n\n"
+
+body = f"## Robot Metrics Report\n\n**Commit:** `{short_sha}`\n\n"
+body += md_header
+body += f"**Report Date:** {report_date}\n\n"
 
 for _, run in day_runs.iterrows():
-    temp_body += f"### Run: {run['run']}\n"
-    temp_body += "| Metric | Value | Average | Status |\n"
-    temp_body += "|--------|-------|--------|--------|\n"
+    body += f"### Run: {run['run']}\n"
+    body += "| Metric | Value | Average | Status |\n"
+    body += "|--------|-------|--------|--------|\n"
     for m in metrics:
         val = run.get(m)
         if pd.isna(val):
@@ -85,11 +100,10 @@ for _, run in day_runs.iterrows():
         else:
             status = "Worse"
         summary_counts[status] += 1
-        temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
-    temp_body += "\n"
+        body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
+    body += "\n"
 
-summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same\n\n"
-full_md = MARKER + "\n" + md_header + summary_line + temp_body
+body += f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same\n"
 
 if not (GITHUB_TOKEN and GITHUB_REPOSITORY):
     exit(0)
@@ -106,4 +120,5 @@ elif "ref" in event and event["ref"].startswith("refs/heads/"):
     pr_number = prs[0].number if prs.totalCount > 0 else None
 
 if pr_number:
-    pr = rep
+    pr = repo.get_pull(pr_number)
+    pr.create_issue_comment(body)
