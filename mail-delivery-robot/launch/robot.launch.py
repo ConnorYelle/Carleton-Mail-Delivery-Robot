@@ -20,6 +20,7 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='travel_layer', name='travel_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
+        Node(package='mail-delivery-robot', executable='dashboard_logger', name='dashboard_logger', parameters=sim_time),
 
         # Optional: Metric Analyzer Node
         Node(

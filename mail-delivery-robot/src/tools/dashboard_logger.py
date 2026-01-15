@@ -120,7 +120,10 @@ class LidarDistanceMetric(Metric):
 
 class FileLogger:
     def __init__(self, log_dir):
-        self.log_dir = log_dir
+        self.log_dir = os.path.abspath(log_dir)
+        #self.declare_parameter('log_dir', './tools/logs')
+        #self.log_dir = os.path.abspath(self.get_parameter('log_dir').value)
+        os.makedirs(self.log_dir, exist_ok=True)
         self.runs_dir = os.path.join(self.log_dir, "runs")
         os.makedirs(self.runs_dir, exist_ok=True)
         self.wall_log_path = os.path.join(self.log_dir, "robot_log_wallFollowing.txt")
