@@ -5,11 +5,10 @@ from datetime import datetime
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
-from sensor_msgs.msg import BatteryState
+from sensor_msgs.msg import BatteryState, LaserScan
 from irobot_create_msgs.msg import DockStatus
 import math
 from statistics import mean
-from sensor_msgs.msg import LaserScan
 from tools.csv_parser import loadConfig
 
 class Metric:
@@ -32,11 +31,12 @@ class BatteryMetric(Metric):
         self.start_level = None
         self.end_level = None
         self.used = None
-    def update(self, msg: BatteryState):
+    def update(self, msg):
         self.level = msg.percentage * 100
         self.voltage = msg.voltage
         self.temperature = msg.temperature
-        if self.start_level is None: self.start_level = self.level
+        if self.start_level is None:
+            self.start_level = self.level
     def end(self):
         self.end_level = self.level
         if self.start_level is not None and self.end_level is not None:
@@ -55,14 +55,16 @@ class WallFollowMetric(Metric):
         self.log_path = log_path
         self.wall_time = 0.0
     def end(self):
-        if not os.path.exists(self.log_path): return
+        if not os.path.exists(self.log_path):
+            return
         with open(self.log_path, 'r') as f:
             for line in reversed(f.readlines()):
                 match = re.search(r"Total wall-following time:\s*([\d.]+)s", line)
                 if match:
                     self.wall_time = float(match.group(1))
                     break
-    def serialize(self): return {"wall_follow_time": self.wall_time}
+    def serialize(self):
+        return {"wall_follow_time": self.wall_time}
 
 class DeliveryTimeMetric(Metric):
     def __init__(self):
@@ -87,9 +89,12 @@ class Dock(Metric):
     topic_name = '/dock_status'
     topic_type = DockStatus
     listen_qos = 10
-    def __init__(self): self.docked = False
-    def update(self, msg: DockStatus): self.docked = msg.is_docked
-    def serialize(self): return {"docked": self.docked}
+    def __init__(self):
+        self.docked = False
+    def update(self, msg):
+        self.docked = msg.is_docked
+    def serialize(self):
+        return {"docked": self.docked}
 
 class LidarDistanceMetric(Metric):
     topic_name = "/scan"
@@ -99,20 +104,23 @@ class LidarDistanceMetric(Metric):
         self.config = loadConfig()
         self.front_distances = []
         self.wall_distances = []
-    def update(self, scan: LaserScan):
+    def update(self, scan):
         count = len(scan.ranges)
         min_front = self.config["LARGE_DEFAULT_DISTANCE"]
         min_wall = self.config["LARGE_DEFAULT_DISTANCE"]
         for i in range(count):
             degree = math.degrees(scan.angle_min + scan.angle_increment * i)
             cur = scan.ranges[i]
-            if cur == math.inf or cur <= 0.0: continue
+            if cur == math.inf or cur <= 0.0:
+                continue
             if (degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config["FRONT_MAX_ANGLE"]) and cur < min_front:
                 min_front = cur
-            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"]) and cur < min_wall:
+            if self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"] and cur < min_wall:
                 min_wall = cur
-        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]: self.front_distances.append(min_front)
-        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]: self.wall_distances.append(min_wall)
+        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]:
+            self.front_distances.append(min_front)
+        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]:
+            self.wall_distances.append(min_wall)
     def serialize(self):
         avg_f = round(mean(self.front_distances), 2) if self.front_distances else 0.0
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
@@ -121,8 +129,6 @@ class LidarDistanceMetric(Metric):
 class FileLogger:
     def __init__(self, log_dir):
         self.log_dir = os.path.abspath(log_dir)
-        #self.declare_parameter('log_dir', './tools/logs')
-        #self.log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         os.makedirs(self.log_dir, exist_ok=True)
         self.runs_dir = os.path.join(self.log_dir, "runs")
         os.makedirs(self.runs_dir, exist_ok=True)
@@ -145,8 +151,14 @@ class FileLogger:
 class RobotGeneralLogger(Node):
     def __init__(self):
         super().__init__('dashboard_logger')
-        self.declare_parameter('log_dir', './tools/logs')
-        log_dir = os.path.abspath(self.get_parameter('log_dir').value)
+        base_log_dir = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                '../../tools/logs'
+            )
+        )
+        self.declare_parameter('log_dir', base_log_dir)
+        log_dir = self.get_parameter('log_dir').value
         self.logger = FileLogger(log_dir)
         self.metrics = [
             BatteryMetric(),
@@ -158,8 +170,12 @@ class RobotGeneralLogger(Node):
         for m in self.metrics:
             m.start()
             if m.topic_name:
-                self.create_subscription(m.topic_type, m.topic_name,
-                    lambda msg, metric=m: metric.update(msg), m.listen_qos)
+                self.create_subscription(
+                    m.topic_type,
+                    m.topic_name,
+                    lambda msg, metric=m: metric.update(msg),
+                    m.listen_qos
+                )
         self.should_shutdown = False
     def end_trip(self):
         data = {}
@@ -182,7 +198,7 @@ def main(args=None):
     except KeyboardInterrupt:
         node.end_trip()
     node.destroy_node()
-    rclpy.shAutdown()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main()
