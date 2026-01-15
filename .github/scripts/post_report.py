@@ -9,6 +9,7 @@ GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 LOG_DIR = "mail-delivery-robot/tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
 METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "lower"}
+EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level","temperature_level"]
 
 runs = []
 for file in sorted(os.listdir(LOG_DIR)):
@@ -36,7 +37,7 @@ if not runs:
 
 df = pd.DataFrame(runs)
 numeric_cols = df.select_dtypes(include=['number']).columns
-metrics = [c for c in numeric_cols if c not in METADATA_KEYS]
+metrics = [c for c in numeric_cols if c not in METADATA_KEYS and c not in EXCLUDE_METRICS]
 avg = df[metrics].mean()
 
 with open(GITHUB_EVENT_PATH) as f:
