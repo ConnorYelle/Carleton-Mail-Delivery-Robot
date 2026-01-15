@@ -42,11 +42,13 @@ avg = df[metrics].mean()
 with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
 
-target_date = None
+commit_hash = "Unknown"
 if "pull_request" in event:
     target_date = event["pull_request"]["created_at"][:10].replace("-", "")
+    commit_hash = event["pull_request"]["head"]["sha"][:7]
 elif "commits" in event:
     target_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
+    commit_hash = event.get("after", event["commits"][-1]["id"])[:7]
 
 if target_date in df["date"].values:
     day_runs = df[df["date"] == target_date].copy()
@@ -57,7 +59,10 @@ else:
     report_date = day_runs.iloc[0]["date"]
     is_fallback = True
 
-md_header = "**NO TEST RUNS TODAY. SHOWING LATEST DATA.**\n\n" if is_fallback else ""
+md_header = f"**Commit:** `{commit_hash}`\n\n"
+if is_fallback:
+    md_header += "**NO TEST RUNS TODAY. SHOWING LATEST DATA.**\n\n"
+
 summary_counts = {"Improved": 0, "Worse": 0, "Same": 0}
 temp_body = f"## Robot Metrics Report: {report_date}\n\n"
 
@@ -82,9 +87,11 @@ for _, run in day_runs.iterrows():
 
 summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same\n\n"
 full_md = md_header + summary_line + temp_body
+
 g = Github(GITHUB_TOKEN)
 repo = g.get_repo(GITHUB_REPOSITORY)
 pr_number = None
+
 if "pull_request" in event:
     pr_number = event["pull_request"]["number"]
 elif "ref" in event and event["ref"].startswith("refs/heads/"):
@@ -94,10 +101,4 @@ elif "ref" in event and event["ref"].startswith("refs/heads/"):
 
 if pr_number:
     pr = repo.get_pull(pr_number)
-    marker = ""
-    existing_comments = pr.get_issue_comments()
-    metrics_comment = next((c for c in existing_comments if marker in c.body), None)
-    if metrics_comment:
-        metrics_comment.edit(f"{marker}\n{full_md}")
-    else:
-        pr.create_issue_comment(f"{marker}\n{full_md}")
+    pr.create_issue_comment(full_md)
