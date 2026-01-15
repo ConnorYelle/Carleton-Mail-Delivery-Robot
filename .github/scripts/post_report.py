@@ -1,15 +1,16 @@
 import os
 import pandas as pd
 import json
+import re
 from github import Github
 
 GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 GITHUB_EVENT_PATH = os.environ.get("GITHUB_EVENT_PATH")
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-LOG_DIR = "mail-delivery-robot/tools/logs/runs"
+LOG_DIR = "tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
 METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "lower"}
-EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level","temperature_level"]
+EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
 
 runs = []
 for file in sorted(os.listdir(LOG_DIR)):
@@ -28,15 +29,15 @@ for file in sorted(os.listdir(LOG_DIR)):
                     except ValueError:
                         data[k_s] = v_s
             data["run"] = file
-            parts = file.split("_")
-            data["date"] = parts[1] if len(parts) > 1 else "unknown"
+            match = re.search(r"\d{4}-\d{2}-\d{2}", file)
+            data["date"] = match.group(0).replace("-", "") if match else "unknown"
             runs.append(data)
 
 if not runs:
     exit(0)
 
 df = pd.DataFrame(runs)
-numeric_cols = df.select_dtypes(include=['number']).columns
+numeric_cols = df.select_dtypes(include=["number"]).columns
 metrics = [c for c in numeric_cols if c not in METADATA_KEYS and c not in EXCLUDE_METRICS]
 avg = df[metrics].mean()
 
@@ -73,7 +74,8 @@ for _, run in day_runs.iterrows():
     temp_body += "|--------|-------|--------|--------|\n"
     for m in metrics:
         val = run[m]
-        if pd.isna(val): continue
+        if pd.isna(val):
+            continue
         avg_val = avg[m]
         rule = METRIC_RULES.get(m, "higher")
         if abs(val - avg_val) < 0.001:
