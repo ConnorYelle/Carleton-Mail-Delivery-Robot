@@ -27,6 +27,7 @@ setup(
             'beacon_sensor = sensors.beacon_sensor:main',
             'bumper_sensor = sensors.bumper_sensor:main',
             'lidar_sensor = sensors.lidar_sensor:main',
+            'lidar_sensor_AI = sensors.lidar_sensor_AI:main',
             'avoidance_layer = layers.avoidance_layer:main',
             'docking_layer = layers.docking_layer:main',
             'travel_layer = layers.travel_layer:main',
