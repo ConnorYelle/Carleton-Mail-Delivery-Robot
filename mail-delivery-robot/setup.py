@@ -46,6 +46,7 @@ setup(
 	        'ai_command = control.ai_command:main',
             'report_generator = tools.report_generator:main',
             'nav_parser = tools.nav_parser:main',
+            'dashboard_logger = tools.dashboard_logger:main',
         ],
     },
 )

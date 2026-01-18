@@ -1,0 +1,9 @@
+battery_start=7.000000029802322
+battery_end=5.999999865889549
+battery_used=1.0000001639127731
+delivery_time=159.73
+wall_follow_time=N/A
+voltage_level=13.491999626159668
+temperature_level=29.44999885559082
+trip_start_time=2025-12-05 18:28:52.690128
+trip_end_time=2025-12-05 18:31:32.424982

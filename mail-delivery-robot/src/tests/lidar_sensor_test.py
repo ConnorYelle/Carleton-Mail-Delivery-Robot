@@ -115,4 +115,79 @@ def test_scan_callback_publish(lidar_node):
     feedback, angle, right, left, front = fields
     assert len(fields) == 5
 
+#test to verify that calculate returns -1 distances until stacks are full
+def test_calculate_returns_negative_until_stack_full(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    # Fill the stacks to the required length
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        result = node.calculate(scan)
+        assert result == (-1, -1, -1, -1, -1)
+
+#test to check if the calculate function correctly ignores infinite ranges
+def test_calculate_ignores_infinite_ranges(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    # Set some ranges to infinity
+    scan.ranges = [math.inf] * 360
+
+    # Fill the distance stacks to avoid early return (-1 values)
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        node.calculate(scan)
+
+    # Call calculate once more to get real distances
+    feedback, angle, right, left, front = node.calculate(scan)
+
+    # Ensure that infinite ranges did not affect the results
+    assert left == -1 
+    assert right == -1 
+    assert front == -1
+
+#test to verify that lost wall detection works correctly for right distance
+def test_lost_wall_right_distance_threshold(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    # Fill the distance stacks to avoid early return (-1 values)
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        node.calculate(scan)
+
+    # Modify scan to simulate lost wall on right
+    for i in range(110, 115):
+        scan.ranges[i] = MOCK_CONFIG["LARGE_DEFAULT_DISTANCE"] + 1  # No wall on right
+
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"] + 1):
+        feedback, angle, right, left, front = node.calculate(scan)
+
+    # Front distance should exceed the lost wall threshold
+    assert right == -1
+
+#test to verify that lost wall detection works correctly for right distance with high standard deviation
+def test_lost_wall_right_high_stdev(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    #alternate between near and far
+    distances = [0.5, 6.0]
+
+    for i in range (MOCK_CONFIG["LIDAR_STACK_LENGTH"]):
+        val = distances[i % 2]
+        for j in range(110, 115):
+            scan.ranges[j] = val
+        feedback, angle, right, left, front = node.calculate(scan)
     
+    assert right == -1
+
+#test to verify that distance stacks do not grow beyond configured length
+def test_distance_stack_does_not_grow_unbounded(lidar_node):
+    node = lidar_node
+    scan = make_mock_scan()
+
+    for _ in range(MOCK_CONFIG["LIDAR_STACK_LENGTH"] + 5):
+        node.calculate(scan)
+
+    assert len(node.left_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]
+    assert len(node.right_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]
+    assert len(node.front_distances) == MOCK_CONFIG["LIDAR_STACK_LENGTH"]

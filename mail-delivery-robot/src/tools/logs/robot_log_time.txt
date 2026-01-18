@@ -1,4 +1,4 @@
-Total Elapsed Time: 325.6709440080449
-Total Wall Following Time: 13.599999999999984
-Trip Start Timestamp: 2026-01-14 20:21:00
-Trip End Timestamp: 2026-01-14 20:26:25
+Total Elapsed Time: 213.7735417629592
+Total Wall Following Time: 80.6000000000006
+Trip Start Timestamp: 2026-01-14 21:10:49
+Trip End Timestamp: 2026-01-14 21:14:23
