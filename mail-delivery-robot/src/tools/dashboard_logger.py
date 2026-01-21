@@ -10,6 +10,7 @@ from irobot_create_msgs.msg import DockStatus
 import math
 from statistics import mean
 from tools.csv_parser import loadConfig
+from std_msgs.msg import String
 
 class Metric:
     topic_name = None
@@ -126,6 +127,41 @@ class LidarDistanceMetric(Metric):
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
 
+class LidarAIMetric(Metric):
+    topic_name = "/lidar_data"
+    topic_type = String
+    listen_qos = 10
+
+    def __init__(self):
+        self.front = []
+        self.left = []
+        self.right = []
+        self.wall = []
+
+    def update(self, msg):
+        try:
+            wf, angle, right, left, front = map(float, msg.data.split(":"))
+
+            if front >= 0:
+                self.front.append(front)
+            if left >= 0:
+                self.left.append(left)
+            if right >= 0:
+                self.right.append(right)
+            if wf >= 0:
+                self.wall.append(wf)
+
+        except Exception:
+            pass
+
+    def serialize(self):
+        return {
+            "ai_front_avg": round(mean(self.front), 2) if self.front else 0.0,
+            "ai_left_avg": round(mean(self.left), 2) if self.left else 0.0,
+            "ai_right_avg": round(mean(self.right), 2) if self.right else 0.0,
+            "ai_wall_avg": round(mean(self.wall), 2) if self.wall else 0.0,
+        }
+
 class FileLogger:
     def __init__(self, log_dir):
         self.log_dir = os.path.abspath(log_dir)
@@ -165,6 +201,7 @@ class RobotGeneralLogger(Node):
             WallFollowMetric(self.logger.wall_log_path),
             DeliveryTimeMetric(),
             LidarDistanceMetric(),
+            LidarAIMetric(),
             Dock()
         ]
         for m in self.metrics:
