@@ -138,7 +138,7 @@ class LidarAIFallbackMetric(Metric):
 
         with open(self.fallback_log_path, "r") as f:
             self.fallback_count = sum(
-                1 for line in f if "FALLBACK" in line
+                1 for line in f if "TIMEOUT" in line
             )
 
     def serialize(self):
