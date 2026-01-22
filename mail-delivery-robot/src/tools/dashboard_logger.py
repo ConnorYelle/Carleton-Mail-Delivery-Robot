@@ -126,7 +126,26 @@ class LidarDistanceMetric(Metric):
         avg_f = round(mean(self.front_distances), 2) if self.front_distances else 0.0
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
+    
+class LidarAIFallbackMetric(Metric):
+    def __init__(self, fallback_log_path):
+        self.fallback_log_path = fallback_log_path
+        self.fallback_count = 0
 
+    def end(self):
+        if not os.path.exists(self.fallback_log_path):
+            return
+
+        with open(self.fallback_log_path, "r") as f:
+            self.fallback_count = sum(
+                1 for line in f if "FALLBACK" in line
+            )
+
+    def serialize(self):
+        return {
+            "ai_fallback_count": self.fallback_count
+        }
+        
 class LidarAIMetric(Metric):
     topic_name = "/lidar_data"
     topic_type = String
@@ -183,6 +202,8 @@ class FileLogger:
     def close(self):
         self.wall_log_file.close()
         open(self.wall_log_path, 'w').close()
+        fallback_path = os.path.join(self.log_dir, "ai_fallback_log.txt")
+        open(fallback_path, 'w').close()
 
 class RobotGeneralLogger(Node):
     def __init__(self):
@@ -196,12 +217,14 @@ class RobotGeneralLogger(Node):
         self.declare_parameter('log_dir', base_log_dir)
         log_dir = self.get_parameter('log_dir').value
         self.logger = FileLogger(log_dir)
+        fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
         self.metrics = [
             BatteryMetric(),
             WallFollowMetric(self.logger.wall_log_path),
             DeliveryTimeMetric(),
             LidarDistanceMetric(),
             LidarAIMetric(),
+            LidarAIFallbackMetric(fallback_log_path),
             Dock()
         ]
         for m in self.metrics:

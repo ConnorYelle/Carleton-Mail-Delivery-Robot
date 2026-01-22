@@ -1,4 +1,5 @@
 import math
+import os
 from std_msgs.msg import String
 import rclpy
 from rclpy.node import Node
@@ -6,6 +7,7 @@ from sensor_msgs.msg import LaserScan
 from statistics import  stdev
 import ollama 
 import json
+import datetime
 import sys
 
 from tools.csv_parser import loadConfig
@@ -39,6 +41,14 @@ class LidarSensor(Node):
         self.right_distances = []
         self.left_distances = []
         self.front_distances = []
+        
+        self.fallback_log_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '../../tools/logs/ai_fallback_log.txt'
+        )
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
 
     def scan_callback(self, scan):
         '''
@@ -186,7 +196,12 @@ class LidarSensor(Node):
 
         except Exception as e:
             self.get_logger().info(f"AI Calculation failed: {e}")
-            # Return to original if llm fails
+
+            # Log fallback event
+            with open(self.fallback_log_path, "a") as f:
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                f.write(f"[{timestamp}] FALLBACK\n")
+
             return self.calculate(scan)
 
 def main():
