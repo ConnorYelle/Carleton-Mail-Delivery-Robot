@@ -41,6 +41,14 @@ class LidarSensor(Node):
         self.right_distances = []
         self.left_distances = []
         self.front_distances = []
+        
+        self.fallback_log_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '../../tools/logs/ai_fallback_log.txt'
+        )
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
 
         # Fallback logging
         self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
@@ -182,7 +190,7 @@ class LidarSensor(Node):
         )
 
         thread.start()
-        thread.join(timeout=10.0)  # ⏱️ 10s timeout
+        thread.join(timeout=10.0)
 
         if thread.is_alive():
             self._log_fallback("TIMEOUT")
