@@ -1588,7 +1588,7 @@
         <frame_id>wheel_drop_right</frame_id>
       </plugin>
       <plugin name='gazebo_ros2_control' filename='libgazebo_ros2_control.so'>
-        <parameters>/home/denis/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml</parameters>
+        <parameters>/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml</parameters>
         <ros>
           <remapping>~/odom:=odom</remapping>
           <remapping>/tf:=tf</remapping>
@@ -2870,10 +2870,10 @@
       <pose>7.4228 -17.0286 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>152 866000000</sim_time>
-      <real_time>43 896521245</real_time>
-      <wall_time>1744155045 590851762</wall_time>
-      <iterations>40808</iterations>
+      <sim_time>206 198000000</sim_time>
+      <real_time>80 506848890</real_time>
+      <wall_time>1769545521 642013725</wall_time>
+      <iterations>53332</iterations>
       <model name='Untitled'>
         <pose>1.22089 -12.8407 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -2987,126 +2987,186 @@
         </link>
       </model>
       <model name='create3'>
-        <pose>-1.77577 -2.78127 -0.003712 -4.4e-05 0.00764 -0.000304</pose>
+        <pose>5.68071 -3.13775 -0.003713 -4.4e-05 0.007633 -0.000377</pose>
         <scale>1 1 1</scale>
         <link name='base_link'>
-          <pose>-1.77577 -2.78127 -0.003712 -4.4e-05 0.00764 -0.000304</pose>
-          <velocity>-0 0 3e-06 8e-06 4e-06 -2e-06</velocity>
-          <acceleration>-0 0 -0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 -0 0 -0 0</wrench>
+          <pose>5.68071 -3.13775 -0.003713 -4.4e-05 0.007633 -0.000377</pose>
+          <velocity>-0 -0 3e-06 6e-06 4e-06 -2e-06</velocity>
+          <acceleration>0 0 -0 0 -0 0</acceleration>
+          <wrench>0 0 -0 0 -0 0</wrench>
         </link>
         <link name='bumper'>
-          <pose>-1.77547 -2.78127 0.035486 -4.4e-05 0.00764 -0.000304</pose>
-          <velocity>0 -0 3e-06 8e-06 4e-06 -2e-06</velocity>
-          <acceleration>-0 0 -0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 -0 0 -0 0</wrench>
+          <pose>5.68101 -3.13774 0.035486 -4.4e-05 0.007632 -0.000377</pose>
+          <velocity>0 -0 3e-06 6e-06 4e-06 -2e-06</velocity>
+          <acceleration>0 -0 0 0 -0 0</acceleration>
+          <wrench>0 -0 0 0 -0 0</wrench>
         </link>
         <link name='front_caster_link'>
-          <pose>-1.65125 -2.78131 0.009998 -1.57084 0.016563 -0.000307</pose>
-          <velocity>0 -0 2.7e-05 9e-06 3.8e-05 -2e-06</velocity>
-          <acceleration>-0 -0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 -0 0 0 -0 0</wrench>
+          <pose>5.80523 -3.13779 0.009998 -1.57084 0.016555 -0.000381</pose>
+          <velocity>0 -0 2.7e-05 7e-06 3.9e-05 -3e-06</velocity>
+          <acceleration>0 -0 0 0 -0 0</acceleration>
+          <wrench>0 -0 0 0 -0 0</wrench>
         </link>
         <link name='imu_link'>
-          <pose>-1.7245 -2.73761 0.080243 0.000211 0.007379 -0.000302</pose>
-          <velocity>0 -0 1e-06 1.5e-05 -3e-06 -7e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_front_center_left'>
-          <pose>-1.62132 -2.78132 0.05197 -4.4e-05 0.006657 -0.000305</pose>
-          <velocity>0 -0 0 8e-06 -1e-06 -3e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_front_center_right'>
-          <pose>-1.63574 -2.84642 0.05208 -0.003284 0.005922 -0.436315</pose>
-          <velocity>0 -0 0 6e-06 1e-06 -3e-06</velocity>
-          <acceleration>0 0 -0 1e-06 -0 0</acceleration>
-          <wrench>0 0 -0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_front_left'>
-          <pose>-1.6357 -2.7162 0.052075 0.003204 0.005959 0.435705</pose>
-          <velocity>0 -0 0 1.1e-05 -2e-06 -3e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_front_right'>
-          <pose>-1.67636 -2.89931 0.052385 -0.005913 0.00388 -0.873319</pose>
-          <velocity>-0 -0 0 6e-06 2e-06 -4e-06</velocity>
-          <acceleration>0 0 -0 1e-06 -0 0</acceleration>
-          <wrench>0 0 -0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_left'>
-          <pose>-1.67629 -2.66328 0.052376 0.005857 0.003948 0.872708</pose>
-          <velocity>0 -0 0 1.4e-05 -1e-06 -3e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_right'>
-          <pose>-1.73547 -2.9301 0.052827 -0.00743 0.000924 -1.30931</pose>
-          <velocity>-0 0 0 6e-06 4e-06 -6e-06</velocity>
-          <acceleration>0 0 -0 1e-06 -0 0</acceleration>
-          <wrench>0 0 -0 0 -0 0</wrench>
-        </link>
-        <link name='ir_intensity_side_left'>
-          <pose>-1.73538 -2.63246 0.052815 0.007407 0.00101 1.3087</pose>
-          <velocity>0 0 0 1.7e-05 2e-06 -6e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='ir_omni'>
-          <pose>-1.62204 -2.78131 0.09398 -4.4e-05 0.006664 -0.000305</pose>
-          <velocity>0 -0 0 9e-06 -1e-06 -4e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='left_wheel'>
-          <pose>-1.77543 -2.66477 0.035643 -1.57094 0.007996 -0.00027</pose>
-          <velocity>0 3e-06 5.6e-05 -7.5e-05 2e-06 8e-06</velocity>
-          <acceleration>2.6e-05 0.000373 7.6e-05 0.03814 -0.000542 -0.010103</acceleration>
-          <wrench>5e-06 7.5e-05 1.5e-05 0 -0 0</wrench>
-        </link>
-        <link name='mouse'>
-          <pose>-1.67413 -2.69426 0.004453 -0.004587 0.005332 -0.785716</pose>
-          <velocity>0 0 0 1.4e-05 -2e-06 -1e-06</velocity>
-          <acceleration>-0 0 0 1e-06 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='right_wheel'>
-          <pose>-1.7755 -2.89777 0.035643 -1.57083 0.007408 -0.000336</pose>
-          <velocity>-0 -1e-06 5.6e-05 4e-05 -6e-06 -8e-06</velocity>
-          <acceleration>-0.000111 -0.000879 -0.000748 -0.042596 -0.005181 0.007619</acceleration>
-          <wrench>-2.2e-05 -0.000176 -0.00015 0 -0 0</wrench>
-        </link>
-        <link name='wheel_drop_left'>
-          <pose>-1.77543 -2.66477 0.035643 -1.57093 0.00765 -0.000269</pose>
-          <velocity>0 2e-06 5.6e-05 -0.000113 3e-06 1.3e-05</velocity>
-          <acceleration>0 0 0 -2e-06 -0 -0</acceleration>
+          <pose>5.73198 -3.09409 0.080243 0.000211 0.007372 -0.000376</pose>
+          <velocity>0 -0 1e-06 1.3e-05 -2e-06 -7e-06</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
+        <link name='ir_intensity_front_center_left'>
+          <pose>5.83516 -3.1378 0.051971 -4.4e-05 0.00665 -0.000379</pose>
+          <velocity>0 -0 0 6e-06 -1e-06 -4e-06</velocity>
+          <acceleration>0 -0 0 0 -0 0</acceleration>
+          <wrench>0 -0 0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_front_center_right'>
+          <pose>5.82073 -3.2029 0.05208 -0.003281 0.005914 -0.436389</pose>
+          <velocity>0 -0 0 4e-06 1e-06 -4e-06</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_front_left'>
+          <pose>5.82078 -3.07269 0.052075 0.003201 0.005953 0.435632</pose>
+          <velocity>0 -0 0 9e-06 -1e-06 -3e-06</velocity>
+          <acceleration>0 -0 0 0 -0 0</acceleration>
+          <wrench>0 -0 0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_front_right'>
+          <pose>5.78011 -3.25579 0.052385 -0.005908 0.003875 -0.873392</pose>
+          <velocity>-0 -0 0 3e-06 2e-06 -4e-06</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_left'>
+          <pose>5.7802 -3.01977 0.052375 0.005851 0.003944 0.872634</pose>
+          <velocity>0 -0 0 1.2e-05 -0 -4e-06</velocity>
+          <acceleration>0 -0 -0 0 -0 0</acceleration>
+          <wrench>0 -0 -0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_right'>
+          <pose>5.72099 -3.28658 0.052827 -0.007423 0.000922 -1.30939</pose>
+          <velocity>-0 -0 0 4e-06 4e-06 -7e-06</velocity>
+          <acceleration>-0 0 -0 0 -0 0</acceleration>
+          <wrench>-0 0 -0 0 -0 0</wrench>
+        </link>
+        <link name='ir_intensity_side_left'>
+          <pose>5.72111 -2.98894 0.052815 0.007399 0.001008 1.30862</pose>
+          <velocity>0 0 0 1.4e-05 2e-06 -6e-06</velocity>
+          <acceleration>0 0 -0 0 -0 0</acceleration>
+          <wrench>0 0 -0 0 -0 0</wrench>
+        </link>
+        <link name='ir_omni'>
+          <pose>5.83444 -3.1378 0.09398 -4.4e-05 0.006656 -0.000378</pose>
+          <velocity>0 -0 0 6e-06 -1e-06 -4e-06</velocity>
+          <acceleration>0 -0 0 0 -0 0</acceleration>
+          <wrench>0 -0 0 0 -0 0</wrench>
+        </link>
+        <link name='left_wheel'>
+          <pose>5.68105 -3.02124 0.035643 -1.57094 0.007928 -0.000343</pose>
+          <velocity>0 2e-06 5.6e-05 -6.8e-05 3e-06 7e-06</velocity>
+          <acceleration>2.6e-05 0.000388 7.5e-05 0.039398 0.000167 -0.009833</acceleration>
+          <wrench>5e-06 7.8e-05 1.5e-05 0 -0 0</wrench>
+        </link>
+        <link name='mouse'>
+          <pose>5.78235 -3.05074 0.004453 -0.004582 0.005326 -0.78579</pose>
+          <velocity>0 -0 0 1.1e-05 -1e-06 -2e-06</velocity>
+          <acceleration>0 -0 -0 0 -0 0</acceleration>
+          <wrench>0 -0 -0 0 -0 0</wrench>
+        </link>
+        <link name='right_wheel'>
+          <pose>5.68097 -3.25425 0.035643 -1.57083 0.007383 -0.00041</pose>
+          <velocity>-0 -2e-06 5.6e-05 4.6e-05 -7e-06 -9e-06</velocity>
+          <acceleration>-0.000111 -0.000805 -0.000742 -0.034173 -0.005661 0.007674</acceleration>
+          <wrench>-2.2e-05 -0.000161 -0.000148 0 -0 0</wrench>
+        </link>
+        <link name='wheel_drop_left'>
+          <pose>5.68105 -3.02124 0.035643 -1.57093 0.007643 -0.000343</pose>
+          <velocity>0 2e-06 5.6e-05 -0.000108 3e-06 1.3e-05</velocity>
+          <acceleration>-0 0 0 0 -0 1e-06</acceleration>
+          <wrench>-0 0 0 0 -0 0</wrench>
+        </link>
         <link name='wheel_drop_right'>
-          <pose>-1.7755 -2.89777 0.035643 -1.57085 0.00765 -0.000334</pose>
-          <velocity>-0 -1e-06 5.7e-05 8.2e-05 3e-06 -1.2e-05</velocity>
-          <acceleration>-0 0 -0 1e-06 -0 0</acceleration>
+          <pose>5.68097 -3.25424 0.035643 -1.57085 0.007643 -0.000408</pose>
+          <velocity>-0 -1e-06 5.7e-05 8e-05 4e-06 -1.3e-05</velocity>
+          <acceleration>-0 0 -0 0 -0 0</acceleration>
           <wrench>-0 0 -0 0 -0 0</wrench>
         </link>
       </model>
       <model name='d0_6a_d2_02_42_eb'>
-        <pose>8.59935 -2.66174 0 0 -0 0</pose>
+        <pose>6.07897 -1.5268 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>8.59935 -2.66174 0 0 -0 0</pose>
+          <pose>6.07897 -1.5268 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='df_2b_70_a8_21_90'>
-        <pose>7.4228 -17.0286 0 0 -0 0</pose>
+        <pose>6.82059 -8.42247 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>7.4228 -17.0286 0 0 -0 0</pose>
+          <pose>6.82059 -8.42247 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='e2_77_fc_f9_04_93'>
+        <pose>0 0 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>0 0 0.1 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='e4_87_91_3d_1e_d7'>
+        <pose>3 0 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>3 0 0.1 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='ea_2f_93_a6_98_20'>
+        <pose>1 0 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>1 0 0.1 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='ee_16_86_9a_c2_a8'>
+        <pose>0 1 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>0 1 0.1 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='fb_ef_5c_de_ef_e4'>
+        <pose>3 1 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>3 1 0.1 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='fc_e2_2e_62_9b_3d'>
+        <pose>2 0 0.1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>2 0 0.1 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -3143,34 +3203,34 @@
         </link>
       </model>
       <model name='standard_dock'>
-        <pose>6.81453 -16.0723 0 0 0 -0.046087</pose>
+        <pose>6.833 -7.70126 0 0 0 -0.046087</pose>
         <scale>1 1 1</scale>
         <link name='green_buoy_link'>
-          <pose>6.75459 -16.0695 0.0604 0 0 -0.22062</pose>
+          <pose>6.77306 -7.69846 0.0604 0 0 -0.22062</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='halo_link'>
-          <pose>6.75459 -16.0695 0.0904 0 0 -0.046087</pose>
+          <pose>6.77306 -7.69846 0.0904 0 0 -0.046087</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='red_buoy_link'>
-          <pose>6.75459 -16.0695 0.0604 0 -0 0.128446</pose>
+          <pose>6.77306 -7.69846 0.0604 0 -0 0.128446</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='std_dock_link'>
-          <pose>6.81453 -16.0723 0 0 0 -0.046087</pose>
+          <pose>6.833 -7.70126 0 0 0 -0.046087</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='yellow_buoy_link'>
-          <pose>6.75459 -16.0695 0.0604 0 0 -0.046087</pose>
+          <pose>6.77306 -7.69846 0.0604 0 0 -0.046087</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -3182,7 +3242,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>2.32613 -4.04962 14.9254 0 1.5698 -0.039821</pose>
+        <pose>6.31126 -2.87916 14.9293 0 1.5698 -0.039821</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -3230,6 +3290,156 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
+    </model>
+    <model name='ea_2f_93_a6_98_20'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>1 0 0.1 0 -0 0</pose>
+    </model>
+    <model name='ee_16_86_9a_c2_a8'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0 1 0.1 0 -0 0</pose>
+    </model>
+    <model name='fc_e2_2e_62_9b_3d'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>2 0 0.1 0 -0 0</pose>
+    </model>
+    <model name='fb_ef_5c_de_ef_e4'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>3 1 0.1 0 -0 0</pose>
+    </model>
+    <model name='e2_77_fc_f9_04_93'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0 0 0.1 0 -0 0</pose>
+    </model>
+    <model name='e4_87_91_3d_1e_d7'>
+      <static>1</static>
+      <link name='link'>
+        <visual name='beacon_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+          <laser_retro>0</laser_retro>
+          <transparency>0</transparency>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>3 0 0.1 0 -0 0</pose>
     </model>
   </world>
 </sdf>
