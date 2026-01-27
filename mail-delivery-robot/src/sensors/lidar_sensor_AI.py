@@ -54,7 +54,8 @@ class LidarSensor(Node):
     def scan_callback(self, scan):
         msg = String()
         wf, angle, right, left, front = self.calculate_ai(scan)
-        msg.data = f"{wf}:{angle}:{right}:{left}:{front}"
+        source = "ai" if self.used_ai else "fallback"
+        msg.data = f"{source}:{wf}:{angle}:{right}:{left}:{front}"
         self.publisher_.publish(msg)
 
     # ---------------------------------------------------------
@@ -142,6 +143,7 @@ class LidarSensor(Node):
     # AI METHOD WITH TIMEOUT
     # ---------------------------------------------------------
     def calculate_ai(self, scan):
+        self.used_ai = False
         scan_pairs = []
         step = 5
         default_dist = self.config.get("LARGE_DEFAULT_DISTANCE", 10.0)
@@ -199,6 +201,7 @@ class LidarSensor(Node):
             left = float(content.get("left", default_dist))
             front = float(content.get("front", default_dist))
 
+            self.used_ai = True
             return wf, angle - 90, right, left, front
 
         except Exception as e:
