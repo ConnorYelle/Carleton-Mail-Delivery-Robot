@@ -1,0 +1,163 @@
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+from sensors.bumper_sensor import Bump_Event
+from enum import Enum
+from tools.csv_parser import loadConfig
+import ollama
+
+class AvoidanceLayerStates(Enum):
+    '''
+    An enum for the internal states of the avoidance layer.
+    '''
+    COLLISION = "COLLISION"
+    NO_COLLISION = "NO_COLLISION"
+
+class AvoidanceLayerAI(Node):
+    '''
+    The subsumption layer responsible for obstacle avoidance.
+
+    @Subscribers:
+    - Listens to /bumper_data for collision detection
+
+    @Publishers:
+    - Publishes actions to /actions
+    '''
+    def __init__(self):
+        '''
+        The constructor for the node.
+        Defines the necessary publishers and subscribers.
+        '''
+        super().__init__('avoidance_layer')
+
+        self.state = AvoidanceLayerStates.NO_COLLISION
+        self.bump_data = False
+
+        self.config = loadConfig()
+
+        self.bumper_data_sub = self.create_subscription(String, 'bumper_data', self.bumper_data_callback, 10)
+        
+        self.action_publisher = self.create_publisher(String, 'actions', 10)
+        
+        self.wait_msg = String()
+        self.wait_msg.data = '0:WAIT'
+        self.no_msg = String()
+        self.no_msg.data = '0:NONE'
+        self.back_msg = String()
+        self.back_msg.data = '0:BACK'
+        self.left_turn_msg = String()
+        self.left_turn_msg.data = '0:LEFT_TURN'
+        self.right_turn_msg = String()
+        self.right_turn_msg.data = '0:RIGHT_TURN'
+        self.go_msg = String()
+        self.go_msg.data = '0:GO'
+
+        self.timer = self.create_timer(0.2, self.update_actions)
+        self.bump_counter_reduce_timer = self.create_timer(self.config["BUMP_COUNTER_REDUCE_TIMER"], self.bump_counter_reduce)
+        self.delay_counter = self.config["AVOIDANCE_DELAY"]
+        self.bump_counter = 0
+        self.pause_bump_counter = False
+
+        self.action_publisher.publish(self.no_msg)
+
+    def bumper_data_callback(self, data):
+        '''
+        The callback for /bumper_data.
+        Reads and updates the information sent by the bumper sensor.
+
+        @param data: The data sent by the bumper sensor.
+        '''
+        bumpData = str(data.data)
+        if bumpData == Bump_Event.PRESSED.value:
+            self.get_logger().info("GOT COLLISION")
+            self.bump_data = True
+        else:
+            self.bump_data = False
+    
+    def bump_counter_reduce(self):
+        '''
+        The timer callback to reduce the bump counter by 1.
+        '''
+        if self.bump_counter > 0 and not self.pause_bump_counter:
+            self.bump_counter -= 1
+
+    def ai_avoidance_query(self):
+        self.get_logger().info("Querying Ollama for collision resolution...")
+        try:
+            response = ollama.chat(model='gemma2:2b-instruct-q4_0', messages=[
+                """
+                You are a little robot travelling through tunnels, unexpectedly you bump into something.
+                What should you do?
+                Choose one of the following options and respond with only that option:
+                - BACK
+                - LEFT
+                - RIGHT
+                - GO
+                """
+            ])
+            decision = response['message']['content'].strip().upper()
+            self.get_logger().info(f"Ollama decided: {decision}")
+            return decision
+        except Exception as e:
+            self.get_logger().error(f"Ollama connection failed: {e}")
+            return "FAILED" # Default fallback
+
+    def update_actions(self):
+        '''
+        The timer callback. Updates the internal state of this node and sends
+        updates to /actions when necessary
+        '''
+        if self.state == AvoidanceLayerStates.NO_COLLISION and self.bump_data:
+            #Bumper sensor was triggered, transition from state NO_COLLISION to state COLLISION
+            self.state = AvoidanceLayerStates.COLLISION
+            self.delay_counter = self.config["AVOIDANCE_DELAY"]
+            self.bump_counter += 1
+        elif self.state == AvoidanceLayerStates.COLLISION and self.delay_counter:
+            #Begin sending instructions to deal with the collision
+            if self.bump_counter < self.config["MAX_BUMPS_BEFORE_AVOID"]:
+                self.action_publisher.publish(self.wait_msg)
+            else:
+                self.pause_bump_counter = True
+                # --- LLM BLOCKING LOGIC START ---
+                if self.current_llm_decision is None:
+                    # 1. Force the robot to STOP immediately
+                    self.action_publisher.publish(self.wait_msg)
+                    
+                    # 2. Call LLM (This blocks the thread; robot "waits" here)
+                    self.current_llm_decision = self.ask_llm_for_strategy()
+
+                # 3. Execute the decision (Repeated for the duration of delay_counter)
+                if "LEFT" in self.current_llm_decision:
+                    self.action_publisher.publish(self.left_turn_msg)
+                elif "RIGHT" in self.current_llm_decision:
+                    self.action_publisher.publish(self.right_turn_msg)
+                elif "BACK" in self.current_llm_decision:
+                    self.action_publisher.publish(self.back_msg)
+                elif "GO" in self.current_llm_decision:
+                    self.action_publisher.publish(self.go_msg)
+                else:
+                    self.action_publisher.publish(self.back_msg)
+                # --- LLM BLOCKING LOGIC END ---
+
+                # Reset logic if needed when the maneuver ends
+                if self.delay_counter == 1:
+                     self.pause_bump_counter = False
+                     self.bump_counter = 0
+
+            self.delay_counter -= 1
+        elif self.state == AvoidanceLayerStates.COLLISION:
+            #Collision has resolved, transition to state NO_COLLISION, and
+            #IMPORTANT: send NONE action message when the subroutine resolves,
+            #otherwise the captain would continue to execute the last instruction
+            self.state = AvoidanceLayerStates.NO_COLLISION
+            self.action_publisher.publish(self.no_msg)
+            self.delay_counter = self.config["AVOIDANCE_DELAY"]
+            self.current_llm_decision = None
+
+def main():
+    rclpy.init()
+    avoidance_layer = AvoidanceLayerAI()
+    rclpy.spin(avoidance_layer)
+
+if __name__ == '__main__':
+    main()

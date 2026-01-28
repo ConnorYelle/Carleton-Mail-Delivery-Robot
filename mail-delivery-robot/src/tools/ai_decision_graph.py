@@ -47,3 +47,5 @@ def build_nav_graph(node):
 
     return graph.compile()
 
+if __name__ == "__main__":
+    pass
