@@ -84,6 +84,7 @@ class AvoidanceLayerAI(Node):
     def ai_avoidance_query(self):
         self.get_logger().info("Querying Ollama for collision resolution...")
         try:
+            #Query can and will be tweaked over time, with potential addition of lidar data.
             response = ollama.chat(model='gemma2:2b-instruct-q4_0', messages=[
                 """
                 You are a little robot travelling through tunnels, unexpectedly you bump into something.
