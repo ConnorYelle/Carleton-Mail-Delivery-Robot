@@ -41,6 +41,7 @@ class LidarSensor(Node):
         self.right_distances = []
         self.left_distances = []
         self.front_distances = []
+        self.warmup_scans = 0
 
         # Fallback logging
         self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
@@ -52,10 +53,16 @@ class LidarSensor(Node):
     # ROS CALLBACK
     # ---------------------------------------------------------
     def scan_callback(self, scan):
+        if self.warmup_scans < self.config.get("LIDAR_STACK_LENGTH", 5):
+            self.warmup_scans += 1
+            msg = String()
+            msg.data = "-1:-1:-1:-1:-1"
+            self.publisher_.publish(msg)
+            return
         msg = String()
         wf, angle, right, left, front = self.calculate_ai(scan)
         source = "ai" if self.used_ai else "fallback"
-        msg.data = f"{source}:{wf}:{angle}:{right}:{left}:{front}"
+        msg.data = f"{wf}:{angle}:{right}:{left}:{front}"
         self.publisher_.publish(msg)
 
     # ---------------------------------------------------------
@@ -177,7 +184,7 @@ class LidarSensor(Node):
         )
 
         thread.start()
-        thread.join(timeout=10.0) 
+        thread.join(timeout=0.2) 
 
         if thread.is_alive():
             self._log_fallback("TIMEOUT")
