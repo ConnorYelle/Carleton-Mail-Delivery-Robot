@@ -126,9 +126,6 @@ class LidarSensor(Node):
 
         return min_distance, angle - 90, min_right, min_left, min_front
 
-    # ---------------------------------------------------------
-    # THREAD TARGET FOR OLLAMA
-    # ---------------------------------------------------------
     def _run_ollama(self, prompt, result_holder):
         try:
             result_holder["response"] = ollama.chat(
@@ -139,9 +136,7 @@ class LidarSensor(Node):
         except Exception as e:
             result_holder["error"] = e
 
-    # ---------------------------------------------------------
-    # AI METHOD WITH TIMEOUT
-    # ---------------------------------------------------------
+
     def calculate_ai(self, scan):
         self.used_ai = False
         scan_pairs = []
@@ -182,7 +177,7 @@ class LidarSensor(Node):
         )
 
         thread.start()
-        thread.join(timeout=10.0)  # ⏱️ 10s timeout
+        thread.join(timeout=10.0) 
 
         if thread.is_alive():
             self._log_fallback("TIMEOUT")
