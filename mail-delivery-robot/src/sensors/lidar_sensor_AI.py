@@ -45,6 +45,7 @@ class LidarSensor(Node):
         self.right_distances = []
         self.left_distances = []
         self.front_distances = []
+        self.warmup_scans = 0
 
         # AI query cooldown tracking
         self.last_ai_query_time = 0.0
