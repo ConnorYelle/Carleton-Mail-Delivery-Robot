@@ -86,16 +86,31 @@ class DeliveryTimeMetric(Metric):
             "trip_end_time": self.end_timestamp
         }
 
-class Dock(Metric):
+class DockSuccessMetric(Metric):
     topic_name = '/dock_status'
     topic_type = DockStatus
-    listen_qos = 10
+    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
+
     def __init__(self):
-        self.docked = False
-    def update(self, msg):
-        self.docked = msg.is_docked
+        self.dock_command_received = False
+        self.is_docked = False
+        self.success = False
+
+    def update(self, msg: DockStatus):
+        self.is_docked = msg.is_docked
+        if self.dock_command_received and self.is_docked:
+            self.success = True
+
+    def on_navigation_msg(self, msg: String):
+        if msg.data == 'DOCK':
+            self.dock_command_received = True
+
     def serialize(self):
-        return {"docked": self.docked}
+        return {
+            "dock_attempted": self.dock_command_received,
+            "dock_final_status": self.is_docked,
+            "dock_success": self.success
+        }
 
 class LidarDistanceMetric(Metric):
     topic_name = "/scan"
@@ -225,7 +240,7 @@ class RobotGeneralLogger(Node):
             LidarDistanceMetric(),
             LidarAIMetric(),
             LidarAIFallbackMetric(fallback_log_path),
-            Dock()
+            DockSucc
         ]
         for m in self.metrics:
             m.start()
@@ -237,6 +252,12 @@ class RobotGeneralLogger(Node):
                     m.listen_qos
                 )
         self.should_shutdown = False
+        self.create_subscription(
+            String,
+            'navigation',
+            self.dock_metric.on_navigation_msg,
+            10)
+
     def end_trip(self):
         data = {}
         for m in self.metrics:
