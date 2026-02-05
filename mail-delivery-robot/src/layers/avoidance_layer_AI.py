@@ -59,6 +59,7 @@ class AvoidanceLayerAI(Node):
         self.delay_counter = self.config["AVOIDANCE_DELAY"]
         self.bump_counter = 0
         self.pause_bump_counter = False
+        self.current_llm_decision = None
 
         self.action_publisher.publish(self.no_msg)
 
@@ -146,21 +147,39 @@ class AvoidanceLayerAI(Node):
         self.get_logger().info("Querying Ollama for collision resolution...")
         try:
             #Query can and will be tweaked over time, with potential addition of lidar data.
+
+            lidar_text = (
+                self.lidar_summary(self.latest_lidar)
+                if self.latest_lidar is not None
+                else "Lidar data unavailable."
+            )
+
             response = ollama.chat(model='gemma2:2b-instruct-q4_0', messages=[
-                """
-                You are a little robot travelling through tunnels, unexpectedly you bump into something.
-                Below is the sensor data of the obstacles around you. 
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an obstacle-avoidance controller for a small robot "
+                        "navigating narrow tunnels. You must choose the safest movement."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+                    The robot has just collided with an obstacle.
 
-                {lidar_summary}
+                    {lidar_text}
 
-                What should you do?
-                Choose one of the following options and respond with only that option:
-                - BACK
-                - LEFT
-                - RIGHT
-                - GO
-                """
+                    Rules:
+                    - Do NOT choose a direction with the closest obstacle.
+                    - Prefer the most open direction.
+                    - If FRONT is the most open direction, choose GO.
+
+                    Respond with ONLY ONE word:
+                    BACK, LEFT, RIGHT, or GO
+                    """
+                }
             ])
+
             decision = response['message']['content'].strip().upper()
             self.get_logger().info(f"Ollama decided: {decision}")
             return decision
@@ -190,7 +209,7 @@ class AvoidanceLayerAI(Node):
                     self.action_publisher.publish(self.wait_msg)
                     
                     # 2. Call LLM (This blocks the thread; robot "waits" here)
-                    self.current_llm_decision = self.ask_llm_for_strategy()
+                    self.current_llm_decision = self.ai_avoidance_query()
 
                 # 3. Execute the decision (Repeated for the duration of delay_counter)
                 if "LEFT" in self.current_llm_decision:
