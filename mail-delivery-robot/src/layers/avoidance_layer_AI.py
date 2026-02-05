@@ -19,6 +19,7 @@ class AvoidanceLayerAI(Node):
 
     @Subscribers:
     - Listens to /bumper_data for collision detection
+    - Listens to /lidar_data for collision avoidance
 
     @Publishers:
     - Publishes actions to /actions
@@ -36,7 +37,8 @@ class AvoidanceLayerAI(Node):
         self.config = loadConfig()
 
         self.bumper_data_sub = self.create_subscription(String, 'bumper_data', self.bumper_data_callback, 10)
-        
+        self.lidar_sensor_sub = self.create_subscription(String, 'lidar_data', self.lidar_data_callback, 10)
+
         self.action_publisher = self.create_publisher(String, 'actions', 10)
         
         self.wait_msg = String()
@@ -73,7 +75,66 @@ class AvoidanceLayerAI(Node):
             self.bump_data = True
         else:
             self.bump_data = False
+
+    def lidar_data_callback(self, data):
+        '''
+        The callback for /lidar_data.
+        Reads and parses information about nearby walls.
+        Expected format from lidar sensor: "feedback:angle:right:left:front"
+        '''
+        try:
+            parts = data.data.split(":")            
+            if len(parts) != 5:
+                self.get_logger().warning("Lidar data format incorrect")
+                return
+            self.latest_lidar = {
+                "feedback": float(parts[0]),
+                "angle": float(parts[1]),
+                "right": float(parts[2]),
+                "left": float(parts[3]),
+                "front": float(parts[4])
+            }
+        except Exception as e:
+            self.get_logger().error(f"Error parsing lidar data: {e}")
+            self.latest_lidar = None
+
+    def get_closest_obstacle(self, lidarData):
+        
+        distances = {
+            "LEFT": lidarData["left"],
+            "RIGHT": lidarData["right"],
+            "FRONT": lidarData["front"]
+        }
+        valid = {k: v for k, v in distances.items() if v > 0}
+        if not valid:
+            return "UNKNOWN"
+        return min(valid, key=valid.get)
     
+    def get_most_space(self, lidarData):
+
+        distances = {
+            "LEFT": lidarData["left"],
+            "RIGHT": lidarData["right"],
+            "FRONT": lidarData["front"]
+        }
+
+        valid = {k: v for k, v in distances.items() if v > 0}
+        if not valid:
+            return "UNKNOWN"
+        return max(valid, key=valid.get)
+    
+    def lidar_summary(self, lidarData):
+        return f"""
+        Lidar summary:
+
+        - Front distance: {lidarData['front']:.2f}
+        - Left disatance: {lidarData['left']:.2f}
+        - Right distance: {lidarData['right']:.2f}
+
+        Closest obstacle is in the {self.get_closest_obstacle(lidarData)} direction.
+        Most open area is in the {self.get_most_space(lidarData)} direction.
+        """
+        
     def bump_counter_reduce(self):
         '''
         The timer callback to reduce the bump counter by 1.
@@ -88,6 +149,10 @@ class AvoidanceLayerAI(Node):
             response = ollama.chat(model='gemma2:2b-instruct-q4_0', messages=[
                 """
                 You are a little robot travelling through tunnels, unexpectedly you bump into something.
+                Below is the sensor data of the obstacles around you. 
+
+                {lidar_summary}
+
                 What should you do?
                 Choose one of the following options and respond with only that option:
                 - BACK
