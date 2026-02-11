@@ -47,6 +47,7 @@ setup(
             'report_generator = tools.report_generator:main',
             'nav_parser = tools.nav_parser:main',
             'dashboard_logger = tools.dashboard_logger:main',
+            'avoidance_layer_AI = layers.avoidance_layer_AI:main',
         ],
     },
 )

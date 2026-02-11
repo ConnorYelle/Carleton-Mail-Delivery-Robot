@@ -30,6 +30,21 @@ def generate_launch_description():
             condition=IfCondition(use_ai_lidar)
         ),
         
+        # Avoidance Layer nodes - standard vs AI
+        Node(
+            package='mail-delivery-robot',
+            executable='avoidance_layer',
+            name='avoidance_layer',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_avoidance)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='avoidance_layer_AI',
+            name='avoidance_layer_AI',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_avoidance)
+        ),
         # Navigation nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
@@ -83,5 +98,10 @@ def generate_launch_description():
             default_value='false',
             description='Enable the metric analyzer node'
         ),
+        DeclareLaunchArgument(
+            'use_ai_avoidance',
+            default_value='false',
+            description='Use AI version of Avoidance Layer'
+        )
         *nodes
     ])
