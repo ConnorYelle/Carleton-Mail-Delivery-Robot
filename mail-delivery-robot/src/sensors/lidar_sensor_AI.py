@@ -3,12 +3,15 @@ import os
 import threading
 import json
 import datetime
+import time
 
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 from statistics import stdev
+from ament_index_python.packages import get_package_share_directory
 
 import ollama
 from tools.csv_parser import loadConfig
@@ -17,7 +20,7 @@ from tools.csv_parser import loadConfig
 class LidarSensor(Node):
     '''
     Node that listens to the lidar sensor and publishes processed data.
-    Uses AI (LLM) when possible and falls back to classical logic on failure.
+    Uses AI (LLM) with robot pause during query. Falls back to classical logic on failure.
     '''
 
     def __init__(self):
@@ -26,8 +29,9 @@ class LidarSensor(Node):
         # Load config
         self.config = loadConfig()
 
-        # Publisher
+        # Publishers
         self.publisher_ = self.create_publisher(String, 'lidar_data', 10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # Subscriber
         self.create_subscription(
@@ -43,25 +47,59 @@ class LidarSensor(Node):
         self.front_distances = []
         self.warmup_scans = 0
 
-        # Fallback logging
-        self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
-        os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
+        # AI query cooldown tracking
+        self.last_ai_query_time = 0.0
+        self.ai_cooldown_seconds = 5.0
+        self.is_querying = False
 
-        self.get_logger().info("LidarSensor AI node started")
+        # Fallback logging
+        pkg_share = get_package_share_directory('mail-delivery-robot')
+        log_dir = os.path.join(pkg_share, 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        self.fallback_log_path = os.path.join(log_dir, 'ai_fallback_log.txt')
+        
+        self.get_logger().info("LidarSensor AI node started with 5s cooldown")
+
+    # ---------------------------------------------------------
+    # ROBOT CONTROL
+    # ---------------------------------------------------------
+    def stop_robot(self):
+        """Publish zero velocity to stop the robot"""
+        stop_msg = Twist()
+        stop_msg.linear.x = 0.0
+        stop_msg.angular.z = 0.0
+        self.cmd_vel_publisher.publish(stop_msg)
+        self.get_logger().info("Robot stopped for AI query")
 
     # ---------------------------------------------------------
     # ROS CALLBACK
     # ---------------------------------------------------------
     def scan_callback(self, scan):
-        if self.warmup_scans < self.config.get("LIDAR_STACK_LENGTH", 5):
-            self.warmup_scans += 1
-            msg = String()
-            msg.data = "-1:-1:-1:-1:-1"
-            self.publisher_.publish(msg)
-            return
+        current_time = time.time()
+        time_since_last_query = current_time - self.last_ai_query_time
+
+        # Check if we're in cooldown period or already querying
+        if time_since_last_query < self.ai_cooldown_seconds or self.is_querying:
+            # Use classical fallback during cooldown
+            wf, angle, right, left, front = self.calculate(scan)
+            source = "fallback (cooldown)"
+        else:
+            # Stop robot before AI query
+            self.stop_robot()
+            self.is_querying = True
+            
+            # Perform AI query
+            wf, angle, right, left, front = self.calculate_ai(scan)
+            
+            # Update last query time
+            self.last_ai_query_time = time.time()
+            self.is_querying = False
+            
+            source = "ai" if self.used_ai else "fallback (error)"
+            self.get_logger().info(f"AI query complete. Next query in {self.ai_cooldown_seconds}s")
+
+        # Publish processed lidar data
         msg = String()
-        wf, angle, right, left, front = self.calculate_ai(scan)
-        source = "ai" if self.used_ai else "fallback"
         msg.data = f"{wf}:{angle}:{right}:{left}:{front}"
         self.publisher_.publish(msg)
 
@@ -133,16 +171,21 @@ class LidarSensor(Node):
 
         return min_distance, angle - 90, min_right, min_left, min_front
 
+    # ---------------------------------------------------------
+    # AI QUERY METHOD
+    # ---------------------------------------------------------
     def _run_ollama(self, prompt, result_holder):
         try:
+            self.get_logger().info("Starting Ollama API call...")
             result_holder["response"] = ollama.chat(
-                model='gemma2:2b-instruct-q4_0',
+                model='qwen3:0.6b',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
+            self.get_logger().info("Ollama API call completed")
         except Exception as e:
+            self.get_logger().error(f"Ollama exception: {e}")
             result_holder["error"] = e
-
 
     def calculate_ai(self, scan):
         self.used_ai = False
@@ -176,6 +219,12 @@ class LidarSensor(Node):
             Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
         """
 
+        # Print the query to console
+        self.get_logger().info("=" * 80)
+        self.get_logger().info("AI QUERY:")
+        self.get_logger().info(prompt)
+        self.get_logger().info("=" * 80)
+
         result = {}
         thread = threading.Thread(
             target=self._run_ollama,
@@ -184,18 +233,25 @@ class LidarSensor(Node):
         )
 
         thread.start()
-        thread.join(timeout=0.2) 
-
-        if thread.is_alive():
-            self._log_fallback("TIMEOUT")
-            return self.calculate(scan)
+        thread.join()  # Wait indefinitely for AI response
 
         if "error" in result:
             self._log_fallback(f"ERROR: {result['error']}")
             return self.calculate(scan)
 
+        if "response" not in result:
+            self._log_fallback("NO RESPONSE from Ollama")
+            return self.calculate(scan)
+
         try:
-            content = json.loads(result["response"]["message"]["content"])
+            # Print the response to console
+            response_content = result["response"]["message"]["content"]
+            self.get_logger().info("=" * 80)
+            self.get_logger().info("AI RESPONSE:")
+            self.get_logger().info(response_content)
+            self.get_logger().info("=" * 80)
+
+            content = json.loads(response_content)
 
             wf = float(content.get("wf_dist", default_dist))
             angle = float(content.get("wf_angle", 0.0))
