@@ -2,15 +2,17 @@ import os
 import time
 import re
 from datetime import datetime
+from typing import Any
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
-from sensor_msgs.msg import BatteryState, LaserScan
+from sensor_msgs.msg import BatteryState
 from irobot_create_msgs.msg import DockStatus
+from std_msgs.msg import String
 import math
 from statistics import mean
+from sensor_msgs.msg import LaserScan
 from tools.csv_parser import loadConfig
-from std_msgs.msg import String
 
 class Metric:
     topic_name = None
@@ -32,12 +34,11 @@ class BatteryMetric(Metric):
         self.start_level = None
         self.end_level = None
         self.used = None
-    def update(self, msg):
+    def update(self, msg: BatteryState):
         self.level = msg.percentage * 100
         self.voltage = msg.voltage
         self.temperature = msg.temperature
-        if self.start_level is None:
-            self.start_level = self.level
+        if self.start_level is None: self.start_level = self.level
     def end(self):
         self.end_level = self.level
         if self.start_level is not None and self.end_level is not None:
@@ -56,16 +57,14 @@ class WallFollowMetric(Metric):
         self.log_path = log_path
         self.wall_time = 0.0
     def end(self):
-        if not os.path.exists(self.log_path):
-            return
+        if not os.path.exists(self.log_path): return
         with open(self.log_path, 'r') as f:
             for line in reversed(f.readlines()):
                 match = re.search(r"Total wall-following time:\s*([\d.]+)s", line)
                 if match:
                     self.wall_time = float(match.group(1))
                     break
-    def serialize(self):
-        return {"wall_follow_time": self.wall_time}
+    def serialize(self): return {"wall_follow_time": self.wall_time}
 
 class DeliveryTimeMetric(Metric):
     def __init__(self):
@@ -120,28 +119,25 @@ class LidarDistanceMetric(Metric):
         self.config = loadConfig()
         self.front_distances = []
         self.wall_distances = []
-    def update(self, scan):
+    def update(self, scan: LaserScan):
         count = len(scan.ranges)
         min_front = self.config["LARGE_DEFAULT_DISTANCE"]
         min_wall = self.config["LARGE_DEFAULT_DISTANCE"]
         for i in range(count):
             degree = math.degrees(scan.angle_min + scan.angle_increment * i)
             cur = scan.ranges[i]
-            if cur == math.inf or cur <= 0.0:
-                continue
+            if cur == math.inf or cur <= 0.0: continue
             if (degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config["FRONT_MAX_ANGLE"]) and cur < min_front:
                 min_front = cur
-            if self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"] and cur < min_wall:
+            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"]) and cur < min_wall:
                 min_wall = cur
-        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]:
-            self.front_distances.append(min_front)
-        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]:
-            self.wall_distances.append(min_wall)
+        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]: self.front_distances.append(min_front)
+        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]: self.wall_distances.append(min_wall)
     def serialize(self):
         avg_f = round(mean(self.front_distances), 2) if self.front_distances else 0.0
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
-    
+
 class LidarAIFallbackMetric(Metric):
     def __init__(self, fallback_log_path):
         self.fallback_log_path = fallback_log_path
@@ -160,46 +156,36 @@ class LidarAIFallbackMetric(Metric):
         return {
             "ai_fallback_count": self.fallback_count
         }
-        
-class LidarAIMetric(Metric):
-    topic_name = "/lidar_data"
-    topic_type = String
-    listen_qos = 10
 
-    def __init__(self):
-        self.front = []
-        self.left = []
-        self.right = []
-        self.wall = []
+def make_llm_response_time_metric(ai_node: Any) -> Metric:
+    class LLMResponseTimeMetric(Metric):
+        def __init__(self, node_ref: Any):
+            self.ai_node = node_ref
+            self.samples = []
 
-    def update(self, msg):
-        try:
-            wf, angle, right, left, front = map(float, msg.data.split(":"))
+        def end(self):
+            if hasattr(self.ai_node, "get_llm_response_latencies"):
+                latencies = self.ai_node.get_llm_response_latencies()
+            else:
+                latencies = getattr(self.ai_node, "llm_response_latencies", [])
+            self.samples = [float(x) for x in latencies if isinstance(x, (int, float))]
 
-            if front >= 0:
-                self.front.append(front)
-            if left >= 0:
-                self.left.append(left)
-            if right >= 0:
-                self.right.append(right)
-            if wf >= 0:
-                self.wall.append(wf)
+        def serialize(self):
+            node_name = self.ai_node.get_name() if hasattr(self.ai_node, "get_name") else "ai_node"
+            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
+            avg_latency = round(mean(self.samples), 3) if self.samples else 0.0
+            max_latency = round(max(self.samples), 3) if self.samples else 0.0
+            return {
+                f"{key_prefix}_llm_response_avg_s": avg_latency,
+                f"{key_prefix}_llm_response_max_s": max_latency,
+                f"{key_prefix}_llm_response_count": len(self.samples),
+            }
 
-        except Exception:
-            pass
-
-    def serialize(self):
-        return {
-            "ai_front_avg": round(mean(self.front), 2) if self.front else 0.0,
-            "ai_left_avg": round(mean(self.left), 2) if self.left else 0.0,
-            "ai_right_avg": round(mean(self.right), 2) if self.right else 0.0,
-            "ai_wall_avg": round(mean(self.wall), 2) if self.wall else 0.0,
-        }
+    return LLMResponseTimeMetric(ai_node)
 
 class FileLogger:
     def __init__(self, log_dir):
-        self.log_dir = os.path.abspath(log_dir)
-        os.makedirs(self.log_dir, exist_ok=True)
+        self.log_dir = log_dir
         self.runs_dir = os.path.join(self.log_dir, "runs")
         os.makedirs(self.runs_dir, exist_ok=True)
         self.wall_log_path = os.path.join(self.log_dir, "robot_log_wallFollowing.txt")
@@ -217,20 +203,12 @@ class FileLogger:
     def close(self):
         self.wall_log_file.close()
         open(self.wall_log_path, 'w').close()
-        fallback_path = os.path.join(self.log_dir, "ai_fallback_log.txt")
-        open(fallback_path, 'w').close()
 
 class RobotGeneralLogger(Node):
-    def __init__(self):
+    def __init__(self, ai_nodes=None):
         super().__init__('dashboard_logger')
-        base_log_dir = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                '..', '..', 'tools', 'logs'
-            )
-        )
-        self.declare_parameter('log_dir', base_log_dir)
-        log_dir = self.get_parameter('log_dir').value
+        self.declare_parameter('log_dir', './tools/logs')
+        log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
         fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
         self.metrics = [
@@ -238,24 +216,23 @@ class RobotGeneralLogger(Node):
             WallFollowMetric(self.logger.wall_log_path),
             DeliveryTimeMetric(),
             LidarDistanceMetric(),
-            LidarAIMetric(),
-            LidarAIFallbackMetric(fallback_log_path),
             DockSuccessMetric(),
+            LidarAIFallbackMetric(fallback_log_path),
         ]
+        if ai_nodes:
+            for ai_node in ai_nodes:
+                self.metrics.append(make_llm_response_time_metric(ai_node))
         for m in self.metrics:
             m.start()
             if m.topic_name:
-                self.create_subscription(
-                    m.topic_type,
-                    m.topic_name,
-                    lambda msg, metric=m: metric.update(msg),
-                    m.listen_qos
-                )
+                self.create_subscription(m.topic_type, m.topic_name,
+                    lambda msg, metric=m: metric.update(msg), m.listen_qos)
         self.should_shutdown = False
+        self.dock_metric = next((m for m in self.metrics if isinstance(m, DockSuccessMetric)), None)
         self.create_subscription(
             String,
             'navigation',
-            self.dock_metric.on_navigation_msg,
+            self.dock_metric.on_navigation_msg if self.dock_metric else (lambda msg: None),
             10)
 
     def end_trip(self):
