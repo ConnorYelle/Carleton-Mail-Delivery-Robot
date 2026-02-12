@@ -1,0 +1,6 @@
+[BATTERY] Percentage: 98.0%, Voltage: 16.36V, Temp: 27.0C
+[BATTERY] Percentage: 98.0%, Voltage: 16.35V, Temp: 27.0C
+[BATTERY] Percentage: 97.9%, Voltage: 16.35V, Temp: 27.0C
+[BATTERY] Percentage: 97.8%, Voltage: 16.34V, Temp: 27.0C
+[BATTERY] Percentage: 97.8%, Voltage: 16.34V, Temp: 27.0C
+[BATTERY] Percentage: 97.9%, Voltage: 16.35V, Temp: 27.0C
