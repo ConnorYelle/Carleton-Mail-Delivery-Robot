@@ -1,113 +1,121 @@
 from std_msgs.msg import String
 import rclpy
-from collections import deque
-import statistics
 from rclpy.node import Node
+from bluepy.btle import Scanner, DefaultDelegate
 
 from tools.csv_parser import loadBeacons, loadConfig
-#beacon sensor node
+
+
+class ScanDelegate(DefaultDelegate):
+
+    def __init__(self):
+        DefaultDelegate.__init__(self)
+
+
 class BeaconSensor(Node):
     '''
-    Node in charge of listening to beacon data published to /rf_signal
-    in the format "Beacon=<mac>;SignalStrength=<rssi>"
-    
+    The Node in charge of listening to beacons.
+
     @Subscribers:
-    - Subscribes to /rf_signal for simulated RSSI readings.
+    - Uses the Scanner to scan for Bluetooth devices.
 
     @Publishers:
-    - Publishes to /beacon_data with processed beacon data.
+    - Publishes to /beacon_data with new beacon data.
     '''
+
     def __init__(self):
         super().__init__('beacon_sensor')
+
         self.initBeacons()
+
+        # Load the global config.
         self.config = loadConfig()
-        self.MAX_HISTORY = 5                # how many past readings to keep per beacon
-        self.MIN_READINGS_TO_PUBLISH = 1    # require at least this many readings per beacon to consider it
-        # ensure self.scan is a dict mapping beacon -> deque
-        self.scan = {}                      # will hold beacon -> deque(maxlen=self.MAX_HISTORY)
-        self.scan_counter = 0
-        self.publisher_ = self.create_publisher(String, '/beacon_data', 10)
-        self.subscriber_ = self.create_subscription(String, 'rf_signal', self.rf_callback, 10)
+
+        # Publisher
+        self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
+
+        # Scanner
+        self.scanner = Scanner().withDelegate(ScanDelegate())
+
+        # Timer: run scan periodically
+        self.timer = self.create_timer(
+            self.config["BEACON_SCAN_TIMER"],
+            self.checkForBeacons
+        )
 
         self.scan_counter = 0
         self.scan = dict()
 
+        self.get_logger().info("BeaconSensor node started.")
+
     def initBeacons(self):
-        '''
-        Initializes known beacon MAC-to-location mappings.
-        '''
+        '''Initializes all the beacons and their values.'''
         self.beacons = loadBeacons()
+        self.get_logger().info(f"Loaded beacons: {self.beacons}")
 
-    def rf_callback(self, msg: String):
-        #works
-        '''
-        Callback for /rf_signal topic.
-        Parses RSSI values from simulated beacon publisher.
-        '''
+    def checkForBeacons(self):
+
+        # Perform scan
+        devices = self.scanner.scan(self.config["BEACON_SCAN_DURATION"])
+
+        beaconData = String()
         self.scan_counter += 1
-        try:
-            data = msg.data.strip()
-            parts = dict(pair.split('=') for pair in data.split(';'))
-            mac = parts["Beacon"].replace('_', ':')
-            rssi = float(parts["SignalStrength"])
 
-            if mac in self.beacons:
-                key = self.beacons[mac]
-                beacon_rssi = abs(int(rssi))
+        # Check if any device matches a known beacon
+        for dev in devices:
+            for beacon_mac in self.beacons.keys():
+                if beacon_mac == dev.addr:
 
-                if beacon_rssi < abs(self.config["BEACON_RSSI_THRESHOLD"]):
-                    if key in self.scan:
-                        self.scan[key].append(beacon_rssi)
-                    else:
-                        self.scan[key] = [beacon_rssi]
-        except Exception as e:
-            self.get_logger().warn(f"Failed to parse /rf_signal message: {msg.data} ({e})")
+                    beacon_name = self.beacons[beacon_mac]
 
+                    beacon_rssi = abs(int(dev.rssi))
+
+                    # Apply RSSI threshold
+                    if beacon_rssi < abs(self.config["BEACON_RSSI_THRESHOLD"]):
+
+                        if beacon_name not in self.scan:
+                            self.scan[beacon_name] = []
+
+                        self.scan[beacon_name].append(beacon_rssi)
+                    break
+
+        # After enough scans, pick the best beacon
         if self.scan_counter >= self.config["BEACON_SCAN_COUNT"]:
-            self.publish_strongest_beacon()
-    def publish_strongest_beacon(self):
-        """
-        Publish the strongest/most relevant beacon using a short history per beacon.
-        Uses median of recent RSSI readings (smaller = better). Publishes the beacon with
-        the lowest median RSSI. Keeps history across scans (with max length).
-        """
-        if not self.scan:
-            # nothing to do
-            return
+            best_beacon = ""
+            best_rssi = 100
 
-        best_beacon = None
-        best_score = None  # lower is better (assuming smaller RSSI value = stronger)
+            for beacon_name, rssi_list in self.scan.items():
+                self.get_logger().info(
+                    f"[SCAN RESULT] Beacon: {beacon_name}, RSSI readings: {rssi_list}"
+                )
 
-        for beacon, readings in list(self.scan.items()):
-            if not isinstance(readings, deque):
-                readings = deque(readings, maxlen=self.MAX_HISTORY)
-                self.scan[beacon] = readings
+                # Use the most recent RSSI reading
+                last_rssi = rssi_list[-1]
 
-            if len(readings) < self.MIN_READINGS_TO_PUBLISH:
-                self.get_logger().debug(f"Skipping {beacon}: only {len(readings)} reading(s)")
-                continue
+                # Lower RSSI → stronger signal
+                if last_rssi < best_rssi:
+                    best_beacon = beacon_name
+                    best_rssi = last_rssi
 
-            try:
-                median_rssi = int(statistics.median(readings))
-            except Exception as e:
-                self.get_logger().warn(f"Failed to compute median for {beacon}: {e}")
-                continue
+            # Publish and log result
+            if best_beacon != "":
+                beaconData.data = f"{best_beacon},{best_rssi}"
+                self.publisher_.publish(beaconData)
 
-            if best_score is None or median_rssi < best_score:
-                best_score = median_rssi
-                best_beacon = beacon
+                self.get_logger().info(
+                    f"[BEST] Selected beacon: {best_beacon} with RSSI={best_rssi}"
+                )
 
-        if best_beacon is not None:
-            msg = String()
-            msg.data = f"{best_beacon},{best_score}"
-            #self.get_logger().info(f"Publishing beacon data: {msg.data}")
-            self.publisher_.publish(msg)
-        else:
-            self.get_logger().debug("No beacon qualified to publish this cycle")
+            # Reset for next cycle
+            self.scan = dict()
+            self.scan_counter = 0
+
+
 def main():
     rclpy.init()
-    node = BeaconSensor()
-    rclpy.spin(node)
+    beacon_sensor = BeaconSensor()
+    rclpy.spin(beacon_sensor)
+
 
 if __name__ == '__main__':
     main()
