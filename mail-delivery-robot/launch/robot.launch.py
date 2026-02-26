@@ -11,6 +11,8 @@ def generate_launch_description():
     use_ai_lidar = LaunchConfiguration('use_ai_lidar')
     use_ai_navigation = LaunchConfiguration('use_ai_navigation')
     use_ai_beacon = LaunchConfiguration('use_ai_beacon')
+    use_ai_avoidance = LaunchConfiguration('use_ai_avoidance')
+    use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
 
     nodes = [
         Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
@@ -31,6 +33,21 @@ def generate_launch_description():
             condition=IfCondition(use_ai_lidar)
         ),
         
+        # Avoidance Layer nodes - standard vs AI
+        Node(
+            package='mail-delivery-robot',
+            executable='avoidance_layer',
+            name='avoidance_layer',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_avoidance)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='avoidance_layer_AI',
+            name='avoidance_layer_AI',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_avoidance)
+        ),
         # Navigation nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
@@ -61,6 +78,18 @@ def generate_launch_description():
             name='beacon_sensor_AI',
             parameters=sim_time,
             condition=IfCondition(use_ai_beacon)
+        # Travel layer nodes - standard vs AI
+        Node(
+            package='mail-delivery-robot',
+            executable='travel_layer',
+            name='travel_layer',
+            condition=UnlessCondition(use_ai_travel_layer)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='travel_layer_AI',
+            name='travel_layer_AI',
+            condition=IfCondition(use_ai_travel_layer)
         ),
         
         # Common nodes (always run)
@@ -69,7 +98,6 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='avoidance_layer', name='avoidance_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='travel_layer', name='travel_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='dashboard_logger', name='dashboard_logger', parameters=sim_time),
 
@@ -103,6 +131,16 @@ def generate_launch_description():
             'enable_metrics',
             default_value='false',
             description='Enable the metric analyzer node'
+        ),
+        DeclareLaunchArgument(
+            'use_ai_avoidance',
+            default_value='false',
+            description='Use AI version of Avoidance Layer'
+        ),
+        DeclareLaunchArgument(
+            'use_ai_travel_layer',
+            default_value='false',
+            description='Use AI version of travel_layer'
         ),
         *nodes
     ])

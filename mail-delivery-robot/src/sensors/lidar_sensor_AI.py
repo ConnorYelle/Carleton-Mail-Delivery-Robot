@@ -3,19 +3,34 @@ import os
 import threading
 import json
 import datetime
+import time
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 from statistics import stdev
-from ollama import Client
+from ament_index_python.packages import get_package_share_directory
+
+import ollama
 from tools.csv_parser import loadConfig
 
 class LidarSensor(Node):
+    '''
+    Node that listens to the lidar sensor and publishes processed data.
+    Uses AI (LLM) with robot pause during query. Falls back to classical logic on failure.
+    '''
+
     def __init__(self):
         super().__init__('lidar_sensor_AI')
         self.config = loadConfig()
+
+        # Publishers
         self.publisher_ = self.create_publisher(String, 'lidar_data', 10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+
+        # Subscriber
         self.create_subscription(
             LaserScan,
             '/scan',
@@ -28,25 +43,30 @@ class LidarSensor(Node):
         self.front_distances = []
         
         self.warmup_scans = 0
-        self.fallback_log_path = os.path.join(os.path.expanduser("~"), "testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt")
-        os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
 
-        self.ai_busy = False
-        self.ai_values = None
-        self.last_ai_time = None
-        self.used_ai = False
-        self.client = Client(host='http://localhost:11434', timeout=30)
+        # AI query cooldown tracking
+        self.last_ai_query_time = 0.0
+        self.ai_cooldown_seconds = 5.0
+        self.is_querying = False
+
+        # Fallback logging
+        pkg_share = get_package_share_directory('mail-delivery-robot')
+        log_dir = os.path.join(pkg_share, 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        self.fallback_log_path = os.path.join(log_dir, 'ai_fallback_log.txt')
         
-        self.get_logger().info("LidarSensor AI node started")
-        threading.Thread(target=self._warmup_model, daemon=True).start()
+        self.get_logger().info("LidarSensor AI node started with 5s cooldown")
 
-    def _warmup_model(self):
-        self.get_logger().info("Warming up AI model...")
-        try:
-            self.client.chat(model='gemma2:2b-instruct-q4_0', messages=[{'role':'user', 'content':'ping'}])
-            self.get_logger().info("AI model warmed up and ready.")
-        except Exception as e:
-            self.get_logger().error(f"Warmup failed: {e}")
+    # ---------------------------------------------------------
+    # ROBOT CONTROL
+    # ---------------------------------------------------------
+    def stop_robot(self):
+        """Publish zero velocity to stop the robot"""
+        stop_msg = Twist()
+        stop_msg.linear.x = 0.0
+        stop_msg.angular.z = 0.0
+        self.cmd_vel_publisher.publish(stop_msg)
+        self.get_logger().info("Robot stopped for AI query")
 
     def scan_callback(self, scan):
         if self.warmup_scans < self.config.get("LIDAR_STACK_LENGTH", 5):
@@ -121,43 +141,88 @@ class LidarSensor(Node):
 
         return min_distance, angle - 90, min_right, min_left, min_front
 
-    def run_ai_background(self, scan):
+    # ---------------------------------------------------------
+    # AI QUERY METHOD
+    # ---------------------------------------------------------
+    def _run_ollama(self, prompt, result_holder):
         try:
-            scan_pairs = []
-            step = 5
-            default_dist = self.config.get("LARGE_DEFAULT_DISTANCE", 10.0)
-
-            for i in range(0, len(scan.ranges), step):
-                dist = scan.ranges[i]
-                if dist == math.inf or dist <= 0.0 or math.isnan(dist):
-                    continue
-                degree = math.degrees(scan.angle_min + scan.angle_increment * i)
-                scan_pairs.append(f"{degree:.1f}:{dist:.2f}")
-
-            data_str = ", ".join(scan_pairs)
-            prompt = f"""
-                Analyze these Lidar readings (format "angle:distance").
-                Data: [{data_str}]
-                Task: Find the minimum distance in the following sectors.
-                If a sector has no data, use {default_dist}.
-                Sectors:
-                1. Wall Follow: Angle between {self.config["WALL_FOLLOW_MIN_ANGLE"]} and {self.config["WALL_FOLLOW_MAX_ANGLE"]}.
-                2. Front: Angle <= {self.config["FRONT_MIN_ANGLE"]} OR Angle >= {self.config["FRONT_MAX_ANGLE"]}.
-                3. Right: Angle >= {self.config["RIGHT_MIN_ANGLE"]} and < {self.config["RIGHT_MAX_ANGLE"]}.
-                4. Left: Angle > {self.config["LEFT_MIN_ANGLE"]} and <= {self.config["LEFT_MAX_ANGLE"]}.
-                Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
-            """
-
-            self.get_logger().info(f"\n--- SENDING PROMPT TO AI ---\n{prompt}\n----------------------------")
-
-            response = self.client.chat(
-                model='gemma2:2b-instruct-q4_0',
+            self.get_logger().info("Starting Ollama API call...")
+            result_holder["response"] = ollama.chat(
+                model='qwen3:0.6b',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
-            
-            content = json.loads(response["message"]["content"])
-            
+            self.get_logger().info("Ollama API call completed")
+        except Exception as e:
+            self.get_logger().error(f"Ollama exception: {e}")
+            result_holder["error"] = e
+
+    def calculate_ai(self, scan):
+        self.used_ai = False
+        scan_pairs = []
+        step = 5
+        default_dist = self.config.get("LARGE_DEFAULT_DISTANCE", 10.0)
+
+        for i in range(0, len(scan.ranges), step):
+            dist = scan.ranges[i]
+            if dist == math.inf or dist == 0.0:
+                continue
+
+            degree = math.degrees(scan.angle_min + scan.angle_increment * i)
+            scan_pairs.append(f"{degree:.1f}:{dist:.2f}")
+
+        data_str = ", ".join(scan_pairs)
+
+        prompt = f"""
+            Analyze these Lidar readings (format "angle:distance").
+            Data: [{data_str}]
+
+            Task: Find the minimum distance in the following sectors.
+            If a sector has no data, use {default_dist}.
+
+            Sectors:
+            1. Wall Follow: Angle between {self.config["WALL_FOLLOW_MIN_ANGLE"]} and {self.config["WALL_FOLLOW_MAX_ANGLE"]}.
+            2. Front: Angle <= {self.config["FRONT_MIN_ANGLE"]} OR Angle >= {self.config["FRONT_MAX_ANGLE"]}.
+            3. Right: Angle >= {self.config["RIGHT_MIN_ANGLE"]} and < {self.config["RIGHT_MAX_ANGLE"]}.
+            4. Left: Angle > {self.config["LEFT_MIN_ANGLE"]} and <= {self.config["LEFT_MAX_ANGLE"]}.
+
+            Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
+        """
+
+        # Print the query to console
+        self.get_logger().info("=" * 80)
+        self.get_logger().info("AI QUERY:")
+        self.get_logger().info(prompt)
+        self.get_logger().info("=" * 80)
+
+        result = {}
+        thread = threading.Thread(
+            target=self._run_ollama,
+            args=(prompt, result),
+            daemon=True
+        )
+
+        thread.start()
+        thread.join()  # Wait indefinitely for AI response
+
+        if "error" in result:
+            self._log_fallback(f"ERROR: {result['error']}")
+            return self.calculate(scan)
+
+        if "response" not in result:
+            self._log_fallback("NO RESPONSE from Ollama")
+            return self.calculate(scan)
+
+        try:
+            # Print the response to console
+            response_content = result["response"]["message"]["content"]
+            self.get_logger().info("=" * 80)
+            self.get_logger().info("AI RESPONSE:")
+            self.get_logger().info(response_content)
+            self.get_logger().info("=" * 80)
+
+            content = json.loads(response_content)
+
             wf = float(content.get("wf_dist", default_dist))
             angle = float(content.get("wf_angle", 0.0))
             right = float(content.get("right", default_dist))

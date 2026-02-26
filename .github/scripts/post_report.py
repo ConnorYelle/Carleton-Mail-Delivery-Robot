@@ -11,7 +11,10 @@ LOG_DIR = "mail-delivery-robot/tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
 METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "higher"}
 EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
-IN_DE_METRICS = ["lidar_front_avg","wall_distance_avg"]
+IN_DE_METRICS = ["lidar_front_avg", "wall_distance_avg"]
+
+if not GITHUB_EVENT_PATH or not os.path.exists(GITHUB_EVENT_PATH):
+    exit(0)
 
 runs = []
 for file in sorted(os.listdir(LOG_DIR)):
@@ -36,12 +39,13 @@ if not runs:
 df = pd.DataFrame(runs)
 numeric_cols = df.select_dtypes(include=["number"]).columns
 metrics = [c for c in numeric_cols if c not in METADATA_KEYS and c not in EXCLUDE_METRICS]
-avg = df[metrics].mean()
 
 with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
 
 commit_hash = "Unknown"
+target_date = None
+
 if "pull_request" in event:
     target_date = event["pull_request"]["created_at"][:10].replace("-", "")
     commit_hash = event["pull_request"]["head"]["sha"][:7]
@@ -49,7 +53,7 @@ elif "commits" in event:
     target_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
     commit_hash = event.get("after", event["commits"][-1]["id"])[:7]
 
-if target_date in df["date"].values:
+if target_date and target_date in df["date"].values:
     day_runs = df[df["date"] == target_date].copy()
     report_date = target_date
     is_fallback = False
@@ -60,13 +64,17 @@ else:
 
 most_recent_run = day_runs.sort_values("run", ascending=False).iloc[0]
 
+avg_source = df[df["run"] != most_recent_run["run"]]
+avg = avg_source[metrics].mean() if not avg_source.empty else df[metrics].mean()
+
 last_run_filename = None
 repo = Github(GITHUB_TOKEN).get_repo(GITHUB_REPOSITORY)
 pr_number = event.get("pull_request", {}).get("number")
+
 if pr_number:
     pr = repo.get_pull(pr_number)
     comments = pr.get_issue_comments()
-    for c in reversed(comments):
+    for c in reversed(list(comments)):
         m = re.search(r"### Run: (\S+\.txt)", c.body)
         if m:
             last_run_filename = m.group(1)
@@ -92,12 +100,17 @@ if last_run_filename and last_run_filename in df["run"].values and most_recent_r
     compare_run = df[df["run"] == last_run_filename].iloc[0]
 
 for m in metrics:
+    if m not in most_recent_run:
+        continue
+
     val = most_recent_run[m]
     if pd.isna(val):
         continue
+
     avg_val = avg[m]
+
     if m in IN_DE_METRICS:
-        if abs(val-avg_val) < 0.001:
+        if abs(val - avg_val) < 0.001:
             status = "Same"
         elif val > avg_val:
             status = "Increased"
@@ -111,31 +124,30 @@ for m in metrics:
             status = "Improved"
         else:
             status = "Worse"
+
     summary_counts[status] += 1
 
     if last_run_filename:
-        if compare_run is None or pd.isna(compare_run.get(m)):
+        if compare_run is None or m not in compare_run or pd.isna(compare_run[m]):
             comparison = "No run"
         else:
             prev_val = compare_run[m]
-            if pd.isna(prev_val):
-                comparison = "No run"
-            else:
-                if m in IN_DE_METRICS:
-                    if abs(val-prev_val) < 0.001:
-                        comparison = "Same"
-                    elif val > prev_val:
-                        comparison = "Increased"
-                    else:
-                        comparison = "Decreased"
+            if m in IN_DE_METRICS:
+                if abs(val - prev_val) < 0.001:
+                    comparison = "Same"
+                elif val > prev_val:
+                    comparison = "Increased"
                 else:
-                    rule = METRIC_RULES.get(m, "higher")
-                    if abs(val - prev_val) < 0.001:
-                        comparison = "Same"
-                    elif (rule == "lower" and val < prev_val) or (rule == "higher" and val > prev_val):
-                        comparison = "Improved"
-                    else:
-                        comparison = "Worse"
+                    comparison = "Decreased"
+            else:
+                rule = METRIC_RULES.get(m, "higher")
+                if abs(val - prev_val) < 0.001:
+                    comparison = "Same"
+                elif (rule == "lower" and val < prev_val) or (rule == "higher" and val > prev_val):
+                    comparison = "Improved"
+                else:
+                    comparison = "Worse"
+
         temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} | {comparison} |\n"
     else:
         temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
