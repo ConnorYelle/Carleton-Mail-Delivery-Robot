@@ -10,6 +10,7 @@ import ollama
 class AvoidanceLayerStates(Enum):
     COLLISION = "COLLISION"
     NO_COLLISION = "NO_COLLISION"
+    PREVENTATIVE = "PREVENTATIVE"
 
 
 class AvoidanceLayerAI(Node):
@@ -58,6 +59,8 @@ class AvoidanceLayerAI(Node):
         self.delay_counter = self.config["AVOIDANCE_DELAY"]
 
         self.action_publisher.publish(self.no_msg)
+
+        self.safe_distance: float = 4.0
 
     def bumper_data_callback(self, data):
         bumpData = str(data.data)
@@ -115,47 +118,63 @@ class AvoidanceLayerAI(Node):
 
     def lidar_summary(self, lidarData):
         return f"""
-Lidar summary:
+                Lidar summary:
 
-Front distance: {lidarData['front']:.2f}
-Left distance: {lidarData['left']:.2f}
-Right distance: {lidarData['right']:.2f}
+                Front distance: {lidarData['front']:.2f}
+                Left distance: {lidarData['left']:.2f}
+                Right distance: {lidarData['right']:.2f}
 
-Closest obstacle: {self.get_closest_obstacle(lidarData)}
-Most open direction: {self.get_most_space(lidarData)}
-"""
+                Closest obstacle: {self.get_closest_obstacle(lidarData)}
+                Most open direction: {self.get_most_space(lidarData)}
+                """
 
     def ai_avoidance_query(self):
 
         self.get_logger().info("Querying Ollama for collision resolution...")
 
-        try:
-            lidar_text = (
+        lidar_text = (
                 self.lidar_summary(self.latest_lidar)
                 if self.latest_lidar is not None
                 else "Lidar data unavailable."
             )
 
-            background = f"""
-            You are an obstacle-avoidance controller
-            for a small robot navigating narrow tunnels.
-            Choose the safest movement."
-            """
-
+        if self.state != AvoidanceLayerStates.PREVENTATIVE:
             prompt = f"""
-The robot has collided with an obstacle.
+                    The robot has collided with an obstacle.
 
-{lidar_text}
+                    {lidar_text}
 
-Rules:
-- Do NOT choose the closest obstacle direction.
-- Prefer the most open direction.
-- If FRONT is most open, choose GO.
+                    Rules:
+                    - Do NOT choose the closest obstacle direction.
+                    - Prefer the most open direction.
+                    - If FRONT is most open, choose GO.
 
-Respond with ONLY ONE word:
-BACK, LEFT, RIGHT, or GO
-"""
+                    Respond with ONLY ONE word:
+                    BACK, LEFT, RIGHT, or GO
+                    """
+        else:
+            prompt = f"""
+                    The robot has detected an obstacle becoming dangerously close.
 
+                    {lidar_text}
+
+                    Rules:
+                    - Do NOT choose the closest obstacle direction.
+                    - Prefer the most open direction.
+                    - If FRONT is most open, choose GO.
+
+                    Respond with ONLY ONE word:
+                    BACK, LEFT, RIGHT, or GO
+                    """
+
+        try:
+
+            background = f"""
+                    You are an obstacle-avoidance controller
+                    for a small robot navigating narrow tunnels.
+                    Choose the safest movement."
+                    """
+            
             response = ollama.chat(
                 model='qwen2:0.5b',
                 messages=[
@@ -229,24 +248,25 @@ BACK, LEFT, RIGHT, or GO
                 decision = self.rule_based_avoidance()
 
             self.current_llm_decision = decision
+            return
+
+        elif self.state == AvoidanceLayerStates.PREVENTATIVE and self.collision_imminent():
+
+            self.get_logger().info("Collision Imminent")
+            self.state = AvoidanceLayerStates.PREVENTATIVE
+            self.delay_counter = self.config["AVOIDANCE_DELAY"]
+
+            decision = self.ai_avoidance_query()
+            if decision == "FAILED":
+                decision = self.rule_based_avoidance()
+
+            self.current_llm_decision = decision
+            return
 
         # Execute avoidance
-        elif self.state == AvoidanceLayerStates.COLLISION and self.delay_counter > 0:
 
-            decision = self.current_llm_decision or "BACK"
-
-            if decision == "LEFT":
-                self.action_publisher.publish(self.left_turn_msg)
-            elif decision == "RIGHT":
-                self.action_publisher.publish(self.right_turn_msg)
-            elif decision == "BACK":
-                self.action_publisher.publish(self.back_msg)
-            elif decision == "GO":
-                self.action_publisher.publish(self.go_msg)
-            else:
-                self.action_publisher.publish(self.back_msg)
-
-            self.delay_counter -= 1
+        elif self.state != AvoidanceLayerStates.NO_COLLISION and self.delay_counter > 0:
+            self.execute_decisions()
 
         # Reset state
         elif self.state == AvoidanceLayerStates.COLLISION:
@@ -256,6 +276,32 @@ BACK, LEFT, RIGHT, or GO
             self.action_publisher.publish(self.no_msg)
             self.current_llm_decision = None
 
+    def execute_decisions(self):
+
+        decision = self.current_llm_decision or "BACK"
+
+        if decision == "LEFT":
+            self.action_publisher.publish(self.left_turn_msg)
+        elif decision == "RIGHT":
+            self.action_publisher.publish(self.right_turn_msg)
+        elif decision == "BACK":
+            self.action_publisher.publish(self.back_msg)
+        elif decision == "GO":
+            self.action_publisher.publish(self.go_msg)
+        else:
+            self.action_publisher.publish(self.back_msg)
+
+        self.delay_counter -= 1
+
+    def collision_imminent(self):
+        if self.latest_lidar is None:
+            return False
+        
+        front = self.latest_lidar["front"]
+
+        if front <= 0: return False
+
+        return front < self.safe_distance
 
 def main():
     rclpy.init()
