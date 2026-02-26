@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'beacon_sensor = sensors.beacon_sensor:main',
+            'beacon_sensor_AI = sensors.beacon_sensor_AI:main',
             'bumper_sensor = sensors.bumper_sensor:main',
             'lidar_sensor = sensors.lidar_sensor:main',
             'lidar_sensor_AI = sensors.lidar_sensor_AI:main',
