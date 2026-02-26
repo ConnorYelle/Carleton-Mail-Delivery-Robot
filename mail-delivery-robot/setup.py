@@ -49,6 +49,7 @@ setup(
             'dashboard_logger = tools.dashboard_logger:main',
             'avoidance_layer_AI = layers.avoidance_layer_AI:main',
             'travel_layer_AI = layers.travel_layer_AI:main',
+            'docking_layer_AI = layers.docking_layer_AI:main',
         ],
     },
 )
