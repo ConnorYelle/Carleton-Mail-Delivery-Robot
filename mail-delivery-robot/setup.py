@@ -39,6 +39,7 @@ setup(
             'navigation_unit_AI = sensors.navigation_unit_AI:main',
             'navigation_unit = sensors.navigation_unit:main',
             'intersection_detection_unit = sensors.intersection_detection_unit:main',
+            'intersection_detection_unit_AI = sensors.intersection_detection_unit_AI:main',
             'battery_monitor = sensors.battery_monitor:main',
             'csv_parser = tools.csv_parser:main',
             'map = tools.map:main',

@@ -10,6 +10,7 @@ def generate_launch_description():
     enable_metrics = LaunchConfiguration('enable_metrics')
     use_ai_lidar = LaunchConfiguration('use_ai_lidar')
     use_ai_navigation = LaunchConfiguration('use_ai_navigation')
+    use_ai_intersection_detection = LaunchConfiguration('use_ai_intersection_detection')
 
     nodes = [
         Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
@@ -28,6 +29,21 @@ def generate_launch_description():
             name='lidar_sensor_AI',
             parameters=sim_time,
             condition=IfCondition(use_ai_lidar)
+        ),
+        
+        Node(
+            package='mail-delivery-robot',
+            executable='intersection_detection_unit',
+            name='intersection_detection_unit',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_intersection_detection)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='intersection_detection_unit_AI',
+            name='intersection_detection_unit_AI',
+            parameters=sim_time,
+            condition=IfCondition(use_ai_intersection_detection)
         ),
         
         # Navigation nodes - standard vs AI
@@ -49,7 +65,6 @@ def generate_launch_description():
         # Common nodes (always run)
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='beacon_sensor', name='beacon_sensor', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='avoidance_layer', name='avoidance_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
@@ -82,6 +97,11 @@ def generate_launch_description():
             'enable_metrics',
             default_value='false',
             description='Enable the metric analyzer node'
+        ),
+        DeclareLaunchArgument(
+            'use_ai_intersection_detection',
+            default_value='false',
+            description='Use AI version of navigation_unit'
         ),
         *nodes
     ])
