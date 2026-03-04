@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'beacon_sensor = sensors.beacon_sensor:main',
+            'beacon_sensor_AI = sensors.beacon_sensor_AI:main',
             'bumper_sensor = sensors.bumper_sensor:main',
             'lidar_sensor = sensors.lidar_sensor:main',
             'lidar_sensor_AI = sensors.lidar_sensor_AI:main',
@@ -49,6 +50,8 @@ setup(
             'report_generator = tools.report_generator:main',
             'nav_parser = tools.nav_parser:main',
             'dashboard_logger = tools.dashboard_logger:main',
+            'avoidance_layer_AI = layers.avoidance_layer_AI:main',
+            'travel_layer_AI = layers.travel_layer_AI:main',
         ],
     },
 )
