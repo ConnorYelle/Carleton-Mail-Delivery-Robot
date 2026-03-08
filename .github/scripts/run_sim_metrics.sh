@@ -3,6 +3,11 @@ set -euo pipefail
 
 RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-240}"
 STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
+USE_AI_LIDAR="${USE_AI_LIDAR:-true}"
+USE_AI_NAVIGATION="${USE_AI_NAVIGATION:-false}"
+USE_AI_BEACON="${USE_AI_BEACON:-false}"
+USE_AI_AVOIDANCE="${USE_AI_AVOIDANCE:-false}"
+USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
@@ -75,8 +80,7 @@ sleep 3
 echo "[metrics-runner] starting robot description publishers..."
 ros2 launch irobot_create_common_bringup robot_description.launch.py \
   gazebo:=classic \
-  visualize_rays:=false \
-  namespace:= >/tmp/robot_description.log 2>&1 &
+  visualize_rays:=false >/tmp/robot_description.log 2>&1 &
 
 sleep 3
 
@@ -90,7 +94,12 @@ sleep "${STARTUP_DELAY_SECONDS}"
 echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
 set +e
 timeout "${RUN_TIMEOUT_SECONDS}" \
-  ros2 launch mail-delivery-robot robot.launch.py use_ai_lidar:=true use_ai_navigation:=true \
+  ros2 launch mail-delivery-robot robot.launch.py \
+  use_ai_lidar:="${USE_AI_LIDAR}" \
+  use_ai_navigation:="${USE_AI_NAVIGATION}" \
+  use_ai_beacon:="${USE_AI_BEACON}" \
+  use_ai_avoidance:="${USE_AI_AVOIDANCE}" \
+  use_ai_travel_layer:="${USE_AI_TRAVEL_LAYER}" \
   >/tmp/robot.log 2>&1
 launch_status=$?
 set -e

@@ -10,12 +10,17 @@ RUN apt-get update && apt-get install -y \
     ros-humble-angles \
     coreutils \
     zstd \
+    bluez \
+    libglib2.0-dev \
+    libbluetooth-dev \
+    build-essential \
+    python3-dev \
     python3-pip \
     python3-setuptools \
     curl && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
-RUN pip3 install ollama
+RUN pip3 install ollama langgraph bluepy
 
 # Hotfix gazebo_ros spawn_entity logger call for environments where
 # RcutilsLogger.error() rejects printf-style args.
