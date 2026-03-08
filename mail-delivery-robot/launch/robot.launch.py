@@ -46,7 +46,7 @@ def generate_launch_description():
             executable='avoidance_layer_AI',
             name='avoidance_layer_AI',
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_avoidance)
+            condition=IfCondition(use_ai_avoidance)
         ),
         # Navigation nodes - standard vs AI
         Node(
@@ -78,6 +78,7 @@ def generate_launch_description():
             name='beacon_sensor_AI',
             parameters=sim_time,
             condition=IfCondition(use_ai_beacon)
+        ),
         # Travel layer nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
@@ -95,7 +96,6 @@ def generate_launch_description():
         # Common nodes (always run)
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='avoidance_layer', name='avoidance_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
