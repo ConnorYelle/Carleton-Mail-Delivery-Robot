@@ -75,8 +75,8 @@ if [[ ! -f "${control_yaml_path}" ]]; then
 fi
 cp "${WORLD_SOURCE}" "${WORLD_PATCHED}"
 sed -i "s|/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml|${control_yaml_path}|g" "${WORLD_PATCHED}"
-# Avoid duplicate control parameter declarations when robot_description also provides control config.
-sed -i "/<parameters>.*irobot_create_control.*\\/config\\/control.yaml<\\/parameters>/d" "${WORLD_PATCHED}"
+# Remove world-level gazebo_ros2_control plugin entirely; control is provided via robot_description (classic).
+sed -i "/<plugin name='gazebo_ros2_control' filename='libgazebo_ros2_control.so'>/,/<\\/plugin>/d" "${WORLD_PATCHED}"
 
 echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
