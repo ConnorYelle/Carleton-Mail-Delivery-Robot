@@ -16,7 +16,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare logs directory
-        run: mkdir -p mail-delivery-robot/tools/logs/runs
+        run: |
+          mkdir -p mail-delivery-robot/tools/logs/runs
+          rm -f mail-delivery-robot/tools/logs/runs/run_*.txt
 
       - name: Build Docker image
         run: docker build -t carleton-mail-robot-ci:latest .

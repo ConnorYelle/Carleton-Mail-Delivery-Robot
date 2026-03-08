@@ -6,6 +6,7 @@ STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
+RUN_START_EPOCH="$(date +%s)"
 
 cleanup() {
   pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
@@ -51,9 +52,16 @@ if [[ "${launch_status}" -ne 0 && "${launch_status}" -ne 124 ]]; then
   exit "${launch_status}"
 fi
 
-latest_run="$(ls -1t "${RUNS_DIR}"/run_*.txt 2>/dev/null | head -n1 || true)"
+latest_run=""
+for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt 2>/dev/null || true); do
+  file_epoch="$(stat -c %Y "${candidate}" 2>/dev/null || echo 0)"
+  if [[ "${file_epoch}" -ge "${RUN_START_EPOCH}" ]]; then
+    latest_run="${candidate}"
+    break
+  fi
+done
 if [[ -z "${latest_run}" ]]; then
-  echo "[metrics-runner] no run file created in ${RUNS_DIR}"
+  echo "[metrics-runner] no fresh run file created in ${RUNS_DIR}"
   echo "--- robot.log ---"
   tail -n 120 /tmp/robot.log || true
   echo "--- gazebo.log ---"
