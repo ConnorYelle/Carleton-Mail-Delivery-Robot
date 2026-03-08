@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-tf2-geometry-msgs \
     ros-humble-angles \
     coreutils \
+    zstd \
     python3-pip \
     curl && rm -rf /var/lib/apt/lists/*
 
@@ -29,4 +30,4 @@ RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
 RUN mkdir -p /root/.gazebo/worlds/ && \
     cp src/carleton_mail_robot/external_files/demo_video.world /root/.gazebo/worlds/ || true
 
-CMD ollama serve & bash
+CMD ["bash", "-lc", "ollama serve & bash"]
