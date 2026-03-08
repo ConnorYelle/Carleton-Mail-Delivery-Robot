@@ -17,6 +17,15 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN pip3 install ollama
 
+# Hotfix gazebo_ros spawn_entity logger call for environments where
+# RcutilsLogger.error() rejects printf-style args.
+RUN python3 -c "from pathlib import Path; p=Path('/opt/ros/humble/lib/gazebo_ros/spawn_entity.py'); \
+txt=p.read_text() if p.exists() else ''; \
+old=\"self.get_logger().error('Error: specified file %s does not exist', self.args.file)\"; \
+new='self.get_logger().error(f\"Error: specified file {self.args.file} does not exist\")'; \
+txt=txt.replace(old,new); \
+p.write_text(txt) if p.exists() else None"
+
 WORKDIR /ros2_ws
 COPY . src/carleton_mail_robot
 RUN chmod +x /ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh
