@@ -3,9 +3,9 @@ set -euo pipefail
 
 RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-240}"
 STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
-USE_AI_LIDAR="${USE_AI_LIDAR:-true}"
+USE_AI_LIDAR="${USE_AI_LIDAR:-false}"
 USE_AI_NAVIGATION="${USE_AI_NAVIGATION:-false}"
-USE_AI_BEACON="${USE_AI_BEACON:-false}"
+USE_AI_BEACON="${USE_AI_BEACON:-true}"
 USE_AI_AVOIDANCE="${USE_AI_AVOIDANCE:-false}"
 USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
 WORKSPACE_ROOT="/ros2_ws"
@@ -79,7 +79,7 @@ sleep 3
 
 echo "[metrics-runner] starting robot description publishers..."
 ros2 launch irobot_create_common_bringup robot_description.launch.py \
-  gazebo:=classic \
+  gazebo:=ignition \
   visualize_rays:=false >/tmp/robot_description.log 2>&1 &
 
 sleep 3
