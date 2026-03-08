@@ -6,6 +6,8 @@ STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
+EXTERNAL_MODELS_DIR="${REPO_ROOT}/external_files"
+GAZEBO_MODELS_DIR="/root/.gazebo/models"
 RUN_START_EPOCH="$(date +%s)"
 
 cleanup() {
@@ -23,6 +25,24 @@ source "${WORKSPACE_ROOT}/install/setup.bash"
 set -u
 
 mkdir -p "${RUNS_DIR}"
+mkdir -p "${GAZEBO_MODELS_DIR}"
+
+echo "[metrics-runner] provisioning gazebo models..."
+copied_models=0
+for d in "${EXTERNAL_MODELS_DIR}"/*; do
+  [[ -d "${d}" ]] || continue
+  if [[ -f "${d}/model.sdf" ]]; then
+    cp -r "${d}" "${GAZEBO_MODELS_DIR}/"
+    copied_models=$((copied_models + 1))
+  fi
+done
+
+if [[ "${copied_models}" -eq 0 ]]; then
+  echo "[metrics-runner] no models with model.sdf found under ${EXTERNAL_MODELS_DIR}"
+  exit 1
+fi
+
+export GAZEBO_MODEL_PATH="${GAZEBO_MODELS_DIR}:${EXTERNAL_MODELS_DIR}:${GAZEBO_MODEL_PATH:-}"
 
 echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
