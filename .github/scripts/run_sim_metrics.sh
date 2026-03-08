@@ -14,8 +14,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# ROS setup scripts may reference unset vars (e.g. AMENT_TRACE_SETUP_FILES),
+# so temporarily disable nounset while sourcing.
+set +u
 source /opt/ros/humble/setup.bash
 source "${WORKSPACE_ROOT}/install/setup.bash"
+set -u
 
 mkdir -p "${RUNS_DIR}"
 
