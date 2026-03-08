@@ -147,10 +147,15 @@ class NavigationUnit_AI(Node):
             "destination": destination
         })
         elapsed = time.perf_counter() - start
-        self.llm_response_latencies.append(elapsed)
+        self.record_llm_latency(elapsed, context="query_ollama")
         decision = result["direction"]
-        self.get_logger().info(f"Ollama decision: {decision} (latency={elapsed:.3f}s)")
+        self.get_logger().info(f"Ollama decision: {decision}")
         return decision
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
 
     def get_llm_response_latencies(self):
         return list(self.llm_response_latencies)

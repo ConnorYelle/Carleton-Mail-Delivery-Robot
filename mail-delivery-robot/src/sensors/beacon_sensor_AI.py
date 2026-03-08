@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 
 import ollama
 from std_msgs.msg import String
@@ -53,6 +54,7 @@ class BeaconSensor(Node):
 
         self.get_logger().info("BeaconSensor node started.")
         self.get_logger().info(f"BEACON_SCAN_COUNT = {self.config['BEACON_SCAN_COUNT']}")
+        self.llm_response_latencies = []
 
     def initBeacons(self):
         '''Initializes all the beacons and their values.'''
@@ -147,6 +149,7 @@ class BeaconSensor(Node):
 
     def pick_beacon_ai(self):
         self.get_logger().info(">>> pick_beacon_ai CALLED <<<")
+        start = time.perf_counter()
         prompt = "Choose the best (strongest) beacon based on RSSI.\n" \
         "Lower RSSI values indicate stronger signals.\n" \
         "Beacon data:\n"
@@ -164,19 +167,35 @@ class BeaconSensor(Node):
         thread.join(timeout=20.0)
 
         if thread.is_alive():
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="pick_beacon_ai_timeout")
             self.get_logger().warning("Ollama response timed out.")
             return None
         
         if "error" in result:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="pick_beacon_ai_error")
             self.get_logger().error(f"Ollama error: {result['error']}")
             return None
         
         try:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="pick_beacon_ai")
             content = json.loads(result["response"]["message"]["content"])
             return content.get("best_beacon", None)
         except Exception as e:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="pick_beacon_ai_parse_error")
             self.get_logger().error(f"Error parsing Ollama response: {e}")
             return None
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
+
+    def get_llm_response_latencies(self):
+        return list(self.llm_response_latencies)
 
 def main():
     rclpy.init()

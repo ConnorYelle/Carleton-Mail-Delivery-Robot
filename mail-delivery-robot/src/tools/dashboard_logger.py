@@ -9,10 +9,26 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import BatteryState
 from irobot_create_msgs.msg import DockStatus
 from std_msgs.msg import String
+from rcl_interfaces.msg import Log
 import math
 from statistics import mean
 from sensor_msgs.msg import LaserScan
 from tools.csv_parser import loadConfig
+
+def resolve_default_log_dir():
+    current_dir = os.path.abspath(os.path.dirname(__file__))
+    for candidate in [current_dir] + [os.path.dirname(current_dir)]:
+        current_dir = candidate
+        while True:
+            if os.path.basename(current_dir) == "mail-delivery-robot":
+                logs_dir = os.path.join(current_dir, "tools", "logs")
+                if os.path.isdir(logs_dir):
+                    return logs_dir
+            parent = os.path.dirname(current_dir)
+            if parent == current_dir:
+                break
+            current_dir = parent
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tools", "logs"))
 
 class Metric:
     topic_name = None
@@ -157,6 +173,44 @@ class LidarAIFallbackMetric(Metric):
             "ai_fallback_count": self.fallback_count
         }
 
+class RosoutLLMResponseTimeMetric(Metric):
+    topic_name = "/rosout"
+    topic_type = Log
+    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=200)
+
+    def __init__(self):
+        self.samples = []
+        self.samples_by_node = {}
+        self.latency_pattern = re.compile(r"latency=([\d.]+)s")
+
+    def update(self, msg: Log):
+        match = self.latency_pattern.search(msg.msg)
+        if not match:
+            return
+        try:
+            latency = float(match.group(1))
+        except (TypeError, ValueError):
+            return
+
+        node_name = (msg.name or "ai_node").strip()
+        self.samples.append(latency)
+        if node_name not in self.samples_by_node:
+            self.samples_by_node[node_name] = []
+        self.samples_by_node[node_name].append(latency)
+
+    def serialize(self):
+        payload = {
+            "ai_llm_response_avg_s": round(mean(self.samples), 3) if self.samples else 0.0,
+            "ai_llm_response_max_s": round(max(self.samples), 3) if self.samples else 0.0,
+            "ai_llm_response_count": len(self.samples),
+        }
+        for node_name, samples in self.samples_by_node.items():
+            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
+            payload[f"{key_prefix}_llm_response_avg_s"] = round(mean(samples), 3)
+            payload[f"{key_prefix}_llm_response_max_s"] = round(max(samples), 3)
+            payload[f"{key_prefix}_llm_response_count"] = len(samples)
+        return payload
+
 def make_llm_response_time_metric(ai_node: Any) -> Metric:
     class LLMResponseTimeMetric(Metric):
         def __init__(self, node_ref: Any):
@@ -207,7 +261,7 @@ class FileLogger:
 class RobotGeneralLogger(Node):
     def __init__(self, ai_nodes=None):
         super().__init__('dashboard_logger')
-        self.declare_parameter('log_dir', './tools/logs')
+        self.declare_parameter('log_dir', resolve_default_log_dir())
         log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
         fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
@@ -218,6 +272,7 @@ class RobotGeneralLogger(Node):
             LidarDistanceMetric(),
             DockSuccessMetric(),
             LidarAIFallbackMetric(fallback_log_path),
+            RosoutLLMResponseTimeMetric(),
         ]
         if ai_nodes:
             for ai_node in ai_nodes:
