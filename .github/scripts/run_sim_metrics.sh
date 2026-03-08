@@ -8,11 +8,16 @@ REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
 EXTERNAL_MODELS_DIR="${REPO_ROOT}/external_files"
 GAZEBO_MODELS_DIR="/root/.gazebo/models"
+WORLD_SOURCE="${EXTERNAL_MODELS_DIR}/demo_video.world"
+WORLD_PATCHED="/tmp/demo_video_ci.world"
 RUN_START_EPOCH="$(date +%s)"
 
 cleanup() {
   pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
   pkill -f "create3_gazebo.launch.py" 2>/dev/null || true
+  pkill -f "gazebo.launch.py" 2>/dev/null || true
+  pkill -f "gzserver" 2>/dev/null || true
+  pkill -f "gzclient" 2>/dev/null || true
   pkill -f "ollama serve" 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -44,17 +49,32 @@ fi
 
 export GAZEBO_MODEL_PATH="${GAZEBO_MODELS_DIR}:${EXTERNAL_MODELS_DIR}:${GAZEBO_MODEL_PATH:-}"
 
+echo "[metrics-runner] preparing world file..."
+if [[ ! -f "${WORLD_SOURCE}" ]]; then
+  echo "[metrics-runner] world file not found: ${WORLD_SOURCE}"
+  exit 1
+fi
+control_pkg_prefix="$(ros2 pkg prefix irobot_create_control 2>/dev/null || true)"
+if [[ -z "${control_pkg_prefix}" ]]; then
+  echo "[metrics-runner] unable to resolve irobot_create_control package prefix"
+  exit 1
+fi
+control_yaml_path="${control_pkg_prefix}/share/irobot_create_control/config/control.yaml"
+if [[ ! -f "${control_yaml_path}" ]]; then
+  echo "[metrics-runner] control yaml not found: ${control_yaml_path}"
+  exit 1
+fi
+cp "${WORLD_SOURCE}" "${WORLD_PATCHED}"
+sed -i "s|/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml|${control_yaml_path}|g" "${WORLD_PATCHED}"
+
 echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
 sleep 3
 
 echo "[metrics-runner] launching gazebo..."
-ros2 launch irobot_create_gazebo_bringup create3_gazebo.launch.py \
-  world_path:=/root/.gazebo/worlds/demo_video.world \
-  spawn_beacons:=true \
-  x:=5.586507 \
-  y:=-3.07 \
-  z:=0.00 >/tmp/gazebo.log 2>&1 &
+ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
+  world_path:="${WORLD_PATCHED}" \
+  use_gazebo_gui:=false >/tmp/gazebo.log 2>&1 &
 
 sleep "${STARTUP_DELAY_SECONDS}"
 
