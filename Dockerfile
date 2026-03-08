@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-control-msgs \
     ros-humble-tf2-geometry-msgs \
     ros-humble-angles \
+    coreutils \
     python3-pip \
     curl && rm -rf /var/lib/apt/lists/*
 
@@ -16,6 +17,7 @@ RUN pip3 install ollama
 
 WORKDIR /ros2_ws
 COPY . src/carleton_mail_robot
+RUN chmod +x /ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh
 
 RUN . /opt/ros/humble/setup.sh && \
     export MAKEFLAGS="-j1" && \
@@ -25,6 +27,6 @@ RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
 
 RUN mkdir -p /root/.gazebo/worlds/ && \
-    cp src/carleton_mail_robot/Carleton-Mail-Delivery-Robot/external_files/demo_video.world /root/.gazebo/worlds/ || true
+    cp src/carleton_mail_robot/external_files/demo_video.world /root/.gazebo/worlds/ || true
 
 CMD ollama serve & bash

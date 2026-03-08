@@ -1,0 +1,89 @@
+name: PR Simulation Metrics
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  run-sim-and-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare logs directory
+        run: mkdir -p mail-delivery-robot/tools/logs/runs
+
+      - name: Build Docker image
+        run: docker build -t carleton-mail-robot-ci:latest .
+
+      - name: Run simulation and produce metrics
+        run: |
+          docker run --rm \
+            -e RUN_TIMEOUT_SECONDS=240 \
+            -e STARTUP_DELAY_SECONDS=15 \
+            -v "${{ github.workspace }}/mail-delivery-robot/tools/logs:/ros2_ws/src/carleton_mail_robot/mail-delivery-robot/tools/logs" \
+            carleton-mail-robot-ci:latest \
+            bash -lc "/ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh"
+
+      - name: Resolve latest run file
+        id: latest_run
+        run: |
+          latest="$(ls -1t mail-delivery-robot/tools/logs/runs/run_*.txt | head -n1 || true)"
+          if [ -z "${latest}" ]; then
+            echo "No run files found."
+            exit 1
+          fi
+          echo "path=${latest}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-metrics-run
+          path: ${{ steps.latest_run.outputs.path }}
+
+      - name: Comment metrics on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- sim-metrics-comment -->';
+            const runPath = process.env.RUN_FILE_PATH;
+            const runText = fs.readFileSync(runPath, 'utf8');
+            const body = `${marker}
+            ## Simulation Metrics (Docker)
+            \`${runPath}\`
+
+            \`\`\`text
+            ${runText}
+            \`\`\``;
+
+            const prNumber = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body
+              });
+            }
+        env:
+          RUN_FILE_PATH: ${{ steps.latest_run.outputs.path }}

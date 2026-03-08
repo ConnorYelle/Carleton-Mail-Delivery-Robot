@@ -1,0 +1,13 @@
+services:
+  sim-metrics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carleton-mail-robot-metrics
+    environment:
+      RUN_TIMEOUT_SECONDS: "240"
+      STARTUP_DELAY_SECONDS: "15"
+    volumes:
+      - ./mail-delivery-robot/tools/logs:/ros2_ws/src/carleton_mail_robot/mail-delivery-robot/tools/logs
+    command: >
+      bash -lc "/ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh"
