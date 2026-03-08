@@ -8,6 +8,9 @@ USE_AI_NAVIGATION="${USE_AI_NAVIGATION:-false}"
 USE_AI_BEACON="${USE_AI_BEACON:-true}"
 USE_AI_AVOIDANCE="${USE_AI_AVOIDANCE:-false}"
 USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
+BEACON_AI_MODEL="${BEACON_AI_MODEL:-gemma2:2b-instruct-q4_0}"
+NAVIGATION_AI_MODEL="${NAVIGATION_AI_MODEL:-gemma2:2b-instruct-q4_0}"
+AVOIDANCE_AI_MODEL="${AVOIDANCE_AI_MODEL:-qwen2:0.5b}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
@@ -72,14 +75,27 @@ if [[ ! -f "${control_yaml_path}" ]]; then
 fi
 cp "${WORLD_SOURCE}" "${WORLD_PATCHED}"
 sed -i "s|/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml|${control_yaml_path}|g" "${WORLD_PATCHED}"
+# Avoid duplicate control parameter declarations when robot_description also provides control config.
+sed -i "/<parameters>.*irobot_create_control.*\\/config\\/control.yaml<\\/parameters>/d" "${WORLD_PATCHED}"
 
 echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
 sleep 3
 
+echo "[metrics-runner] preloading ollama models..."
+if [[ "${USE_AI_BEACON}" == "true" ]]; then
+  ollama pull "${BEACON_AI_MODEL}"
+fi
+if [[ "${USE_AI_NAVIGATION}" == "true" ]]; then
+  ollama pull "${NAVIGATION_AI_MODEL}"
+fi
+if [[ "${USE_AI_AVOIDANCE}" == "true" ]]; then
+  ollama pull "${AVOIDANCE_AI_MODEL}"
+fi
+
 echo "[metrics-runner] starting robot description publishers..."
 ros2 launch irobot_create_common_bringup robot_description.launch.py \
-  gazebo:=ignition \
+  gazebo:=classic \
   visualize_rays:=false >/tmp/robot_description.log 2>&1 &
 
 sleep 3
