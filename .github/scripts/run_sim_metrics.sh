@@ -15,6 +15,7 @@ RUN_START_EPOCH="$(date +%s)"
 cleanup() {
   pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
   pkill -f "create3_gazebo.launch.py" 2>/dev/null || true
+  pkill -f "robot_description.launch.py" 2>/dev/null || true
   pkill -f "gazebo.launch.py" 2>/dev/null || true
   pkill -f "gzserver" 2>/dev/null || true
   pkill -f "gzclient" 2>/dev/null || true
@@ -71,6 +72,14 @@ echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
 sleep 3
 
+echo "[metrics-runner] starting robot description publishers..."
+ros2 launch irobot_create_common_bringup robot_description.launch.py \
+  gazebo:=classic \
+  visualize_rays:=false \
+  namespace:= >/tmp/robot_description.log 2>&1 &
+
+sleep 3
+
 echo "[metrics-runner] launching gazebo..."
 ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
   world_path:="${WORLD_PATCHED}" \
@@ -106,6 +115,8 @@ if [[ -z "${latest_run}" ]]; then
   tail -n 120 /tmp/robot.log || true
   echo "--- gazebo.log ---"
   tail -n 120 /tmp/gazebo.log || true
+  echo "--- robot_description.log ---"
+  tail -n 120 /tmp/robot_description.log || true
   exit 1
 fi
 
