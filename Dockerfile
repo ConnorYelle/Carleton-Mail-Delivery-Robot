@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     coreutils \
     zstd \
     python3-pip \
+    python3-setuptools \
     curl && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
