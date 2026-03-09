@@ -262,7 +262,7 @@ class RobotGeneralLogger(Node):
     def __init__(self, ai_nodes=None):
         super().__init__('dashboard_logger')
         self.declare_parameter('log_dir', resolve_default_log_dir())
-        self.declare_parameter('max_trip_seconds', 300.0)
+        self.declare_parameter('max_trip_seconds', 180.0)
         log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
         self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)

@@ -11,6 +11,8 @@ USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
 BEACON_AI_MODEL="${BEACON_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 NAVIGATION_AI_MODEL="${NAVIGATION_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 AVOIDANCE_AI_MODEL="${AVOIDANCE_AI_MODEL:-qwen2:0.5b}"
+DESTINATION_ROUTE="${DESTINATION_ROUTE:-Nicol:Canal}"
+DESTINATION_PUBLISH_DELAY_SECONDS="${DESTINATION_PUBLISH_DELAY_SECONDS:-20}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
@@ -108,6 +110,13 @@ ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
 sleep "${STARTUP_DELAY_SECONDS}"
 
 echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
+(
+  sleep "${DESTINATION_PUBLISH_DELAY_SECONDS}"
+  echo "[metrics-runner] publishing destination route: ${DESTINATION_ROUTE}"
+  ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
+    >>/tmp/destination_pub.log 2>&1
+) &
+
 set +e
 timeout "${RUN_TIMEOUT_SECONDS}" \
   ros2 launch mail-delivery-robot robot.launch.py \
