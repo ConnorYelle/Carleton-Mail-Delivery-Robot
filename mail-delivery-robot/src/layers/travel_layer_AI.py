@@ -1,4 +1,5 @@
 import math
+import time
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -38,6 +39,7 @@ class TravelLayerAI(Node):
         self.was_docked = False
         self.latest_lidar = None
         self.current_llm_decision = None   # Cached LLM travel decision
+        self.llm_response_latencies = []
 
         self.lidar_data_sub = self.create_subscription(String, 'lidar_data', self.lidar_data_callback, 10)
         self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
@@ -113,6 +115,7 @@ class TravelLayerAI(Node):
 
     def ai_travel_query(self):
         self.get_logger().info("Querying Ollama for travel direction...")
+        start = time.perf_counter()
         try:
             lidar_text = (
                 self.lidar_summary(self.latest_lidar)
@@ -143,12 +146,24 @@ class TravelLayerAI(Node):
                 }
             ])
 
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="travel_ai_query")
             decision = response['message']['content'].strip().upper()
             self.get_logger().info(f"Ollama travel decision: {decision}")
             return decision
         except Exception as e:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="travel_ai_query_error")
             self.get_logger().error(f"Ollama connection failed: {e}")
             return "WALL_FOLLOW"  # Safe fallback to existing behaviour
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
+
+    def get_llm_response_latencies(self):
+        return list(self.llm_response_latencies)
 
 
     def compute_wall_follow(self):

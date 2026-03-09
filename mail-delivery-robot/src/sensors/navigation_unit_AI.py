@@ -141,16 +141,21 @@ class NavigationUnit_AI(Node):
 
     def query_ollama(self, current_beacon: str, destination: str):
         start = time.perf_counter()
-        graph = build_nav_graph(self)
-        result = graph.invoke({
-            "current_beacon": current_beacon,
-            "destination": destination
-        })
-        elapsed = time.perf_counter() - start
-        self.record_llm_latency(elapsed, context="query_ollama")
-        decision = result["direction"]
-        self.get_logger().info(f"Ollama decision: {decision}")
-        return decision
+        try:
+            graph = build_nav_graph(self)
+            result = graph.invoke({
+                "current_beacon": current_beacon,
+                "destination": destination
+            })
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="query_ollama")
+            decision = result["direction"]
+            self.get_logger().info(f"Ollama decision: {decision}")
+            return decision
+        except Exception:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="query_ollama_error")
+            raise
 
     def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
         self.llm_response_latencies.append(elapsed_s)
