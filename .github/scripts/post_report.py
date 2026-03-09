@@ -108,8 +108,13 @@ for m in metrics:
         continue
 
     avg_val = avg[m]
+    if pd.isna(avg_val):
+        avg_val = df[m].mean(skipna=True)
+    has_avg = not pd.isna(avg_val)
 
-    if m in IN_DE_METRICS:
+    if not has_avg:
+        status = "No baseline"
+    elif m in IN_DE_METRICS:
         if abs(val - avg_val) < 0.001:
             status = "Same"
         elif val > avg_val:
@@ -125,7 +130,8 @@ for m in metrics:
         else:
             status = "Worse"
 
-    summary_counts[status] += 1
+    if status in summary_counts:
+        summary_counts[status] += 1
 
     if last_run_filename:
         if compare_run is None or m not in compare_run or pd.isna(compare_run[m]):
@@ -148,9 +154,11 @@ for m in metrics:
                 else:
                     comparison = "Worse"
 
-        temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} | {comparison} |\n"
+        avg_display = f"{avg_val:.2f}" if has_avg else "N/A"
+        temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} | {comparison} |\n"
     else:
-        temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
+        avg_display = f"{avg_val:.2f}" if has_avg else "N/A"
+        temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} |\n"
 
 summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same, {summary_counts['Increased']} Increased, {summary_counts['Decreased']} Decreased\n\n"
 full_md = md_header + summary_line + temp_body

@@ -133,8 +133,8 @@ timeout "${RUN_TIMEOUT_SECONDS}" \
   use_ai_beacon:="${USE_AI_BEACON}" \
   use_ai_avoidance:="${USE_AI_AVOIDANCE}" \
   use_ai_travel_layer:="${USE_AI_TRAVEL_LAYER}" \
-  >/tmp/robot.log 2>&1
-launch_status=$?
+  2>&1 | tee /tmp/robot.log
+launch_status=${PIPESTATUS[0]}
 set -e
 
 if [[ "${launch_status}" -ne 0 && "${launch_status}" -ne 124 ]]; then
