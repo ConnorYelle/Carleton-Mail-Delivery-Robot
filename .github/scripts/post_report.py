@@ -98,6 +98,11 @@ else:
 compare_run = None
 if last_run_filename and last_run_filename in df["run"].values and most_recent_run["run"] != last_run_filename:
     compare_run = df[df["run"] == last_run_filename].iloc[0]
+elif len(df) > 1:
+    # Fallback: compare with the latest different run available in dataset.
+    fallback_candidates = df[df["run"] != most_recent_run["run"]].sort_values("run", ascending=False)
+    if not fallback_candidates.empty:
+        compare_run = fallback_candidates.iloc[0]
 
 for m in metrics:
     if m not in most_recent_run:
