@@ -1,8 +1,6 @@
 name: Robot Metrics PR Comment
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
 
