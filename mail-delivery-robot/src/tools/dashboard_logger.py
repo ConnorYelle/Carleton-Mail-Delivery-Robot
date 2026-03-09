@@ -262,8 +262,12 @@ class RobotGeneralLogger(Node):
     def __init__(self, ai_nodes=None):
         super().__init__('dashboard_logger')
         self.declare_parameter('log_dir', resolve_default_log_dir())
+        self.declare_parameter('max_trip_seconds', 300.0)
         log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
+        self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)
+        self.run_start_perf = time.perf_counter()
+        self.end_reason = "unknown"
         fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
         self.metrics = [
             BatteryMetric(),
@@ -290,11 +294,13 @@ class RobotGeneralLogger(Node):
             self.dock_metric.on_navigation_msg if self.dock_metric else (lambda msg: None),
             10)
 
-    def end_trip(self):
+    def end_trip(self, reason: str = "unknown"):
+        self.end_reason = reason
         data = {}
         for m in self.metrics:
             m.end()
             data.update(m.serialize())
+        data["trip_end_reason"] = self.end_reason
         self.logger.write_run_file(data)
         self.logger.close()
 
@@ -305,11 +311,18 @@ def main(args=None):
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=0.1)
             docked = any(isinstance(m, DockSuccessMetric) and m.is_docked for m in node.metrics)
-            if docked or node.should_shutdown:
-                node.end_trip()
+            elapsed_s = time.perf_counter() - node.run_start_perf
+            if docked:
+                node.end_trip("docked")
+                break
+            if elapsed_s >= node.max_trip_seconds:
+                node.end_trip("failed_to_dock")
+                break
+            if node.should_shutdown:
+                node.end_trip("shutdown")
                 break
     except KeyboardInterrupt:
-        node.end_trip()
+        node.end_trip("keyboard_interrupt")
     node.destroy_node()
     rclpy.shutdown()
 
