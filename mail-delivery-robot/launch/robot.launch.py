@@ -99,7 +99,12 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='dashboard_logger', name='dashboard_logger', parameters=sim_time),
+        Node(
+            package='mail-delivery-robot',
+            executable='dashboard_logger',
+            name='dashboard_logger',
+            parameters=sim_time + [{'max_trip_seconds': 120.0}],
+        ),
 
         # Optional: Metric Analyzer Node
         Node(

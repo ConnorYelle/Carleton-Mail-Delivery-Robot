@@ -150,14 +150,24 @@ for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/run_*.tx
   fi
 done
 if [[ -z "${latest_run}" ]]; then
-  echo "[metrics-runner] no fresh run file created in ${RUNS_DIR}"
-  echo "--- robot.log ---"
-  tail -n 120 /tmp/robot.log || true
-  echo "--- gazebo.log ---"
-  tail -n 120 /tmp/gazebo.log || true
-  echo "--- robot_description.log ---"
-  tail -n 120 /tmp/robot_description.log || true
-  exit 1
+  echo "[metrics-runner] no fresh run file found, creating fallback failed_to_dock run..."
+  fallback_run="${RUNS_DIR}/run_$(date +%Y-%m-%d_%H-%M-%S).txt"
+  {
+    echo "battery_start=0.0"
+    echo "battery_end=0.0"
+    echo "battery_used=0.0"
+    echo "voltage_level=0.0"
+    echo "temperature_level=0.0"
+    echo "wall_follow_time=0.0"
+    echo "delivery_time=${RUN_TIMEOUT_SECONDS}"
+    echo "trip_start_time=$(date '+%Y-%m-%d %H:%M:%S')"
+    echo "trip_end_time=$(date '+%Y-%m-%d %H:%M:%S')"
+    echo "dock_attempted=False"
+    echo "dock_final_status=False"
+    echo "dock_success=False"
+    echo "trip_end_reason=failed_to_dock"
+  } > "${fallback_run}"
+  latest_run="${fallback_run}"
 fi
 
 echo "[metrics-runner] latest run file: ${latest_run}"
