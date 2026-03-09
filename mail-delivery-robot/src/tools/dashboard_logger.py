@@ -230,11 +230,7 @@ class RosoutLLMResponseTimeMetric(Metric):
         self.samples_by_node[node_name].append(latency)
 
     def serialize(self):
-        payload = {
-            "ai_llm_response_avg_s": round(mean(self.samples), 3) if self.samples else 0.0,
-            "ai_llm_response_max_s": round(max(self.samples), 3) if self.samples else 0.0,
-            "ai_llm_response_count": len(self.samples),
-        }
+        payload = {}
         for node_name, samples in self.samples_by_node.items():
             key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
             payload[f"{key_prefix}_llm_response_avg_s"] = round(mean(samples), 3)
