@@ -13,6 +13,14 @@ METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_
 EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
 IN_DE_METRICS = ["lidar_front_avg", "wall_distance_avg"]
 
+
+def get_metric_rule(metric_name: str) -> str:
+    # LLM response metrics (including future ai nodes/layers) are latency/load signals:
+    # lower values are better for avg/max/count.
+    if re.search(r"_llm_response_(avg_s|max_s|count)$", metric_name):
+        return "lower"
+    return METRIC_RULES.get(metric_name, "higher")
+
 if not GITHUB_EVENT_PATH or not os.path.exists(GITHUB_EVENT_PATH):
     exit(0)
 
@@ -123,7 +131,7 @@ for m in metrics:
         else:
             status = "Decreased"
     else:
-        rule = METRIC_RULES.get(m, "higher")
+        rule = get_metric_rule(m)
         if abs(val - avg_val) < 0.001:
             status = "Same"
         elif (rule == "lower" and val < avg_val) or (rule == "higher" and val > avg_val):
@@ -147,7 +155,7 @@ for m in metrics:
                 else:
                     comparison = "Decreased"
             else:
-                rule = METRIC_RULES.get(m, "higher")
+                rule = get_metric_rule(m)
                 if abs(val - prev_val) < 0.001:
                     comparison = "Same"
                 elif (rule == "lower" and val < prev_val) or (rule == "higher" and val > prev_val):
