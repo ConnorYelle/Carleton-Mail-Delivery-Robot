@@ -43,7 +43,7 @@ class Metric:
     def serialize(self): return {}
 
 class BatteryMetric(Metric):
-    topic_name = '/battery_state'
+    topic_name = 'battery_state'
     topic_type = BatteryState
     listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
     def __init__(self):
@@ -64,25 +64,53 @@ class BatteryMetric(Metric):
             self.used = self.start_level - self.end_level
     def serialize(self):
         return {
-            "battery_start": round(self.start_level, 2) if self.start_level else 0.0,
-            "battery_end": round(self.end_level, 2) if self.end_level else 0.0,
+            "battery_start": round(self.start_level, 2) if self.start_level is not None else 0.0,
+            "battery_end": round(self.end_level, 2) if self.end_level is not None else 0.0,
             "battery_used": round(self.used, 2) if self.used is not None else 0.0,
-            "voltage_level": round(self.voltage, 2) if self.voltage else 0.0,
-            "temperature_level": round(self.temperature, 2) if self.temperature else 0.0
+            "voltage_level": round(self.voltage, 2) if self.voltage is not None else 0.0,
+            "temperature_level": round(self.temperature, 2) if self.temperature is not None else 0.0
         }
 
 class WallFollowMetric(Metric):
+    topic_name = '/actions'
+    topic_type = String
+    listen_qos = 10
+
     def __init__(self, log_path):
         self.log_path = log_path
         self.wall_time = 0.0
+        self.wall_follow_samples = 0
+        self.sample_interval_s = 0.2
+
+    def update(self, msg: String):
+        if "WALL_FOLLOW" in msg.data:
+            self.wall_follow_samples += 1
+
+    @staticmethod
+    def _extract_time_from_line(line: str):
+        match = re.search(r"Total wall-following time:\s*([\d.]+)s", line, re.IGNORECASE)
+        if match:
+            return float(match.group(1))
+        match = re.search(r"Total Wall Following Time:\s*([\d.]+)", line, re.IGNORECASE)
+        if match:
+            return float(match.group(1))
+        return None
+
     def end(self):
-        if not os.path.exists(self.log_path): return
-        with open(self.log_path, 'r') as f:
-            for line in reversed(f.readlines()):
-                match = re.search(r"Total wall-following time:\s*([\d.]+)s", line)
-                if match:
-                    self.wall_time = float(match.group(1))
-                    break
+        if self.wall_follow_samples > 0:
+            self.wall_time = round(self.wall_follow_samples * self.sample_interval_s, 2)
+            return
+
+        for candidate_path in [self.log_path, os.path.join(os.path.dirname(self.log_path), "robot_log_time.txt")]:
+            if not os.path.exists(candidate_path):
+                continue
+            with open(candidate_path, 'r', encoding='utf-8') as f:
+                for line in reversed(f.readlines()):
+                    parsed_time = self._extract_time_from_line(line)
+                    if parsed_time is not None:
+                        self.wall_time = parsed_time
+                        return
+
     def serialize(self): return {"wall_follow_time": self.wall_time}
 
 class DeliveryTimeMetric(Metric):
