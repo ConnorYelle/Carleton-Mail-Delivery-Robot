@@ -27,6 +27,7 @@ jobs:
           docker run --rm \
             -e RUN_TIMEOUT_SECONDS=240 \
             -e STARTUP_DELAY_SECONDS=15 \
+            -e TZ=America/Toronto \
             -v "${{ github.workspace }}/mail-delivery-robot/tools/logs:/ros2_ws/src/carleton_mail_robot/mail-delivery-robot/tools/logs" \
             carleton-mail-robot-ci:latest \
             bash -lc "/ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh"
