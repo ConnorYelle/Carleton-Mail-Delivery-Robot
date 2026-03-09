@@ -15,6 +15,7 @@ DESTINATION_ROUTE="${DESTINATION_ROUTE:-Nicol:Canal}"
 DESTINATION_PUBLISH_DELAY_SECONDS="${DESTINATION_PUBLISH_DELAY_SECONDS:-20}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
+LOGS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
 INSTALL_LOGS_DIR="${WORKSPACE_ROOT}/install/mail-delivery-robot/tools/logs"
 INSTALL_RUNS_DIR="${INSTALL_LOGS_DIR}/runs"
@@ -65,6 +66,7 @@ if [[ "${copied_models}" -eq 0 ]]; then
 fi
 
 export GAZEBO_MODEL_PATH="${GAZEBO_MODELS_DIR}:${EXTERNAL_MODELS_DIR}:${GAZEBO_MODEL_PATH:-}"
+export DASHBOARD_LOG_DIR="${LOGS_DIR}"
 
 echo "[metrics-runner] preparing world file..."
 if [[ ! -f "${WORLD_SOURCE}" ]]; then
@@ -150,24 +152,16 @@ for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/run_*.tx
   fi
 done
 if [[ -z "${latest_run}" ]]; then
-  echo "[metrics-runner] no fresh run file found, creating fallback failed_to_dock run..."
-  fallback_run="${RUNS_DIR}/run_$(date +%Y-%m-%d_%H-%M-%S).txt"
-  {
-    echo "battery_start=0.0"
-    echo "battery_end=0.0"
-    echo "battery_used=0.0"
-    echo "voltage_level=0.0"
-    echo "temperature_level=0.0"
-    echo "wall_follow_time=0.0"
-    echo "delivery_time=${RUN_TIMEOUT_SECONDS}"
-    echo "trip_start_time=$(date '+%Y-%m-%d %H:%M:%S')"
-    echo "trip_end_time=$(date '+%Y-%m-%d %H:%M:%S')"
-    echo "dock_attempted=False"
-    echo "dock_final_status=False"
-    echo "dock_success=False"
-    echo "trip_end_reason=failed_to_dock"
-  } > "${fallback_run}"
-  latest_run="${fallback_run}"
+  echo "[metrics-runner] no fresh real run file found."
+  echo "--- robot.log ---"
+  tail -n 120 /tmp/robot.log || true
+  echo "--- gazebo.log ---"
+  tail -n 120 /tmp/gazebo.log || true
+  echo "--- robot_description.log ---"
+  tail -n 120 /tmp/robot_description.log || true
+  echo "--- destination_pub.log ---"
+  tail -n 80 /tmp/destination_pub.log || true
+  exit 1
 fi
 
 echo "[metrics-runner] latest run file: ${latest_run}"

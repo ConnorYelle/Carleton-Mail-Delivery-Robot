@@ -16,6 +16,9 @@ from sensor_msgs.msg import LaserScan
 from tools.csv_parser import loadConfig
 
 def resolve_default_log_dir():
+    env_log_dir = os.getenv("DASHBOARD_LOG_DIR")
+    if env_log_dir:
+        return os.path.abspath(env_log_dir)
     current_dir = os.path.abspath(os.path.dirname(__file__))
     for candidate in [current_dir] + [os.path.dirname(current_dir)]:
         current_dir = candidate
