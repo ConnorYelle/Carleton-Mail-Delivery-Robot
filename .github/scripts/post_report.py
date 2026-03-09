@@ -39,6 +39,10 @@ if not runs:
 df = pd.DataFrame(runs)
 numeric_cols = df.select_dtypes(include=["number"]).columns
 metrics = [c for c in numeric_cols if c not in METADATA_KEYS and c not in EXCLUDE_METRICS]
+non_numeric_metrics = [
+    c for c in df.columns
+    if c not in METADATA_KEYS and c not in EXCLUDE_METRICS and c not in metrics
+]
 
 with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
@@ -156,6 +160,33 @@ for m in metrics:
     else:
         avg_display = f"{avg_val:.2f}" if has_avg else "N/A"
         temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} |\n"
+
+if non_numeric_metrics:
+    temp_body += "\n### Non-Numeric Metrics\n"
+    if last_run_filename:
+        temp_body += "| Metric | Value | Previous Run Value |\n"
+        temp_body += "|--------|-------|--------------------|\n"
+    else:
+        temp_body += "| Metric | Value |\n"
+        temp_body += "|--------|-------|\n"
+
+    for m in non_numeric_metrics:
+        if m not in most_recent_run:
+            continue
+
+        val = most_recent_run[m]
+        if pd.isna(val):
+            continue
+
+        current_display = str(val)
+        if last_run_filename:
+            if compare_run is None or m not in compare_run or pd.isna(compare_run[m]):
+                prev_display = "No run"
+            else:
+                prev_display = str(compare_run[m])
+            temp_body += f"| {m} | {current_display} | {prev_display} |\n"
+        else:
+            temp_body += f"| {m} | {current_display} |\n"
 
 summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same, {summary_counts['Increased']} Increased, {summary_counts['Decreased']} Decreased\n\n"
 raw_run_path = os.path.join(LOG_DIR, most_recent_run["run"])
