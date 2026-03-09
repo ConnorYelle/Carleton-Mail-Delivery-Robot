@@ -15,6 +15,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Restore persisted simulation runs
+        id: runs_cache_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: mail-delivery-robot/tools/logs/runs
+          key: sim-runs-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          restore-keys: |
+            sim-runs-pr-${{ github.event.pull_request.number }}-
+
       - name: Prepare logs directory
         run: |
           mkdir -p mail-delivery-robot/tools/logs/runs
@@ -47,6 +56,12 @@ jobs:
         with:
           name: simulation-metrics-run
           path: ${{ steps.latest_run.outputs.path }}
+      
+      - name: Upload all simulation runs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-runs-history
+          path: mail-delivery-robot/tools/logs/runs
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -60,3 +75,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/post_report.py
+
+      - name: Save persisted simulation runs
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: mail-delivery-robot/tools/logs/runs
+          key: ${{ steps.runs_cache_restore.outputs.cache-primary-key }}
