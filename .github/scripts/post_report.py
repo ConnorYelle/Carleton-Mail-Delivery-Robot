@@ -44,25 +44,17 @@ with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
 
 commit_hash = "Unknown"
-target_date = None
 
 if "pull_request" in event:
-    target_date = event["pull_request"]["created_at"][:10].replace("-", "")
     commit_hash = event["pull_request"]["head"]["sha"][:7]
 elif "commits" in event:
-    target_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
     commit_hash = event.get("after", event["commits"][-1]["id"])[:7]
 
-if target_date and target_date in df["date"].values:
-    day_runs = df[df["date"] == target_date].copy()
-    report_date = target_date
-    is_fallback = False
-else:
-    day_runs = pd.DataFrame([df.iloc[-1]])
-    report_date = day_runs.iloc[0]["date"]
-    is_fallback = True
-
-most_recent_run = day_runs.sort_values("run", ascending=False).iloc[0]
+# Always report the newest available run file in the dataset.
+most_recent_run = df.sort_values("run", ascending=False).iloc[0]
+report_date = most_recent_run["date"]
+day_runs = df[df["date"] == report_date].copy()
+is_fallback = False
 
 avg_source = df[df["run"] != most_recent_run["run"]]
 avg = avg_source[metrics].mean() if not avg_source.empty else df[metrics].mean()
