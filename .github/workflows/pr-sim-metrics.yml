@@ -34,7 +34,7 @@ jobs:
       - name: Run simulation and produce metrics
         run: |
           docker run --rm \
-            -e RUN_TIMEOUT_SECONDS=240 \
+            -e RUN_TIMEOUT_SECONDS=300 \
             -e STARTUP_DELAY_SECONDS=15 \
             -e TZ=America/Toronto \
             -v "${{ github.workspace }}/mail-delivery-robot/tools/logs:/ros2_ws/src/carleton_mail_robot/mail-delivery-robot/tools/logs" \
