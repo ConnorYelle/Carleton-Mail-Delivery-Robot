@@ -157,50 +157,6 @@ class LidarDistanceMetric(Metric):
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
 
-class LidarActivityMetric(Metric):
-    topic_name = "/scan"
-    topic_type = LaserScan
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
-
-    def __init__(self):
-        self.scan_messages = 0
-        self.scan_changed_messages = 0
-        self._last_signature = None
-
-    def _signature(self, scan: LaserScan):
-        # Use a sparse, rounded signature to detect meaningful scan changes.
-        total = len(scan.ranges)
-        if total == 0:
-            return ()
-        step = max(total // 32, 1)
-        sample = []
-        for i in range(0, total, step):
-            val = scan.ranges[i]
-            if val == math.inf:
-                sample.append("inf")
-            elif val <= 0.0:
-                sample.append("nan")
-            else:
-                sample.append(round(float(val), 3))
-            if len(sample) >= 32:
-                break
-        return tuple(sample)
-
-    def update(self, scan: LaserScan):
-        self.scan_messages += 1
-        current = self._signature(scan)
-        if self._last_signature is not None and current != self._last_signature:
-            self.scan_changed_messages += 1
-        self._last_signature = current
-
-    def serialize(self):
-        is_stale = self.scan_messages > 1 and self.scan_changed_messages == 0
-        return {
-            "scan_messages": self.scan_messages,
-            "scan_changed_messages": self.scan_changed_messages,
-            "lidar_stream_stale": is_stale,
-        }
-
 class LidarAIFallbackMetric(Metric):
     def __init__(self, fallback_log_path):
         self.fallback_log_path = fallback_log_path
@@ -321,7 +277,6 @@ class RobotGeneralLogger(Node):
             WallFollowMetric(self.logger.wall_log_path),
             DeliveryTimeMetric(),
             LidarDistanceMetric(),
-            LidarActivityMetric(),
             DockSuccessMetric(),
             LidarAIFallbackMetric(fallback_log_path),
             RosoutLLMResponseTimeMetric(),
