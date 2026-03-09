@@ -158,7 +158,15 @@ for m in metrics:
         temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} |\n"
 
 summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same, {summary_counts['Increased']} Increased, {summary_counts['Decreased']} Decreased\n\n"
+raw_run_path = os.path.join(LOG_DIR, most_recent_run["run"])
+raw_run_block = "Unavailable"
+if os.path.exists(raw_run_path):
+    with open(raw_run_path, "r", encoding="utf-8") as f:
+        raw_run_block = f.read().strip()
+
 full_md = md_header + summary_line + temp_body
+full_md += "\n### Full Run Metrics (raw)\n"
+full_md += f"```ini\n{raw_run_block}\n```\n"
 
 if pr_number:
     pr.create_issue_comment(full_md)
