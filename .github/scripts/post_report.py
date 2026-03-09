@@ -15,10 +15,12 @@ IN_DE_METRICS = ["lidar_front_avg", "wall_distance_avg"]
 
 
 def get_metric_rule(metric_name: str) -> str:
-    # LLM response metrics (including future ai nodes/layers) are latency/load signals:
-    # lower values are better for avg/max/count.
-    if re.search(r"_llm_response_(avg_s|max_s|count)$", metric_name):
+    # LLM response latency metrics: lower is better.
+    if re.search(r"_llm_response_(avg_s|max_s)$", metric_name):
         return "lower"
+    # LLM response throughput metric: higher is better.
+    if re.search(r"_llm_response_count$", metric_name):
+        return "higher"
     return METRIC_RULES.get(metric_name, "higher")
 
 if not GITHUB_EVENT_PATH or not os.path.exists(GITHUB_EVENT_PATH):
