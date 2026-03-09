@@ -103,7 +103,7 @@ def generate_launch_description():
             package='mail-delivery-robot',
             executable='dashboard_logger',
             name='dashboard_logger',
-            parameters=sim_time + [{'max_trip_seconds': 120.0}],
+            parameters=sim_time + [{'max_trip_seconds': 240.0}],
         ),
 
         # Optional: Metric Analyzer Node
