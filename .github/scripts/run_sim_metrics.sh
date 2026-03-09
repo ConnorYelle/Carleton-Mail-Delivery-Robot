@@ -16,6 +16,8 @@ DESTINATION_PUBLISH_DELAY_SECONDS="${DESTINATION_PUBLISH_DELAY_SECONDS:-20}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
 RUNS_DIR="${REPO_ROOT}/mail-delivery-robot/tools/logs/runs"
+INSTALL_LOGS_DIR="${WORKSPACE_ROOT}/install/mail-delivery-robot/tools/logs"
+INSTALL_RUNS_DIR="${INSTALL_LOGS_DIR}/runs"
 EXTERNAL_MODELS_DIR="${REPO_ROOT}/external_files"
 GAZEBO_MODELS_DIR="/root/.gazebo/models"
 WORLD_SOURCE="${EXTERNAL_MODELS_DIR}/demo_video.world"
@@ -42,6 +44,10 @@ set -u
 
 mkdir -p "${RUNS_DIR}"
 mkdir -p "${GAZEBO_MODELS_DIR}"
+mkdir -p "${INSTALL_RUNS_DIR}"
+# Ensure logger output under install path is visible in mounted source logs directory.
+rm -rf "${INSTALL_LOGS_DIR}"
+ln -s "${REPO_ROOT}/mail-delivery-robot/tools/logs" "${INSTALL_LOGS_DIR}"
 
 echo "[metrics-runner] provisioning gazebo models..."
 copied_models=0
@@ -136,7 +142,7 @@ if [[ "${launch_status}" -ne 0 && "${launch_status}" -ne 124 ]]; then
 fi
 
 latest_run=""
-for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt 2>/dev/null || true); do
+for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/run_*.txt 2>/dev/null || true); do
   file_epoch="$(stat -c %Y "${candidate}" 2>/dev/null || echo 0)"
   if [[ "${file_epoch}" -ge "${RUN_START_EPOCH}" ]]; then
     latest_run="${candidate}"
