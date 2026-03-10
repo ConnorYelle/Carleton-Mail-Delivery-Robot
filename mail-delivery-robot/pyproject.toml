@@ -1,0 +1,16 @@
+[project]
+name = "mail-delivery-robot"
+version = "0.1.0"
+description = "ROS2 mail delivery robot control system"
+requires-python = ">=3.10"
+
+dependencies = [
+    "ollama",
+    "numpy"
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

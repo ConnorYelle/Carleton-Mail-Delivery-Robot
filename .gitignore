@@ -6,3 +6,9 @@ log/
 .vscode/
 .idea/
 sllidar_ros2/
+
+.venv/
+
+.DS_Store
+
+.python-version
