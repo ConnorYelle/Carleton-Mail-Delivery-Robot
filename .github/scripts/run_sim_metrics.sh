@@ -1,5 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
 set -euo pipefail
+
 
 RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-240}"
 STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
@@ -25,28 +27,48 @@ WORLD_SOURCE="${EXTERNAL_MODELS_DIR}/demo_video.world"
 WORLD_PATCHED="/tmp/demo_video_ci.world"
 RUN_START_EPOCH="$(date +%s)"
 
+
 cleanup() {
-  pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
-  pkill -f "create3_gazebo.launch.py" 2>/dev/null || true
-  pkill -f "robot_description.launch.py" 2>/dev/null || true
-  pkill -f "gazebo.launch.py" 2>/dev/null || true
-  pkill -f "gzserver" 2>/dev/null || true
-  pkill -f "gzclient" 2>/dev/null || true
-  pkill -f "ollama serve" 2>/dev/null || true
+  echo "===== Killing leftover Gazebo & ROS2 processes ====="
+  pkill -9 gzserver 2>/dev/null
+  pkill -9 gzclient 2>/dev/null
+  pkill -9 gazebo 2>/dev/null
+  pkill -9 gz 2>/dev/null
+  pkill -9 ros2 2>/dev/null
+  pkill -9 launch 2>/dev/null
+  pkill -9 python3 2>/dev/null
+  pkill -9 rviz2 2>/dev/null
+  pkill -9 nav2_ 2>/dev/null
+  pkill -9 lifecycle_manager 2>/dev/null
+  pkill -9 captain 2>/dev/null
+  pkill -9 intersection_detection_unit 2>/dev/null
+  pkill -9 navigation_unit 2>/dev/null
+  pkill -9 travel_layer 2>/dev/null
+  pkill -9 turning_layer 2>/dev/null
+  pkill -9 docking_layer 2>/dev/null
+  pkill -9 avoidance_layer 2>/dev/null
+  pkill -9 beacon_sensor 2>/dev/null
+  pkill -9 lidar_sensor 2>/dev/null
+
+
+  echo "===== Resetting ROS2 daemon ====="
+  ros2 daemon stop
+  ros2 daemon cleanup
 }
+
 trap cleanup EXIT
 
-# ROS setup scripts may reference unset vars (e.g. AMENT_TRACE_SETUP_FILES),
-# so temporarily disable nounset while sourcing.
-set +u
+echo "===== Building workspace ====="
+colcon build --symlink-install
+
+echo "===== Sourcing ROS2 workspace ====="
 source /opt/ros/humble/setup.bash
 source "${WORKSPACE_ROOT}/install/setup.bash"
-set -u
 
 mkdir -p "${RUNS_DIR}"
 mkdir -p "${GAZEBO_MODELS_DIR}"
 mkdir -p "${INSTALL_RUNS_DIR}"
-# Ensure logger output under install path is visible in mounted source logs directory.
+
 rm -rf "${INSTALL_LOGS_DIR}"
 ln -s "${REPO_ROOT}/mail-delivery-robot/tools/logs" "${INSTALL_LOGS_DIR}"
 
@@ -85,7 +107,7 @@ if [[ ! -f "${control_yaml_path}" ]]; then
 fi
 cp "${WORLD_SOURCE}" "${WORLD_PATCHED}"
 sed -i "s|/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml|${control_yaml_path}|g" "${WORLD_PATCHED}"
-# Remove world-level gazebo_ros2_control plugin entirely; control is provided via robot_description (classic).
+# Remove world-level gazebo_ros2_control plugin entirely
 sed -i "/<plugin name='gazebo_ros2_control' filename='libgazebo_ros2_control.so'>/,/<\\/plugin>/d" "${WORLD_PATCHED}"
 
 echo "[metrics-runner] starting ollama..."
@@ -117,15 +139,11 @@ ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
 
 sleep "${STARTUP_DELAY_SECONDS}"
 
-echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
-(
-  sleep "${DESTINATION_PUBLISH_DELAY_SECONDS}"
-  echo "[metrics-runner] publishing destination route: ${DESTINATION_ROUTE}"
-  ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
-    >>/tmp/destination_pub.log 2>&1
-) &
+echo "[metrics-runner] publishing destination route..."
+ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
+  >>/tmp/destination_pub.log 2>&1
 
-set +e
+echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
 timeout "${RUN_TIMEOUT_SECONDS}" \
   ros2 launch mail-delivery-robot robot.launch.py \
   use_ai_lidar:="${USE_AI_LIDAR}" \
@@ -135,7 +153,6 @@ timeout "${RUN_TIMEOUT_SECONDS}" \
   use_ai_travel_layer:="${USE_AI_TRAVEL_LAYER}" \
   2>&1 | tee /tmp/robot.log
 launch_status=${PIPESTATUS[0]}
-set -e
 
 if [[ "${launch_status}" -ne 0 && "${launch_status}" -ne 124 ]]; then
   echo "[metrics-runner] robot launch failed with status ${launch_status}"
@@ -153,14 +170,6 @@ for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/run_*.tx
 done
 if [[ -z "${latest_run}" ]]; then
   echo "[metrics-runner] no fresh real run file found."
-  echo "--- robot.log ---"
-  tail -n 120 /tmp/robot.log || true
-  echo "--- gazebo.log ---"
-  tail -n 120 /tmp/gazebo.log || true
-  echo "--- robot_description.log ---"
-  tail -n 120 /tmp/robot_description.log || true
-  echo "--- destination_pub.log ---"
-  tail -n 80 /tmp/destination_pub.log || true
   exit 1
 fi
 
