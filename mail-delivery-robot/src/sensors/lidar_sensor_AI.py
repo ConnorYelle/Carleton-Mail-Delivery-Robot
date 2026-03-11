@@ -50,10 +50,11 @@ class LidarSensor(Node):
         self.is_querying = False
 
         # Fallback logging
-        pkg_share = get_package_share_directory('mail-delivery-robot')
-        log_dir = os.path.join(pkg_share, 'logs')
+        log_dir = os.getenv("DASHBOARD_LOG_DIR")
+        if not log_dir:
+            log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tools", "logs"))
         os.makedirs(log_dir, exist_ok=True)
-        self.fallback_log_path = os.path.join(log_dir, 'ai_fallback_log.txt')
+        self.fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
         
         self.get_logger().info("LidarSensor AI node started with 5s cooldown")
 

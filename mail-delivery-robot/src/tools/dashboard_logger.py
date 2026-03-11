@@ -185,24 +185,41 @@ class LidarDistanceMetric(Metric):
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
 
-class LidarAIFallbackMetric(Metric):
-    def __init__(self, fallback_log_path):
-        self.fallback_log_path = fallback_log_path
-        self.fallback_count = 0
+class AIFallbackMetric(Metric):
+    topic_name = "/rosout"
+    topic_type = Log
+    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=200)
 
-    def end(self):
-        if not os.path.exists(self.fallback_log_path):
+    def __init__(self):
+        self.samples_by_node = {}
+        self.tokens = (
+            "FALLBACK",
+            "LLM FAILED",
+            "NO RESPONSE",
+            "AI_ERROR",
+            "OLLAMA CONNECTION FAILED",
+            "OLLAMA ERROR",
+        )
+
+    def update(self, msg: Log):
+        text = (msg.msg or "").upper()
+        if not any(token in text for token in self.tokens):
             return
 
-        with open(self.fallback_log_path, "r") as f:
-            self.fallback_count = sum(
-                1 for line in f if "TIMEOUT" in line
-            )
+        node_name = (msg.name or "ai_node").strip()
+        if node_name not in self.samples_by_node:
+            self.samples_by_node[node_name] = 0
+        self.samples_by_node[node_name] += 1
 
     def serialize(self):
-        return {
-            "ai_fallback_count": self.fallback_count
-        }
+        payload = {}
+        total = 0
+        for node_name, count in self.samples_by_node.items():
+            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
+            payload[f"{key_prefix}_ai_fallback_count"] = count
+            total += count
+        payload["ai_fallback_count"] = total
+        return payload
 
 class RosoutLLMResponseTimeMetric(Metric):
     topic_name = "/rosout"
@@ -295,14 +312,13 @@ class RobotGeneralLogger(Node):
         self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)
         self.run_start_perf = time.perf_counter()
         self.end_reason = "unknown"
-        fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
         self.metrics = [
             BatteryMetric(),
             WallFollowMetric(self.logger.wall_log_path),
             DeliveryTimeMetric(),
             LidarDistanceMetric(),
             DockSuccessMetric(),
-            LidarAIFallbackMetric(fallback_log_path),
+            AIFallbackMetric(),
             RosoutLLMResponseTimeMetric(),
         ]
         if ai_nodes:
