@@ -11,7 +11,7 @@ USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
 BEACON_AI_MODEL="${BEACON_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 NAVIGATION_AI_MODEL="${NAVIGATION_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 AVOIDANCE_AI_MODEL="${AVOIDANCE_AI_MODEL:-qwen2:0.5b}"
-DESTINATION_ROUTE="${DESTINATION_ROUTE:-Nicol:Canal}"
+DESTINATION_ROUTE="${DESTINATION_ROUTE:-Canal:Nicol}"
 DESTINATION_PUBLISH_DELAY_SECONDS="${DESTINATION_PUBLISH_DELAY_SECONDS:-20}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
@@ -33,6 +33,9 @@ cleanup() {
   pkill -f "gzserver" 2>/dev/null || true
   pkill -f "gzclient" 2>/dev/null || true
   pkill -f "ollama serve" 2>/dev/null || true
+  if [[ -n "${TOPIC_PROBE_PID:-}" ]]; then
+    kill "${TOPIC_PROBE_PID}" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
 
@@ -126,6 +129,23 @@ ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
 sleep "${STARTUP_DELAY_SECONDS}"
 
 echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
+echo "[metrics-runner] starting topic probe..."
+(
+  while true; do
+    ts="$(date +%H:%M:%S)"
+    {
+      echo "=== ${ts} ==="
+      ros2 topic echo /destinations -n 1 2>/dev/null || true
+      ros2 topic echo /lidar_data -n 1 2>/dev/null || true
+      ros2 topic echo /actions -n 1 2>/dev/null || true
+      ros2 topic echo /cmd_vel -n 1 2>/dev/null || true
+      ros2 topic echo /odom -n 1 2>/dev/null || true
+      echo ""
+    } >>/tmp/ci_topics.log
+    sleep 10
+  done
+) &
+TOPIC_PROBE_PID=$!
 (
   sleep "${DESTINATION_PUBLISH_DELAY_SECONDS}"
   echo "[metrics-runner] waiting for /destinations subscribers..."
