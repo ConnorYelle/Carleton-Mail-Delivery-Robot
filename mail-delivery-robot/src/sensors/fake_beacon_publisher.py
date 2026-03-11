@@ -33,6 +33,7 @@ class FakeBeaconPublisher(Node):
         self.path_index = 0
         self.robot_xy = None
         self.beacon_reach_distance = 0.9
+        self.last_beacon = None
 
         self.connections = loadConnections()
         self.graph = self._build_graph(self.connections)
@@ -149,41 +150,49 @@ class FakeBeaconPublisher(Node):
             self.timer = self.create_timer(self.publish_interval_s, self.publish_next)
 
     def publish_next(self):
-        if not self.path:
-            return
-        if self.path_index >= len(self.path):
-            return
-
-        # Skip the source beacon; navigation already knows it as prev_beacon.
-        if self.path_index == 0:
-            self.path_index += 1
-            if self.path_index >= len(self.path):
-                return
-
-        beacon = self.path[self.path_index]
-
         if self.beacon_positions:
             if self.robot_xy is None:
                 return
-            target_pos = self.beacon_positions.get(beacon)
-            if target_pos is None:
-                self.get_logger().warning(
-                    f"No pose for beacon '{beacon}', publishing immediately."
-                )
-            else:
-                dx = self.robot_xy[0] - target_pos[0]
-                dy = self.robot_xy[1] - target_pos[1]
-                if math.hypot(dx, dy) > self.beacon_reach_distance:
+            closest_beacon = None
+            closest_distance = None
+            for name, pos in self.beacon_positions.items():
+                dx = self.robot_xy[0] - pos[0]
+                dy = self.robot_xy[1] - pos[1]
+                distance = math.hypot(dx, dy)
+                if closest_distance is None or distance < closest_distance:
+                    closest_distance = distance
+                    closest_beacon = name
+            if closest_beacon is None or closest_distance is None:
+                return
+            if closest_distance > self.beacon_reach_distance:
+                return
+            if closest_beacon == self.last_beacon:
+                return
+            beacon = closest_beacon
+        else:
+            if not self.path:
+                return
+            if self.path_index >= len(self.path):
+                return
+
+            # Skip the source beacon; navigation already knows it as prev_beacon.
+            if self.path_index == 0:
+                self.path_index += 1
+                if self.path_index >= len(self.path):
                     return
+
+            beacon = self.path[self.path_index]
 
         msg = String()
         msg.data = f"{beacon},{self.fake_rssi}"
         self.publisher.publish(msg)
         self.get_logger().info(f"Published fake beacon: {msg.data}")
+        self.last_beacon = beacon
 
-        self.path_index += 1
-        if self.path_index >= len(self.path) and self.timer is not None:
-            self.timer.cancel()
+        if not self.beacon_positions:
+            self.path_index += 1
+            if self.path_index >= len(self.path) and self.timer is not None:
+                self.timer.cancel()
 
 
 def main():
