@@ -52,6 +52,8 @@ class LidarSensor(Node):
         self.last_ai_time = None
         self.ai_values = None
         self.used_ai = False
+        self.declare_parameter("ollama_model", "qwen2:0.5b")
+        self.ollama_model = str(self.get_parameter("ollama_model").value)
 
         # Fallback logging
         self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
@@ -159,7 +161,7 @@ class LidarSensor(Node):
         try:
             self.get_logger().info("Starting Ollama API call...")
             result_holder["response"] = ollama.chat(
-                model='qwen3:0.6b',
+                model=self.ollama_model,
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
