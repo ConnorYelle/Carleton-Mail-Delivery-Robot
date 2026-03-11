@@ -207,8 +207,15 @@ if [[ -z "${latest_run}" ]]; then
   tail -n 120 /tmp/robot_description.log || true
   echo "--- destination_pub.log ---"
   tail -n 80 /tmp/destination_pub.log || true
+  if [[ -f /tmp/ci_topics.log ]]; then
+    cp /tmp/ci_topics.log "${RUNS_DIR}/ci_topics.log" || true
+  fi
   exit 1
 fi
 
 echo "[metrics-runner] latest run file: ${latest_run}"
 cat "${latest_run}"
+
+if [[ -f /tmp/ci_topics.log ]]; then
+  cp /tmp/ci_topics.log "${RUNS_DIR}/ci_topics.log" || true
+fi
