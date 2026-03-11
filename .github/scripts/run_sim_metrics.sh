@@ -173,10 +173,15 @@ TOPIC_PROBE_PID=$!
     published_destination_route="${source_name}:${destination_name}"
   fi
   echo "[metrics-runner] publishing destination route: ${published_destination_route} (input=${DESTINATION_ROUTE})"
-  for i in $(seq 1 5); do
+  # Keep publishing until travel_layer confirms receipt or timeout.
+  for i in $(seq 1 30); do
     ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${published_destination_route}'}" \
       >>/tmp/destination_pub.log 2>&1
-    sleep 1
+    if grep -q "Updated destination" /tmp/robot.log 2>/dev/null; then
+      echo "[metrics-runner] destination acknowledged by travel_layer"
+      break
+    fi
+    sleep 2
   done
 ) &
 
