@@ -69,13 +69,20 @@ def generate_launch_description():
             package='mail-delivery-robot',
             executable='beacon_sensor',
             name='beacon_sensor',
-            parameters=sim_time,
+            parameters=sim_time + [{'use_fake_beacon_data': True}],
             condition=UnlessCondition(use_ai_beacon)
         ),
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
+            parameters=sim_time + [{'use_fake_beacon_data': True}],
+            condition=IfCondition(use_ai_beacon)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='fake_beacon_publisher',
+            name='fake_beacon_publisher',
             parameters=sim_time,
             condition=IfCondition(use_ai_beacon)
         ),

@@ -20,7 +20,7 @@ class FakeBeaconPublisher(Node):
     def __init__(self):
         super().__init__('fake_beacon_publisher')
 
-        self.publisher = self.create_publisher(String, 'beacon_data', 10)
+        self.publisher = self.create_publisher(String, 'fake_beacon_data', 10)
         self.destinations_sub = self.create_subscription(
             String, 'destinations', self.destinations_callback, 10
         )

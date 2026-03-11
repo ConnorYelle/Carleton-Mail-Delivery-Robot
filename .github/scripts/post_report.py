@@ -9,7 +9,12 @@ GITHUB_EVENT_PATH = os.environ.get("GITHUB_EVENT_PATH")
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 LOG_DIR = "mail-delivery-robot/tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
-METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "higher"}
+METRIC_RULES = {
+    "delivery_time": "lower",
+    "battery_used": "lower",
+    "wall_follow_time": "higher",
+    "ai_fallback_count": "lower",
+}
 EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
 IN_DE_METRICS = ["lidar_front_avg", "wall_distance_avg"]
 
@@ -21,6 +26,8 @@ def get_metric_rule(metric_name: str) -> str:
     # LLM response throughput metric: higher is better.
     if re.search(r"_llm_response_count$", metric_name):
         return "higher"
+    if re.search(r"(^ai_fallback_count$|_ai_fallback_count$)", metric_name):
+        return "lower"
     return METRIC_RULES.get(metric_name, "higher")
 
 if not GITHUB_EVENT_PATH or not os.path.exists(GITHUB_EVENT_PATH):

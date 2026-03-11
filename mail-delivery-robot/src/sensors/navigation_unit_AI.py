@@ -55,6 +55,12 @@ class NavigationUnit_AI(Node):
         self.no_msg = String()
         self.no_msg.data = 'NONE'
 
+    def _fallback_orientation(self, beacon: str) -> str:
+        for i in range(1, 5):
+            if self.map.exists(beacon + str(i)):
+                return str(i)
+        return "1"
+
     def destinations_callback(self, data):
         # works
         '''
@@ -80,17 +86,20 @@ class NavigationUnit_AI(Node):
         self.current_beacon = data.data.split(',')[0]
 
         if self.current_beacon == self.prev_beacon:
-            # self.get_logger().info("============Same beacon as before, no movement detected.=============")
+            if self.direction is None:
+                beacon_orientation = self._fallback_orientation(self.current_beacon)
+                self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
+                self.get_logger().info(
+                    f"Initial direction from {self.current_beacon}: {self.direction} (orientation {beacon_orientation})"
+                )
+                self.can_send_direction = True
             return
         else:
-            beacon_orientation = self.beacon_connections[self.current_beacon][self.prev_beacon]
+            beacon_orientation = self.beacon_connections.get(self.current_beacon, {}).get(self.prev_beacon, "-")
             if beacon_orientation == "-":
                 self.get_logger().info("ERROR: ROBOT HAS BEEN MOVED")
                 # Finds a valid orientation for the robot.
-                for i in range(1, 5):
-                    if self.map.exists(self.current_beacon + str(i)):
-                        beacon_orientation = str(i)
-                        break
+                beacon_orientation = self._fallback_orientation(self.current_beacon)
             # self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
             self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
             self.get_logger().info(f"Determined Direction: {self.direction}")
