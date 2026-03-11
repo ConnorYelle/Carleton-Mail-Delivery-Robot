@@ -52,6 +52,7 @@ setup(
             'nav_parser = tools.nav_parser:main',
             'dashboard_logger = tools.dashboard_logger:main',
             'travel_layer_AI = layers.travel_layer_AI:main',
+            'motion_probe = tools.motion_probe:main',
         ],
     },
 )

@@ -117,6 +117,12 @@ def generate_launch_description():
             name='dashboard_logger',
             parameters=sim_time + [{'max_trip_seconds': 240.0}],
         ),
+        Node(
+            package='mail-delivery-robot',
+            executable='motion_probe',
+            name='motion_probe',
+            parameters=sim_time,
+        ),
 
         # Optional: Metric Analyzer Node
         Node(
