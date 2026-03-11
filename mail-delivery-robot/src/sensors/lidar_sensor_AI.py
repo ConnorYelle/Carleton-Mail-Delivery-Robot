@@ -217,11 +217,7 @@ class LidarSensor(Node):
             )
 
             thread.start()
-            thread.join(timeout=10.0)
-
-            if thread.is_alive():
-                self._log_fallback("TIMEOUT")
-                return self.calculate(scan)
+            thread.join()
 
             if "error" in result:
                 self._log_fallback(f"ERROR: {result['error']}")
