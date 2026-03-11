@@ -48,6 +48,10 @@ class LidarSensor(Node):
         self.last_ai_query_time = 0.0
         self.ai_cooldown_seconds = 5.0
         self.is_querying = False
+        self.ai_busy = False
+        self.last_ai_time = None
+        self.ai_values = None
+        self.used_ai = False
 
         # Fallback logging
         self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
@@ -65,6 +69,15 @@ class LidarSensor(Node):
         stop_msg.angular.z = 0.0
         self.cmd_vel_publisher.publish(stop_msg)
         self.get_logger().info("Robot stopped for AI query")
+
+    def run_ai_background(self, scan):
+        try:
+            self.stop_robot()
+            self.calculate_ai(scan)
+        except Exception as exc:
+            self._log_fallback(f"AI_THREAD_ERROR: {exc}")
+        finally:
+            self.ai_busy = False
 
     def scan_callback(self, scan):
         if self.warmup_scans < self.config.get("LIDAR_STACK_LENGTH", 5):
@@ -161,17 +174,18 @@ class LidarSensor(Node):
         step = 5
         default_dist = self.config.get("LARGE_DEFAULT_DISTANCE", 10.0)
 
-        for i in range(0, len(scan.ranges), step):
-            dist = scan.ranges[i]
-            if dist == math.inf or dist == 0.0:
-                continue
+        try:
+            for i in range(0, len(scan.ranges), step):
+                dist = scan.ranges[i]
+                if dist == math.inf or dist == 0.0:
+                    continue
 
-            degree = math.degrees(scan.angle_min + scan.angle_increment * i)
-            scan_pairs.append(f"{degree:.1f}:{dist:.2f}")
+                degree = math.degrees(scan.angle_min + scan.angle_increment * i)
+                scan_pairs.append(f"{degree:.1f}:{dist:.2f}")
 
-        data_str = ", ".join(scan_pairs)
+            data_str = ", ".join(scan_pairs)
 
-        prompt = f"""
+            prompt = f"""
             Analyze these Lidar readings (format "angle:distance").
             Data: [{data_str}]
 
@@ -187,57 +201,57 @@ class LidarSensor(Node):
             Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
         """
 
-        # Print the query to console
-        self.get_logger().info("=" * 80)
-        self.get_logger().info("AI QUERY:")
-        self.get_logger().info(prompt)
-        self.get_logger().info("=" * 80)
-
-        result = {}
-        thread = threading.Thread(
-            target=self._run_ollama,
-            args=(prompt, result),
-            daemon=True
-        )
-
-        thread.start()
-        thread.join(timeout=10.0)
-
-        if thread.is_alive():
-            self._log_fallback("TIMEOUT")
-            return self.calculate(scan)
-
-        if "error" in result:
-            self._log_fallback(f"ERROR: {result['error']}")
-            return self.calculate(scan)
-
-        if "response" not in result:
-            self._log_fallback("NO RESPONSE from Ollama")
-            return self.calculate(scan)
-
-        try:
-            # Print the response to console
-            response_content = result["response"]["message"]["content"]
+            # Print the query to console
             self.get_logger().info("=" * 80)
-            self.get_logger().info("AI RESPONSE:")
-            self.get_logger().info(response_content)
+            self.get_logger().info("AI QUERY:")
+            self.get_logger().info(prompt)
             self.get_logger().info("=" * 80)
 
-            content = json.loads(response_content)
+            result = {}
+            thread = threading.Thread(
+                target=self._run_ollama,
+                args=(prompt, result),
+                daemon=True
+            )
 
-            wf = float(content.get("wf_dist", default_dist))
-            angle = float(content.get("wf_angle", 0.0))
-            right = float(content.get("right", default_dist))
-            left = float(content.get("left", default_dist))
-            front = float(content.get("front", default_dist))
+            thread.start()
+            thread.join(timeout=10.0)
 
-            self.ai_values = (wf, angle - 90, right, left, front)
-            self.last_ai_time = datetime.datetime.now()
-            
-            self.get_logger().info("AI Response received successfully.")
+            if thread.is_alive():
+                self._log_fallback("TIMEOUT")
+                return self.calculate(scan)
 
-        except Exception as e:
-            self._log_fallback(f"AI_ERROR: {e}")
+            if "error" in result:
+                self._log_fallback(f"ERROR: {result['error']}")
+                return self.calculate(scan)
+
+            if "response" not in result:
+                self._log_fallback("NO RESPONSE from Ollama")
+                return self.calculate(scan)
+
+            try:
+                # Print the response to console
+                response_content = result["response"]["message"]["content"]
+                self.get_logger().info("=" * 80)
+                self.get_logger().info("AI RESPONSE:")
+                self.get_logger().info(response_content)
+                self.get_logger().info("=" * 80)
+
+                content = json.loads(response_content)
+
+                wf = float(content.get("wf_dist", default_dist))
+                angle = float(content.get("wf_angle", 0.0))
+                right = float(content.get("right", default_dist))
+                left = float(content.get("left", default_dist))
+                front = float(content.get("front", default_dist))
+
+                self.ai_values = (wf, angle - 90, right, left, front)
+                self.last_ai_time = datetime.datetime.now()
+
+                self.get_logger().info("AI Response received successfully.")
+
+            except Exception as e:
+                self._log_fallback(f"AI_ERROR: {e}")
         finally:
             self.ai_busy = False
 
