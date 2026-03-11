@@ -1,9 +1,15 @@
+import math
+import os
+import xml.etree.ElementTree as ET
+from collections import deque
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from collections import deque
+from nav_msgs.msg import Odometry
 
 from tools.nav_parser import loadConnections
+from tools.csv_parser import loadBeacons
 
 
 class FakeBeaconPublisher(Node):
@@ -18,15 +24,22 @@ class FakeBeaconPublisher(Node):
         self.destinations_sub = self.create_subscription(
             String, 'destinations', self.destinations_callback, 10
         )
+        self.odom_sub = None
 
         self.publish_interval_s = 3.0
         self.fake_rssi = -40
         self.timer = None
         self.path = []
         self.path_index = 0
+        self.robot_xy = None
+        self.beacon_reach_distance = 0.9
 
         self.connections = loadConnections()
         self.graph = self._build_graph(self.connections)
+        self.beacons = loadBeacons()
+        self.beacon_positions = self._load_beacon_positions()
+        if self.beacon_positions:
+            self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
 
         self.get_logger().info("FakeBeaconPublisher ready.")
 
@@ -63,6 +76,59 @@ class FakeBeaconPublisher(Node):
                 queue.append((neighbor, path + [neighbor]))
         return [destination]
 
+    def _resolve_world_path(self) -> str | None:
+        env_path = os.getenv("MAIL_ROBOT_WORLD_PATH")
+        if env_path and os.path.exists(env_path):
+            return env_path
+
+        candidates = [
+            "/tmp/demo_video_ci.world",
+            "/ros2_ws/src/carleton_mail_robot/external_files/demo_video.world",
+        ]
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                return candidate
+        return None
+
+    def _load_beacon_positions(self) -> dict:
+        world_path = self._resolve_world_path()
+        if not world_path:
+            self.get_logger().warning("No world file found; falling back to timed beacons.")
+            return {}
+
+        model_to_beacon = {mac.replace(":", "_"): name for mac, name in self.beacons.items()}
+        positions = {}
+        try:
+            tree = ET.parse(world_path)
+            root = tree.getroot()
+            for model in root.iter("model"):
+                model_name = model.attrib.get("name")
+                if not model_name or model_name not in model_to_beacon:
+                    continue
+                if model_name in positions:
+                    continue
+                pose_el = model.find("pose")
+                if pose_el is None or not pose_el.text:
+                    continue
+                parts = pose_el.text.split()
+                if len(parts) < 2:
+                    continue
+                x, y = float(parts[0]), float(parts[1])
+                positions[model_to_beacon[model_name]] = (x, y)
+        except Exception as exc:
+            self.get_logger().warning(f"Failed to parse world file for beacons: {exc}")
+            return {}
+
+        if not positions:
+            self.get_logger().warning("No beacon poses found in world file; falling back to timed beacons.")
+        else:
+            self.get_logger().info(f"Loaded {len(positions)} beacon poses from world file.")
+        return positions
+
+    def odom_callback(self, msg: Odometry):
+        position = msg.pose.pose.position
+        self.robot_xy = (position.x, position.y)
+
     def destinations_callback(self, msg: String):
         parts = msg.data.split(':')
         if len(parts) < 2:
@@ -77,7 +143,10 @@ class FakeBeaconPublisher(Node):
 
         if self.timer is not None:
             self.timer.cancel()
-        self.timer = self.create_timer(self.publish_interval_s, self.publish_next)
+        if self.beacon_positions:
+            self.timer = self.create_timer(0.5, self.publish_next)
+        else:
+            self.timer = self.create_timer(self.publish_interval_s, self.publish_next)
 
     def publish_next(self):
         if not self.path:
@@ -92,6 +161,21 @@ class FakeBeaconPublisher(Node):
                 return
 
         beacon = self.path[self.path_index]
+
+        if self.beacon_positions:
+            if self.robot_xy is None:
+                return
+            target_pos = self.beacon_positions.get(beacon)
+            if target_pos is None:
+                self.get_logger().warning(
+                    f"No pose for beacon '{beacon}', publishing immediately."
+                )
+            else:
+                dx = self.robot_xy[0] - target_pos[0]
+                dy = self.robot_xy[1] - target_pos[1]
+                if math.hypot(dx, dy) > self.beacon_reach_distance:
+                    return
+
         msg = String()
         msg.data = f"{beacon},{self.fake_rssi}"
         self.publisher.publish(msg)

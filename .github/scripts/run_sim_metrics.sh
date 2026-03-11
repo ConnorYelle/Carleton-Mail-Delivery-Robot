@@ -74,6 +74,7 @@ fi
 
 export GAZEBO_MODEL_PATH="${GAZEBO_MODELS_DIR}:${EXTERNAL_MODELS_DIR}:${GAZEBO_MODEL_PATH:-}"
 export DASHBOARD_LOG_DIR="${LOGS_DIR}"
+export MAIL_ROBOT_WORLD_PATH="${WORLD_PATCHED}"
 
 echo "[metrics-runner] preparing world file..."
 if [[ ! -f "${WORLD_SOURCE}" ]]; then
