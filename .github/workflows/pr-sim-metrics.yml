@@ -33,7 +33,7 @@ jobs:
 
       - name: Run simulation and produce metrics
         run: |
-          docker run --rm \
+          docker run --rm --privileged \
             -e RUN_TIMEOUT_SECONDS=300 \
             -e STARTUP_DELAY_SECONDS=15 \
             -e TZ=America/Toronto \

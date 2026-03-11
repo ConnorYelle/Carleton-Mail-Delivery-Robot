@@ -40,6 +40,13 @@ trap cleanup EXIT
 # so temporarily disable nounset while sourcing.
 set +u
 source /opt/ros/humble/setup.bash
+set -u
+
+echo "[metrics-runner] rebuilding workspace..."
+colcon build --symlink-install --executor sequential
+
+# Source again after build to pick up any changes.
+set +u
 source "${WORKSPACE_ROOT}/install/setup.bash"
 set -u
 
