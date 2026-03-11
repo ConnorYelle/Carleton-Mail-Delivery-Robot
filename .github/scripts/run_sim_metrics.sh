@@ -147,7 +147,7 @@ echo "[metrics-runner] starting topic probe..."
         echo "--- ${t} info ---"
         ros2 topic info "${t}" 2>&1 || true
         echo "--- ${t} sample ---"
-        timeout 2 ros2 topic echo "${t}" -n 1 2>&1 || echo "(no message)"
+        timeout 2 ros2 topic echo "${t}" --once 2>&1 || echo "(no message)"
       done
       echo ""
     } >>/tmp/ci_topics.log
@@ -217,6 +217,18 @@ if [[ -z "${latest_run}" ]]; then
   tail -n 120 /tmp/robot_description.log || true
   echo "--- destination_pub.log ---"
   tail -n 80 /tmp/destination_pub.log || true
+  if [[ -f /tmp/robot.log ]]; then
+    cp /tmp/robot.log "${RUNS_DIR}/robot.log" || true
+  fi
+  if [[ -f /tmp/gazebo.log ]]; then
+    cp /tmp/gazebo.log "${RUNS_DIR}/gazebo.log" || true
+  fi
+  if [[ -f /tmp/robot_description.log ]]; then
+    cp /tmp/robot_description.log "${RUNS_DIR}/robot_description.log" || true
+  fi
+  if [[ -f /tmp/destination_pub.log ]]; then
+    cp /tmp/destination_pub.log "${RUNS_DIR}/destination_pub.log" || true
+  fi
   if [[ -f /tmp/ci_topics.log ]]; then
     cp /tmp/ci_topics.log "${RUNS_DIR}/ci_topics.log" || true
   fi
@@ -228,4 +240,16 @@ cat "${latest_run}"
 
 if [[ -f /tmp/ci_topics.log ]]; then
   cp /tmp/ci_topics.log "${RUNS_DIR}/ci_topics.log" || true
+fi
+if [[ -f /tmp/robot.log ]]; then
+  cp /tmp/robot.log "${RUNS_DIR}/robot.log" || true
+fi
+if [[ -f /tmp/gazebo.log ]]; then
+  cp /tmp/gazebo.log "${RUNS_DIR}/gazebo.log" || true
+fi
+if [[ -f /tmp/robot_description.log ]]; then
+  cp /tmp/robot_description.log "${RUNS_DIR}/robot_description.log" || true
+fi
+if [[ -f /tmp/destination_pub.log ]]; then
+  cp /tmp/destination_pub.log "${RUNS_DIR}/destination_pub.log" || true
 fi
