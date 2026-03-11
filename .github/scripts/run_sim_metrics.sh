@@ -135,9 +135,15 @@ echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
     fi
     sleep 1
   done
-  echo "[metrics-runner] publishing destination route: ${DESTINATION_ROUTE}"
+  published_destination_route="${DESTINATION_ROUTE}"
+  if [[ "${DESTINATION_ROUTE}" == *:* ]]; then
+    destination_name="${DESTINATION_ROUTE%%:*}"
+    source_name="${DESTINATION_ROUTE#*:}"
+    published_destination_route="${source_name}:${destination_name}"
+  fi
+  echo "[metrics-runner] publishing destination route: ${published_destination_route} (input=${DESTINATION_ROUTE})"
   for i in $(seq 1 5); do
-    ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
+    ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${published_destination_route}'}" \
       >>/tmp/destination_pub.log 2>&1
     sleep 1
   done
