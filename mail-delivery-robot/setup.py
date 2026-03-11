@@ -43,6 +43,7 @@ setup(
             'navigation_unit = sensors.navigation_unit:main',
             'intersection_detection_unit = sensors.intersection_detection_unit:main',
             'battery_monitor = sensors.battery_monitor:main',
+            'fake_beacon_publisher = sensors.fake_beacon_publisher:main',
             'csv_parser = tools.csv_parser:main',
             'map = tools.map:main',
             'logger = tools.logger:main',

@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 
@@ -11,6 +11,7 @@ def generate_launch_description():
     use_ai_lidar = LaunchConfiguration('use_ai_lidar')
     use_ai_navigation = LaunchConfiguration('use_ai_navigation')
     use_ai_beacon = LaunchConfiguration('use_ai_beacon')
+    use_fake_beacons = LaunchConfiguration('use_fake_beacons')
     use_ai_avoidance = LaunchConfiguration('use_ai_avoidance')
     use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
 
@@ -70,14 +71,21 @@ def generate_launch_description():
             executable='beacon_sensor',
             name='beacon_sensor',
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_beacon)
+            condition=IfCondition(PythonExpression(['not ', use_fake_beacons, ' and not ', use_ai_beacon]))
         ),
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_beacon)
+            condition=IfCondition(PythonExpression(['not ', use_fake_beacons, ' and ', use_ai_beacon]))
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='fake_beacon_publisher',
+            name='fake_beacon_publisher',
+            parameters=sim_time,
+            condition=IfCondition(use_fake_beacons)
         ),
         # Travel layer nodes - standard vs AI
         Node(
@@ -131,6 +139,11 @@ def generate_launch_description():
             'use_ai_beacon',
             default_value='false',
             description='Use AI version of beacon_sensor'
+        ),
+        DeclareLaunchArgument(
+            'use_fake_beacons',
+            default_value='false',
+            description='Publish simulated beacons instead of scanning Bluetooth'
         ),
         DeclareLaunchArgument(
             'enable_metrics',
