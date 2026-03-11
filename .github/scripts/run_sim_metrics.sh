@@ -131,17 +131,27 @@ sleep "${STARTUP_DELAY_SECONDS}"
 echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
 echo "[metrics-runner] starting topic probe..."
 (
+  probe_iter=0
   while true; do
     ts="$(date +%H:%M:%S)"
     {
       echo "=== ${ts} ==="
-      ros2 topic echo /destinations -n 1 2>/dev/null || true
-      ros2 topic echo /lidar_data -n 1 2>/dev/null || true
-      ros2 topic echo /actions -n 1 2>/dev/null || true
-      ros2 topic echo /cmd_vel -n 1 2>/dev/null || true
-      ros2 topic echo /odom -n 1 2>/dev/null || true
+      if [[ $((probe_iter % 6)) -eq 0 ]]; then
+        echo "--- ros2 node list ---"
+        ros2 node list 2>&1 || true
+        echo "--- ros2 topic list ---"
+        ros2 topic list 2>&1 || true
+      fi
+
+      for t in /destinations /lidar_data /actions /cmd_vel /odom; do
+        echo "--- ${t} info ---"
+        ros2 topic info "${t}" 2>&1 || true
+        echo "--- ${t} sample ---"
+        timeout 2 ros2 topic echo "${t}" -n 1 2>&1 || echo "(no message)"
+      done
       echo ""
     } >>/tmp/ci_topics.log
+    probe_iter=$((probe_iter + 1))
     sleep 10
   done
 ) &
