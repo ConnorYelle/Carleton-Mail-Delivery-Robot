@@ -13,11 +13,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore persisted simulation runs
         id: runs_cache_restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: mail-delivery-robot/tools/logs/runs
           key: sim-runs-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
@@ -52,19 +52,19 @@ jobs:
           echo "path=${latest}" >> "$GITHUB_OUTPUT"
 
       - name: Upload metrics artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: simulation-metrics-run
           path: ${{ steps.latest_run.outputs.path }}
       
       - name: Upload all simulation runs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: simulation-runs-history
           path: mail-delivery-robot/tools/logs/runs
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -78,7 +78,7 @@ jobs:
 
       - name: Save persisted simulation runs
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: mail-delivery-robot/tools/logs/runs
           key: ${{ steps.runs_cache_restore.outputs.cache-primary-key }}

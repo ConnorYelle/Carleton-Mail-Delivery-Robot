@@ -120,9 +120,20 @@ sleep "${STARTUP_DELAY_SECONDS}"
 echo "[metrics-runner] launching robot stack for ${RUN_TIMEOUT_SECONDS}s..."
 (
   sleep "${DESTINATION_PUBLISH_DELAY_SECONDS}"
+  echo "[metrics-runner] waiting for /destinations subscribers..."
+  for i in $(seq 1 60); do
+    sub_count="$(ros2 topic info /destinations 2>/dev/null | awk '/Subscriber count/ {print $3}')"
+    if [[ -n "${sub_count}" && "${sub_count}" -ge 1 ]]; then
+      break
+    fi
+    sleep 1
+  done
   echo "[metrics-runner] publishing destination route: ${DESTINATION_ROUTE}"
-  ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
-    >>/tmp/destination_pub.log 2>&1
+  for i in $(seq 1 5); do
+    ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${DESTINATION_ROUTE}'}" \
+      >>/tmp/destination_pub.log 2>&1
+    sleep 1
+  done
 ) &
 
 set +e
