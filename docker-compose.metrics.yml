@@ -4,6 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: carleton-mail-robot-metrics
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
     environment:
       RUN_TIMEOUT_SECONDS: "240"
       STARTUP_DELAY_SECONDS: "15"

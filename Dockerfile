@@ -17,13 +17,14 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     python3-pip \
     python3-setuptools \
+    libcap2-bin \
     curl && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN pip3 install ollama langgraph bluepy
 
-# Hotfix gazebo_ros spawn_entity logger call for environments where
-# RcutilsLogger.error() rejects printf-style args.
+RUN setcap 'cap_net_raw,cap_net_admin=eip' $(python3 -c "import bluepy; import os; print(os.path.join(os.path.dirname(bluepy.__file__), 'bluepy-helper'))")
+
 RUN python3 -c "from pathlib import Path; p=Path('/opt/ros/humble/lib/gazebo_ros/spawn_entity.py'); \
 txt=p.read_text() if p.exists() else ''; \
 old=\"self.get_logger().error('Error: specified file %s does not exist', self.args.file)\"; \
