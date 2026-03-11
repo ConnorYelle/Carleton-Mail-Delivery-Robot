@@ -1,14 +1,16 @@
-from langgraph.graph import StateGraph, END
 import ollama
+from langgraph.graph import END, StateGraph
+
 
 class NavState(dict):
     current_beacon: str
     destination: str
     direction: str | None
 
+
 def build_nav_graph(node):
 
-    #llm = Ollama(model="qwen2.5:0.5b", temperature=0.1)
+    # llm = Ollama(model="qwen2.5:0.5b", temperature=0.1)
 
     graph = StateGraph(NavState)
 
@@ -25,10 +27,7 @@ def build_nav_graph(node):
         """
         node.get_logger().info(f"Prompt to LLM: {prompt}")
 
-        response = ollama.generate(
-            model="gemma2:2b-instruct-q4_0",
-            prompt=prompt
-        )
+        response = ollama.generate(model="gemma2:2b-instruct-q4_0", prompt=prompt)
 
         node.get_logger().info(f"Raw LLM Response: {response}")
 
@@ -40,12 +39,12 @@ def build_nav_graph(node):
         state["direction"] = result
         return state
 
-    
     graph.add_node("Decide Direction", decide_direction)
     graph.set_entry_point("Decide Direction")
     graph.add_edge("Decide Direction", END)
 
     return graph.compile()
+
 
 if __name__ == "__main__":
     pass

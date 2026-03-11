@@ -6,7 +6,10 @@ requires-python = ">=3.10"
 
 dependencies = [
     "ollama",
-    "numpy"
+    "numpy",
+    "black>=26.3.0",
+    "ruff>=0.15.5",
+    "isort>=8.0.1",
 ]
 
 [tool.uv]

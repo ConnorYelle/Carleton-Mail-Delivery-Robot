@@ -1,7 +1,7 @@
-from std_msgs.msg import String
 import rclpy
+from bluepy.btle import DefaultDelegate, Scanner
 from rclpy.node import Node
-from bluepy.btle import Scanner, DefaultDelegate
+from std_msgs.msg import String
 
 from tools.csv_parser import loadBeacons, loadConfig
 
@@ -13,7 +13,7 @@ class ScanDelegate(DefaultDelegate):
 
 
 class BeaconSensor(Node):
-    '''
+    """
     The Node in charge of listening to beacons.
 
     @Subscribers:
@@ -21,10 +21,10 @@ class BeaconSensor(Node):
 
     @Publishers:
     - Publishes to /beacon_data with new beacon data.
-    '''
+    """
 
     def __init__(self):
-        super().__init__('beacon_sensor')
+        super().__init__("beacon_sensor")
 
         self.initBeacons()
 
@@ -32,15 +32,14 @@ class BeaconSensor(Node):
         self.config = loadConfig()
 
         # Publisher
-        self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
+        self.publisher_ = self.create_publisher(String, "beacon_data", 10)
 
         # Scanner
         self.scanner = Scanner().withDelegate(ScanDelegate())
 
         # Timer: run scan periodically
         self.timer = self.create_timer(
-            self.config["BEACON_SCAN_TIMER"],
-            self.checkForBeacons
+            self.config["BEACON_SCAN_TIMER"], self.checkForBeacons
         )
 
         self.scan_counter = 0
@@ -49,7 +48,7 @@ class BeaconSensor(Node):
         self.get_logger().info("BeaconSensor node started.")
 
     def initBeacons(self):
-        '''Initializes all the beacons and their values.'''
+        """Initializes all the beacons and their values."""
         self.beacons = loadBeacons()
         self.get_logger().info(f"Loaded beacons: {self.beacons}")
 
@@ -117,5 +116,5 @@ def main():
     rclpy.spin(beacon_sensor)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

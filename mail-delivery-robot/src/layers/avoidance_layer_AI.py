@@ -1,11 +1,13 @@
+import time
+from enum import Enum
+
+import ollama
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+
 from sensors.bumper_sensor import Bump_Event
-from enum import Enum
 from tools.csv_parser import loadConfig
-import ollama
-import time
 
 
 class AvoidanceLayerStates(Enum):
@@ -16,7 +18,7 @@ class AvoidanceLayerStates(Enum):
 class AvoidanceLayerAI(Node):
 
     def __init__(self):
-        super().__init__('avoidance_layer_AI')
+        super().__init__("avoidance_layer_AI")
 
         self.state = AvoidanceLayerStates.NO_COLLISION
         self.bump_data = False
@@ -28,32 +30,34 @@ class AvoidanceLayerAI(Node):
 
         # Subscribers
         self.bumper_data_sub = self.create_subscription(
-            String, 'bumper_data', self.bumper_data_callback, 10)
+            String, "bumper_data", self.bumper_data_callback, 10
+        )
 
         self.lidar_sensor_sub = self.create_subscription(
-            String, 'lidar_data', self.lidar_data_callback, 10)
+            String, "lidar_data", self.lidar_data_callback, 10
+        )
 
         # Publisher
-        self.action_publisher = self.create_publisher(String, 'actions', 10)
+        self.action_publisher = self.create_publisher(String, "actions", 10)
 
         # Predefined action messages
         self.wait_msg = String()
-        self.wait_msg.data = '0:WAIT'
+        self.wait_msg.data = "0:WAIT"
 
         self.no_msg = String()
-        self.no_msg.data = '0:NONE'
+        self.no_msg.data = "0:NONE"
 
         self.back_msg = String()
-        self.back_msg.data = '0:BACK'
+        self.back_msg.data = "0:BACK"
 
         self.left_turn_msg = String()
-        self.left_turn_msg.data = '0:LEFT_TURN'
+        self.left_turn_msg.data = "0:LEFT_TURN"
 
         self.right_turn_msg = String()
-        self.right_turn_msg.data = '0:RIGHT_TURN'
+        self.right_turn_msg.data = "0:RIGHT_TURN"
 
         self.go_msg = String()
-        self.go_msg.data = '0:GO'
+        self.go_msg.data = "0:GO"
 
         self.timer = self.create_timer(0.2, self.update_actions)
 
@@ -82,7 +86,7 @@ class AvoidanceLayerAI(Node):
                 "angle": float(parts[1]),
                 "right": float(parts[2]),
                 "left": float(parts[3]),
-                "front": float(parts[4])
+                "front": float(parts[4]),
             }
 
         except Exception as e:
@@ -93,7 +97,7 @@ class AvoidanceLayerAI(Node):
         distances = {
             "LEFT": lidarData["left"],
             "RIGHT": lidarData["right"],
-            "FRONT": lidarData["front"]
+            "FRONT": lidarData["front"],
         }
 
         valid = {k: v for k, v in distances.items() if v > 0}
@@ -106,7 +110,7 @@ class AvoidanceLayerAI(Node):
         distances = {
             "LEFT": lidarData["left"],
             "RIGHT": lidarData["right"],
-            "FRONT": lidarData["front"]
+            "FRONT": lidarData["front"],
         }
 
         valid = {k: v for k, v in distances.items() if v > 0}
@@ -160,23 +164,17 @@ BACK, LEFT, RIGHT, or GO
 """
 
             response = ollama.chat(
-                model='qwen2:0.5b',
+                model="qwen2:0.5b",
                 messages=[
-                    {
-                        "role": "system",
-                        "content": background
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                    {"role": "system", "content": background},
+                    {"role": "user", "content": prompt},
+                ],
             )
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="ai_avoidance_query")
             self.get_logger().info(f"Background: {background}")
             self.get_logger().info(f"Prompt: {prompt}")
-            decision = response['message']['content'].strip().upper()
+            decision = response["message"]["content"].strip().upper()
             self.get_logger().info(f"Raw LLM Response: {response}")
 
             if decision not in ["LEFT", "RIGHT", "BACK", "GO"]:
@@ -278,5 +276,5 @@ def main():
     rclpy.spin(avoidance_layer)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

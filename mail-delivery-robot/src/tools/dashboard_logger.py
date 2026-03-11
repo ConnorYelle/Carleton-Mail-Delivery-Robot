@@ -1,19 +1,21 @@
-import os
-import time
-import re
-from datetime import datetime
-from typing import Any
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
-from sensor_msgs.msg import BatteryState
-from irobot_create_msgs.msg import DockStatus
-from std_msgs.msg import String
-from rcl_interfaces.msg import Log
 import math
+import os
+import re
+import time
+from datetime import datetime
 from statistics import mean
-from sensor_msgs.msg import LaserScan
+from typing import Any
+
+import rclpy
+from irobot_create_msgs.msg import DockStatus
+from rcl_interfaces.msg import Log
+from rclpy.node import Node
+from rclpy.qos import HistoryPolicy, QoSProfile, ReliabilityPolicy
+from sensor_msgs.msg import BatteryState, LaserScan
+from std_msgs.msg import String
+
 from tools.csv_parser import loadConfig
+
 
 def resolve_default_log_dir():
     env_log_dir = os.getenv("DASHBOARD_LOG_DIR")
@@ -31,21 +33,38 @@ def resolve_default_log_dir():
             if parent == current_dir:
                 break
             current_dir = parent
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tools", "logs"))
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "tools", "logs")
+    )
+
 
 class Metric:
     topic_name = None
     topic_type = None
     listen_qos = 10
-    def start(self): pass
-    def update(self, msg): pass
-    def end(self): pass
-    def serialize(self): return {}
+
+    def start(self):
+        pass
+
+    def update(self, msg):
+        pass
+
+    def end(self):
+        pass
+
+    def serialize(self):
+        return {}
+
 
 class BatteryMetric(Metric):
-    topic_name = 'battery_state'
+    topic_name = "battery_state"
     topic_type = BatteryState
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
+    listen_qos = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=10,
+    )
+
     def __init__(self):
         self.level = None
         self.voltage = None
@@ -53,26 +72,39 @@ class BatteryMetric(Metric):
         self.start_level = None
         self.end_level = None
         self.used = None
+
     def update(self, msg: BatteryState):
         self.level = msg.percentage * 100
         self.voltage = msg.voltage
         self.temperature = msg.temperature
-        if self.start_level is None: self.start_level = self.level
+        if self.start_level is None:
+            self.start_level = self.level
+
     def end(self):
         self.end_level = self.level
         if self.start_level is not None and self.end_level is not None:
             self.used = self.start_level - self.end_level
+
     def serialize(self):
         return {
-            "battery_start": round(self.start_level, 2) if self.start_level is not None else 0.0,
-            "battery_end": round(self.end_level, 2) if self.end_level is not None else 0.0,
+            "battery_start": (
+                round(self.start_level, 2) if self.start_level is not None else 0.0
+            ),
+            "battery_end": (
+                round(self.end_level, 2) if self.end_level is not None else 0.0
+            ),
             "battery_used": round(self.used, 2) if self.used is not None else 0.0,
-            "voltage_level": round(self.voltage, 2) if self.voltage is not None else 0.0,
-            "temperature_level": round(self.temperature, 2) if self.temperature is not None else 0.0
+            "voltage_level": (
+                round(self.voltage, 2) if self.voltage is not None else 0.0
+            ),
+            "temperature_level": (
+                round(self.temperature, 2) if self.temperature is not None else 0.0
+            ),
         }
 
+
 class WallFollowMetric(Metric):
-    topic_name = '/actions'
+    topic_name = "/actions"
     topic_type = String
     listen_qos = 10
 
@@ -88,7 +120,9 @@ class WallFollowMetric(Metric):
 
     @staticmethod
     def _extract_time_from_line(line: str):
-        match = re.search(r"Total wall-following time:\s*([\d.]+)s", line, re.IGNORECASE)
+        match = re.search(
+            r"Total wall-following time:\s*([\d.]+)s", line, re.IGNORECASE
+        )
         if match:
             return float(match.group(1))
         match = re.search(r"Total Wall Following Time:\s*([\d.]+)", line, re.IGNORECASE)
@@ -101,17 +135,22 @@ class WallFollowMetric(Metric):
             self.wall_time = round(self.wall_follow_samples * self.sample_interval_s, 2)
             return
 
-        for candidate_path in [self.log_path, os.path.join(os.path.dirname(self.log_path), "robot_log_time.txt")]:
+        for candidate_path in [
+            self.log_path,
+            os.path.join(os.path.dirname(self.log_path), "robot_log_time.txt"),
+        ]:
             if not os.path.exists(candidate_path):
                 continue
-            with open(candidate_path, 'r', encoding='utf-8') as f:
+            with open(candidate_path, "r", encoding="utf-8") as f:
                 for line in reversed(f.readlines()):
                     parsed_time = self._extract_time_from_line(line)
                     if parsed_time is not None:
                         self.wall_time = parsed_time
                         return
 
-    def serialize(self): return {"wall_follow_time": self.wall_time}
+    def serialize(self):
+        return {"wall_follow_time": self.wall_time}
+
 
 class DeliveryTimeMetric(Metric):
     def __init__(self):
@@ -119,23 +158,31 @@ class DeliveryTimeMetric(Metric):
         self.start_timestamp = None
         self.end_timestamp = None
         self.elapsed = 0.0
+
     def start(self):
         self.start_time = time.perf_counter()
         self.start_timestamp = datetime.now()
+
     def end(self):
         self.end_timestamp = datetime.now()
         self.elapsed = round(time.perf_counter() - self.start_time, 2)
+
     def serialize(self):
         return {
             "delivery_time": self.elapsed,
             "trip_start_time": self.start_timestamp,
-            "trip_end_time": self.end_timestamp
+            "trip_end_time": self.end_timestamp,
         }
 
+
 class DockSuccessMetric(Metric):
-    topic_name = '/dock_status'
+    topic_name = "/dock_status"
     topic_type = DockStatus
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
+    listen_qos = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=10,
+    )
 
     def __init__(self):
         self.dock_command_received = False
@@ -148,24 +195,31 @@ class DockSuccessMetric(Metric):
             self.success = True
 
     def on_navigation_msg(self, msg: String):
-        if msg.data == 'DOCK':
+        if msg.data == "DOCK":
             self.dock_command_received = True
 
     def serialize(self):
         return {
             "dock_attempted": self.dock_command_received,
             "dock_final_status": self.is_docked,
-            "dock_success": self.success
+            "dock_success": self.success,
         }
+
 
 class LidarDistanceMetric(Metric):
     topic_name = "/scan"
     topic_type = LaserScan
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10)
+    listen_qos = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=10,
+    )
+
     def __init__(self):
         self.config = loadConfig()
         self.front_distances = []
         self.wall_distances = []
+
     def update(self, scan: LaserScan):
         count = len(scan.ranges)
         min_front = self.config["LARGE_DEFAULT_DISTANCE"]
@@ -173,17 +227,29 @@ class LidarDistanceMetric(Metric):
         for i in range(count):
             degree = math.degrees(scan.angle_min + scan.angle_increment * i)
             cur = scan.ranges[i]
-            if cur == math.inf or cur <= 0.0: continue
-            if (degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config["FRONT_MAX_ANGLE"]) and cur < min_front:
+            if cur == math.inf or cur <= 0.0:
+                continue
+            if (
+                degree <= self.config["FRONT_MIN_ANGLE"]
+                or degree >= self.config["FRONT_MAX_ANGLE"]
+            ) and cur < min_front:
                 min_front = cur
-            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"]) and cur < min_wall:
+            if (
+                self.config["WALL_FOLLOW_MIN_ANGLE"]
+                <= degree
+                <= self.config["WALL_FOLLOW_MAX_ANGLE"]
+            ) and cur < min_wall:
                 min_wall = cur
-        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]: self.front_distances.append(min_front)
-        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]: self.wall_distances.append(min_wall)
+        if min_front < self.config["LARGE_DEFAULT_DISTANCE"]:
+            self.front_distances.append(min_front)
+        if min_wall < self.config["LARGE_DEFAULT_DISTANCE"]:
+            self.wall_distances.append(min_wall)
+
     def serialize(self):
         avg_f = round(mean(self.front_distances), 2) if self.front_distances else 0.0
         avg_w = round(mean(self.wall_distances), 2) if self.wall_distances else 0.0
         return {"lidar_front_avg": avg_f, "wall_distance_avg": avg_w}
+
 
 class LidarAIFallbackMetric(Metric):
     def __init__(self, fallback_log_path):
@@ -195,19 +261,20 @@ class LidarAIFallbackMetric(Metric):
             return
 
         with open(self.fallback_log_path, "r") as f:
-            self.fallback_count = sum(
-                1 for line in f if "TIMEOUT" in line
-            )
+            self.fallback_count = sum(1 for line in f if "TIMEOUT" in line)
 
     def serialize(self):
-        return {
-            "ai_fallback_count": self.fallback_count
-        }
+        return {"ai_fallback_count": self.fallback_count}
+
 
 class RosoutLLMResponseTimeMetric(Metric):
     topic_name = "/rosout"
     topic_type = Log
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=200)
+    listen_qos = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=200,
+    )
 
     def __init__(self):
         self.samples = []
@@ -232,11 +299,15 @@ class RosoutLLMResponseTimeMetric(Metric):
     def serialize(self):
         payload = {}
         for node_name, samples in self.samples_by_node.items():
-            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
+            key_prefix = (
+                re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower()
+                or "ai_node"
+            )
             payload[f"{key_prefix}_llm_response_avg_s"] = round(mean(samples), 3)
             payload[f"{key_prefix}_llm_response_max_s"] = round(max(samples), 3)
             payload[f"{key_prefix}_llm_response_count"] = len(samples)
         return payload
+
 
 def make_llm_response_time_metric(ai_node: Any) -> Metric:
     class LLMResponseTimeMetric(Metric):
@@ -252,8 +323,15 @@ def make_llm_response_time_metric(ai_node: Any) -> Metric:
             self.samples = [float(x) for x in latencies if isinstance(x, (int, float))]
 
         def serialize(self):
-            node_name = self.ai_node.get_name() if hasattr(self.ai_node, "get_name") else "ai_node"
-            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
+            node_name = (
+                self.ai_node.get_name()
+                if hasattr(self.ai_node, "get_name")
+                else "ai_node"
+            )
+            key_prefix = (
+                re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower()
+                or "ai_node"
+            )
             avg_latency = round(mean(self.samples), 3) if self.samples else 0.0
             max_latency = round(max(self.samples), 3) if self.samples else 0.0
             return {
@@ -264,6 +342,7 @@ def make_llm_response_time_metric(ai_node: Any) -> Metric:
 
     return LLMResponseTimeMetric(ai_node)
 
+
 class FileLogger:
     def __init__(self, log_dir):
         self.log_dir = log_dir
@@ -271,28 +350,32 @@ class FileLogger:
         os.makedirs(self.runs_dir, exist_ok=True)
         self.wall_log_path = os.path.join(self.log_dir, "robot_log_wallFollowing.txt")
         self.wall_log_file = open(self.wall_log_path, "a")
+
     def write_log(self, tag, message):
         timestamp = datetime.now().strftime("%H:%M:%S")
         self.wall_log_file.write(f"[{timestamp}] [{tag}] {message}\n")
         self.wall_log_file.flush()
+
     def write_run_file(self, data):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filepath = os.path.join(self.runs_dir, f"run_{timestamp}.txt")
         with open(filepath, "w") as f:
             for key, value in data.items():
                 f.write(f"{key}={value}\n")
+
     def close(self):
         self.wall_log_file.close()
-        open(self.wall_log_path, 'w').close()
+        open(self.wall_log_path, "w").close()
+
 
 class RobotGeneralLogger(Node):
     def __init__(self, ai_nodes=None):
-        super().__init__('dashboard_logger')
-        self.declare_parameter('log_dir', resolve_default_log_dir())
-        self.declare_parameter('max_trip_seconds', 180.0)
-        log_dir = os.path.abspath(self.get_parameter('log_dir').value)
+        super().__init__("dashboard_logger")
+        self.declare_parameter("log_dir", resolve_default_log_dir())
+        self.declare_parameter("max_trip_seconds", 180.0)
+        log_dir = os.path.abspath(self.get_parameter("log_dir").value)
         self.logger = FileLogger(log_dir)
-        self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)
+        self.max_trip_seconds = float(self.get_parameter("max_trip_seconds").value)
         self.run_start_perf = time.perf_counter()
         self.end_reason = "unknown"
         fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
@@ -311,15 +394,26 @@ class RobotGeneralLogger(Node):
         for m in self.metrics:
             m.start()
             if m.topic_name:
-                self.create_subscription(m.topic_type, m.topic_name,
-                    lambda msg, metric=m: metric.update(msg), m.listen_qos)
+                self.create_subscription(
+                    m.topic_type,
+                    m.topic_name,
+                    lambda msg, metric=m: metric.update(msg),
+                    m.listen_qos,
+                )
         self.should_shutdown = False
-        self.dock_metric = next((m for m in self.metrics if isinstance(m, DockSuccessMetric)), None)
+        self.dock_metric = next(
+            (m for m in self.metrics if isinstance(m, DockSuccessMetric)), None
+        )
         self.create_subscription(
             String,
-            'navigation',
-            self.dock_metric.on_navigation_msg if self.dock_metric else (lambda msg: None),
-            10)
+            "navigation",
+            (
+                self.dock_metric.on_navigation_msg
+                if self.dock_metric
+                else (lambda msg: None)
+            ),
+            10,
+        )
 
     def end_trip(self, reason: str = "unknown"):
         self.end_reason = reason
@@ -331,13 +425,16 @@ class RobotGeneralLogger(Node):
         self.logger.write_run_file(data)
         self.logger.close()
 
+
 def main(args=None):
     rclpy.init(args=args)
     node = RobotGeneralLogger()
     try:
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=0.1)
-            docked = any(isinstance(m, DockSuccessMetric) and m.is_docked for m in node.metrics)
+            docked = any(
+                isinstance(m, DockSuccessMetric) and m.is_docked for m in node.metrics
+            )
             elapsed_s = time.perf_counter() - node.run_start_perf
             if docked:
                 node.end_trip("docked")
@@ -352,6 +449,7 @@ def main(args=None):
         node.end_trip("keyboard_interrupt")
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

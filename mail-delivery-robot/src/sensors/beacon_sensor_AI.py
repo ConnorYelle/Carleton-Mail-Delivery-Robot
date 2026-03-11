@@ -3,14 +3,15 @@ import threading
 import time
 
 import ollama
-from std_msgs.msg import String
 import rclpy
+from bluepy.btle import DefaultDelegate, Scanner
 from rclpy.node import Node
-from bluepy.btle import Scanner, DefaultDelegate
+from std_msgs.msg import String
 
 from tools.csv_parser import loadBeacons, loadConfig
 
 ollama_client = ollama.Client(timeout=60)
+
 
 class ScanDelegate(DefaultDelegate):
 
@@ -19,7 +20,7 @@ class ScanDelegate(DefaultDelegate):
 
 
 class BeaconSensor(Node):
-    '''
+    """
     The Node in charge of listening to beacons.
 
     @Subscribers:
@@ -27,10 +28,10 @@ class BeaconSensor(Node):
 
     @Publishers:
     - Publishes to /beacon_data with new beacon data.
-    '''
+    """
 
     def __init__(self):
-        super().__init__('beacon_sensor')
+        super().__init__("beacon_sensor")
 
         self.initBeacons()
 
@@ -38,40 +39,40 @@ class BeaconSensor(Node):
         self.config = loadConfig()
 
         # Publisher
-        self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
+        self.publisher_ = self.create_publisher(String, "beacon_data", 10)
 
         # Scanner
         self.scanner = Scanner().withDelegate(ScanDelegate())
 
         # Timer: run scan periodically
         self.timer = self.create_timer(
-            self.config["BEACON_SCAN_TIMER"],
-            self.checkForBeacons
+            self.config["BEACON_SCAN_TIMER"], self.checkForBeacons
         )
 
         self.scan_counter = 0
         self.scan = dict()
 
         self.get_logger().info("BeaconSensor node started.")
-        self.get_logger().info(f"BEACON_SCAN_COUNT = {self.config['BEACON_SCAN_COUNT']}")
+        self.get_logger().info(
+            f"BEACON_SCAN_COUNT = {self.config['BEACON_SCAN_COUNT']}"
+        )
         self.llm_response_latencies = []
 
     def initBeacons(self):
-        '''Initializes all the beacons and their values.'''
+        """Initializes all the beacons and their values."""
         self.beacons = loadBeacons()
         self.get_logger().info(f"Loaded beacons: {self.beacons}")
 
     def checkForBeacons(self):
-        self.get_logger().info(f"Scan count: {self.scan_counter} / {self.config['BEACON_SCAN_COUNT']}")
+        self.get_logger().info(
+            f"Scan count: {self.scan_counter} / {self.config['BEACON_SCAN_COUNT']}"
+        )
 
         devices = []
 
         # Perform scan
         # TEMP TEST: pretend we saw beacons
-        self.scan = {
-            "UC": [45, 42],
-            "CTTC": [60, 58]
-        }
+        self.scan = {"UC": [45, 42], "CTTC": [60, 58]}
         self.scan_counter = self.config["BEACON_SCAN_COUNT"]
 
         """try:
@@ -79,7 +80,7 @@ class BeaconSensor(Node):
         except Exception as e:
             self.get_logger().error(f"Bluetooth scan failed: {e}")
             return"""
-        
+
         beaconData = String()
         self.scan_counter += 1
 
@@ -107,7 +108,9 @@ class BeaconSensor(Node):
             best_beacon = self.pick_beacon_ai()
 
             if best_beacon is None or best_beacon not in self.scan:
-                self.get_logger().info("AI did not return a valid beacon, falling back to traditional method.")
+                self.get_logger().info(
+                    "AI did not return a valid beacon, falling back to traditional method."
+                )
                 best_beacon = ""
                 best_rssi = 100
 
@@ -123,11 +126,13 @@ class BeaconSensor(Node):
                     if last_rssi < best_rssi:
                         best_beacon = beacon_name
                         best_rssi = last_rssi
-                        
+
             else:
                 best_rssi = self.scan[best_beacon][-1]
-                self.get_logger().info(f"[AI RESULT] Selected beacon: {best_beacon} with RSSI={best_rssi}")
-        
+                self.get_logger().info(
+                    f"[AI RESULT] Selected beacon: {best_beacon} with RSSI={best_rssi}"
+                )
+
             # Publish and log result
             if best_beacon != "":
                 beaconData.data = f"{best_beacon},{best_rssi}"
@@ -140,9 +145,9 @@ class BeaconSensor(Node):
     def _run_ollama(self, prompt, result):
         try:
             result["response"] = ollama_client.chat(
-                model='gemma2:2b-instruct-q4_0',
-                messages=[{'role': 'user', 'content': prompt}],
-                format='json',
+                model="gemma2:2b-instruct-q4_0",
+                messages=[{"role": "user", "content": prompt}],
+                format="json",
             )
         except Exception as e:
             result["error"] = e
@@ -150,17 +155,21 @@ class BeaconSensor(Node):
     def pick_beacon_ai(self):
         self.get_logger().info(">>> pick_beacon_ai CALLED <<<")
         start = time.perf_counter()
-        prompt = "Choose the best (strongest) beacon based on RSSI.\n" \
-        "Lower RSSI values indicate stronger signals.\n" \
-        "Beacon data:\n"
+        prompt = (
+            "Choose the best (strongest) beacon based on RSSI.\n"
+            "Lower RSSI values indicate stronger signals.\n"
+            "Beacon data:\n"
+        )
 
         for name, rssi_list in self.scan.items():
             prompt += f"- {name}: RSSI readings: {rssi_list}\n"
-        
+
         prompt += """Return only a JSON object with the following structure: {"best_beacon": "BEACON_NAME"}"""
 
         result = {}
-        thread = threading.Thread(target=self._run_ollama, args=(prompt, result), daemon=True)
+        thread = threading.Thread(
+            target=self._run_ollama, args=(prompt, result), daemon=True
+        )
 
         thread.start()
         self.get_logger().info("Waiting for Ollama response...")
@@ -171,13 +180,13 @@ class BeaconSensor(Node):
             self.record_llm_latency(elapsed, context="pick_beacon_ai_timeout")
             self.get_logger().warning("Ollama response timed out.")
             return None
-        
+
         if "error" in result:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai_error")
             self.get_logger().error(f"Ollama error: {result['error']}")
             return None
-        
+
         try:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai")
@@ -197,11 +206,12 @@ class BeaconSensor(Node):
     def get_llm_response_latencies(self):
         return list(self.llm_response_latencies)
 
+
 def main():
     rclpy.init()
     beacon_sensor = BeaconSensor()
     rclpy.spin(beacon_sensor)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

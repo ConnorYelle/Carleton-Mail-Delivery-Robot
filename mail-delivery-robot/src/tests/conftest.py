@@ -47,7 +47,6 @@ class MockNode:
         return logger
 
 
-
 # Expose Node under rclpy.node.Node
 rclpy_mock.node = MagicMock()
 rclpy_mock.node.Node = MockNode
@@ -62,9 +61,11 @@ sys.modules["rclpy.node"] = rclpy_mock.node
 # -----------------------------
 std_msgs_mock = MagicMock()
 
+
 class MockString:
     def __init__(self, data=None):
         self.data = data
+
 
 std_msgs_mock.msg = MagicMock()
 std_msgs_mock.msg.String = MockString
@@ -78,11 +79,13 @@ sys.modules["std_msgs.msg"] = std_msgs_mock.msg
 # -----------------------------
 sensor_msgs_mock = MagicMock()
 
+
 class MockLaserScan:
     def __init__(self):
         self.ranges = []
         self.angle_min = 0.0
         self.angle_increment = 0.0
+
 
 sensor_msgs_mock.msg = MagicMock()
 sensor_msgs_mock.msg.LaserScan = MockLaserScan
