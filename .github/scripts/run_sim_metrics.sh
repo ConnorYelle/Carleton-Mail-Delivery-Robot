@@ -11,7 +11,7 @@ USE_AI_TRAVEL_LAYER="${USE_AI_TRAVEL_LAYER:-false}"
 BEACON_AI_MODEL="${BEACON_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 NAVIGATION_AI_MODEL="${NAVIGATION_AI_MODEL:-gemma2:2b-instruct-q4_0}"
 AVOIDANCE_AI_MODEL="${AVOIDANCE_AI_MODEL:-qwen2:0.5b}"
-DESTINATION_ROUTE="${DESTINATION_ROUTE:-Canal:Nicol}"
+DESTINATION_ROUTE="${DESTINATION_ROUTE:-Nicol:Canal}"
 DESTINATION_PUBLISH_DELAY_SECONDS="${DESTINATION_PUBLISH_DELAY_SECONDS:-20}"
 WORKSPACE_ROOT="/ros2_ws"
 REPO_ROOT="${WORKSPACE_ROOT}/src/carleton_mail_robot"
@@ -167,18 +167,15 @@ TOPIC_PROBE_PID=$!
     sleep 1
   done
   published_destination_route="${DESTINATION_ROUTE}"
-  if [[ "${DESTINATION_ROUTE}" == *:* ]]; then
-    destination_name="${DESTINATION_ROUTE%%:*}"
-    source_name="${DESTINATION_ROUTE#*:}"
-    published_destination_route="${source_name}:${destination_name}"
-  fi
-  echo "[metrics-runner] publishing destination route: ${published_destination_route} (input=${DESTINATION_ROUTE})"
+  echo "[metrics-runner] publishing destination route: ${published_destination_route}"
   # Keep publishing until travel_layer confirms receipt or timeout.
+  timeout 60 ros2 topic pub /destinations std_msgs/msg/String "{data: '${published_destination_route}'}" -r 1 \
+    >>/tmp/destination_pub.log 2>&1 &
+  DEST_PUB_PID=$!
   for i in $(seq 1 30); do
-    ros2 topic pub --once /destinations std_msgs/msg/String "{data: '${published_destination_route}'}" \
-      >>/tmp/destination_pub.log 2>&1
     if grep -q "Updated destination" /tmp/robot.log 2>/dev/null; then
       echo "[metrics-runner] destination acknowledged by travel_layer"
+      kill "${DEST_PUB_PID}" 2>/dev/null || true
       break
     fi
     sleep 2

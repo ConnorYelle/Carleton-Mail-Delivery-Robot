@@ -23,11 +23,13 @@ class MotionProbe(Node):
         self.log_interval_s = float(self.get_parameter("log_interval_s").value)
 
         self.last_pos = None
+        self.last_pose_source = "none"
         self.last_cmd_vel = None
         self.last_cmd_time = None
         self.moved_since_last_log = False
 
         self.create_subscription(Odometry, "odom", self.odom_callback, 10)
+        self.create_subscription(Odometry, "sim_ground_truth_pose", self.gt_pose_callback, 10)
         self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 10)
         self.create_timer(self.log_interval_s, self.log_status)
 
@@ -41,6 +43,24 @@ class MotionProbe(Node):
         self.last_cmd_time = self.get_clock().now()
 
     def odom_callback(self, msg: Odometry):
+        self.last_pose_source = "odom"
+        pos = msg.pose.pose.position
+        if self.last_pos is None:
+            self.last_pos = (pos.x, pos.y)
+            return
+
+        dx = pos.x - self.last_pos[0]
+        dy = pos.y - self.last_pos[1]
+        dist = math.hypot(dx, dy)
+        if dist >= self.min_distance_m:
+            self.moved_since_last_log = True
+            self.last_pos = (pos.x, pos.y)
+
+    def gt_pose_callback(self, msg: Odometry):
+        # Fall back to sim ground truth when odom is missing.
+        if self.last_pose_source == "odom":
+            return
+        self.last_pose_source = "sim_ground_truth_pose"
         pos = msg.pose.pose.position
         if self.last_pos is None:
             self.last_pos = (pos.x, pos.y)
@@ -64,11 +84,11 @@ class MotionProbe(Node):
 
         if self.moved_since_last_log:
             self.get_logger().info(
-                f"Robot movement detected. cmd_vel=({cmd_linear:.3f}, {cmd_angular:.3f})"
+                f"Robot movement detected ({self.last_pose_source}). cmd_vel=({cmd_linear:.3f}, {cmd_angular:.3f})"
             )
         else:
             self.get_logger().warn(
-                f"No movement detected. cmd_vel=({cmd_linear:.3f}, {cmd_angular:.3f})"
+                f"No movement detected ({self.last_pose_source}). cmd_vel=({cmd_linear:.3f}, {cmd_angular:.3f})"
             )
 
         self.moved_since_last_log = False

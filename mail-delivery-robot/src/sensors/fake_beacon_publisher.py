@@ -25,6 +25,7 @@ class FakeBeaconPublisher(Node):
             String, 'destinations', self.destinations_callback, 10
         )
         self.odom_sub = None
+        self.gt_pose_sub = None
 
         self.publish_interval_s = 3.0
         self.fake_rssi = -40
@@ -35,6 +36,7 @@ class FakeBeaconPublisher(Node):
         self.beacon_reach_distance = 0.9
         self.last_beacon = None
         self.last_odom_time = None
+        self.last_pose_time = None
         self.last_beacon_publish_time = None
         self.pose_publish_timeout_s = 8.0
         self.odom_stale_timeout_s = 2.0
@@ -45,6 +47,7 @@ class FakeBeaconPublisher(Node):
         self.beacon_positions = self._load_beacon_positions()
         if self.beacon_positions:
             self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
+            self.gt_pose_sub = self.create_subscription(Odometry, 'sim_ground_truth_pose', self.gt_pose_callback, 10)
 
         self.get_logger().info("FakeBeaconPublisher ready.")
 
@@ -134,6 +137,13 @@ class FakeBeaconPublisher(Node):
         position = msg.pose.pose.position
         self.robot_xy = (position.x, position.y)
         self.last_odom_time = self.get_clock().now()
+        self.last_pose_time = self.last_odom_time
+
+    def gt_pose_callback(self, msg: Odometry):
+        # Use ground-truth pose when /odom is missing in sim.
+        position = msg.pose.pose.position
+        self.robot_xy = (position.x, position.y)
+        self.last_pose_time = self.get_clock().now()
 
     def destinations_callback(self, msg: String):
         parts = msg.data.split(':')
@@ -159,10 +169,10 @@ class FakeBeaconPublisher(Node):
             if self.robot_xy is None:
                 return
             now = self.get_clock().now()
-            if self.last_odom_time is None:
+            if self.last_pose_time is None:
                 return
-            odom_age = (now - self.last_odom_time).nanoseconds / 1e9
-            if odom_age > self.odom_stale_timeout_s:
+            pose_age = (now - self.last_pose_time).nanoseconds / 1e9
+            if pose_age > self.odom_stale_timeout_s:
                 self._publish_path_beacon()
                 return
 
