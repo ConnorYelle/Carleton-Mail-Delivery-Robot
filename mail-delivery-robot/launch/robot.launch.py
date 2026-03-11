@@ -71,21 +71,25 @@ def generate_launch_description():
             executable='beacon_sensor',
             name='beacon_sensor',
             parameters=sim_time,
-            condition=IfCondition(PythonExpression(['not ', use_fake_beacons, ' and not ', use_ai_beacon]))
+            condition=IfCondition(PythonExpression([
+                "'", use_fake_beacons, "' == 'false' and '", use_ai_beacon, "' == 'false'"
+            ]))
         ),
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
             parameters=sim_time,
-            condition=IfCondition(PythonExpression(['not ', use_fake_beacons, ' and ', use_ai_beacon]))
+            condition=IfCondition(PythonExpression([
+                "'", use_fake_beacons, "' == 'false' and '", use_ai_beacon, "' == 'true'"
+            ]))
         ),
         Node(
             package='mail-delivery-robot',
             executable='fake_beacon_publisher',
             name='fake_beacon_publisher',
             parameters=sim_time,
-            condition=IfCondition(use_fake_beacons)
+            condition=IfCondition(PythonExpression(["'", use_fake_beacons, "' == 'true'"]))
         ),
         # Travel layer nodes - standard vs AI
         Node(
