@@ -24,6 +24,7 @@ class FakeBeaconPublisher(Node):
         self.destinations_sub = self.create_subscription(
             String, 'destinations', self.destinations_callback, 10
         )
+        self.destinations_pub = self.create_publisher(String, 'destinations', 10)
         self.odom_sub = None
         self.gt_pose_sub = None
 
@@ -40,6 +41,12 @@ class FakeBeaconPublisher(Node):
         self.last_beacon_publish_time = None
         self.pose_publish_timeout_s = 8.0
         self.odom_stale_timeout_s = 2.0
+        self.declare_parameter("default_destination", "Nicol:Canal")
+        self.default_destination = str(self.get_parameter("default_destination").value)
+        self.declare_parameter("publish_default_destination", True)
+        self.publish_default_destination = bool(self.get_parameter("publish_default_destination").value)
+        self.default_dest_timer = self.create_timer(0.5, self._publish_default_destination_once)
+        self._default_destination_sent = False
 
         self.connections = loadConnections()
         self.graph = self._build_graph(self.connections)
@@ -50,6 +57,18 @@ class FakeBeaconPublisher(Node):
             self.gt_pose_sub = self.create_subscription(Odometry, 'sim_ground_truth_pose', self.gt_pose_callback, 10)
 
         self.get_logger().info("FakeBeaconPublisher ready.")
+
+    def _publish_default_destination_once(self):
+        if self._default_destination_sent or not self.publish_default_destination:
+            return
+        if self.current_destination is not None or self.prev_beacon is not None:
+            return
+        msg = String()
+        msg.data = self.default_destination
+        self.destinations_pub.publish(msg)
+        self._default_destination_sent = True
+        self.default_dest_timer.cancel()
+        self.get_logger().info(f"Published default destination: {msg.data}")
 
     def _build_graph(self, connections: dict) -> dict:
         graph = {}
