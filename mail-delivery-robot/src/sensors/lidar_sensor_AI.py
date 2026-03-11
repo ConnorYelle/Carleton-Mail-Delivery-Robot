@@ -50,13 +50,10 @@ class LidarSensor(Node):
         self.is_querying = False
 
         # Fallback logging
-        log_dir = os.getenv("DASHBOARD_LOG_DIR")
-        if not log_dir:
-            log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tools", "logs"))
-        os.makedirs(log_dir, exist_ok=True)
-        self.fallback_log_path = os.path.join(log_dir, "ai_fallback_log.txt")
-        
-        self.get_logger().info("LidarSensor AI node started with 5s cooldown")
+        self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
+        os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
+
+        self.get_logger().info("LidarSensor AI node started")
 
     # ---------------------------------------------------------
     # ROBOT CONTROL
@@ -204,7 +201,11 @@ class LidarSensor(Node):
         )
 
         thread.start()
-        thread.join()  # Wait indefinitely for AI response
+        thread.join(timeout=10.0)
+
+        if thread.is_alive():
+            self._log_fallback("TIMEOUT")
+            return self.calculate(scan)
 
         if "error" in result:
             self._log_fallback(f"ERROR: {result['error']}")
