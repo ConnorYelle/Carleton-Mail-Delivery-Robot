@@ -16,6 +16,7 @@ from ament_index_python.packages import get_package_share_directory
 import ollama
 from tools.csv_parser import loadConfig
 
+
 class LidarSensor(Node):
     '''
     Node that listens to the lidar sensor and publishes processed data.
@@ -41,7 +42,7 @@ class LidarSensor(Node):
         self.right_distances = []
         self.left_distances = []
         self.front_distances = []
-        
+
         self.warmup_scans = 0
 
         # AI query cooldown tracking
@@ -49,11 +50,19 @@ class LidarSensor(Node):
         self.ai_cooldown_seconds = 5.0
         self.is_querying = False
 
+        self.ai_busy = False
+        self.ai_values = None
+        self.last_ai_time = None
+        self.llm_response_latencies = []
+
         # Fallback logging
         self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
         os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
 
         self.get_logger().info("LidarSensor AI node started")
+
+    def run_ai_background(self, scan):
+        self.calculate_ai(scan)
 
     # ---------------------------------------------------------
     # ROBOT CONTROL
@@ -108,11 +117,13 @@ class LidarSensor(Node):
             if dist == math.inf or dist <= 0.0:
                 continue
 
-            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"] and dist < min_distance):
+            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config[
+                "WALL_FOLLOW_MAX_ANGLE"] and dist < min_distance):
                 min_distance = dist
                 angle = degree
 
-            if ((degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config["FRONT_MAX_ANGLE"]) and dist < min_front):
+            if ((degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config[
+                "FRONT_MAX_ANGLE"]) and dist < min_front):
                 min_front = dist
             elif (self.config["RIGHT_MIN_ANGLE"] <= degree < self.config["RIGHT_MAX_ANGLE"] and dist < min_right):
                 min_right = dist
@@ -130,11 +141,14 @@ class LidarSensor(Node):
         else:
             return -1, -1, -1, -1, -1
 
-        if (min_front >= self.config["LOST_WALL_FRONT_DISTANCE"] or stdev(self.front_distances) > self.config["LOST_WALL_FRONT_STDEV"]):
+        if (min_front >= self.config["LOST_WALL_FRONT_DISTANCE"] or stdev(self.front_distances) > self.config[
+            "LOST_WALL_FRONT_STDEV"]):
             min_front = -1
-        if (min_right >= self.config["LOST_WALL_RIGHT_DISTANCE"] or stdev(self.right_distances) > self.config["LOST_WALL_RIGHT_STDEV"]):
+        if (min_right >= self.config["LOST_WALL_RIGHT_DISTANCE"] or stdev(self.right_distances) > self.config[
+            "LOST_WALL_RIGHT_STDEV"]):
             min_right = -1
-        if (min_left >= self.config["LOST_WALL_LEFT_DISTANCE"] or stdev(self.left_distances) > self.config["LOST_WALL_LEFT_STDEV"]):
+        if (min_left >= self.config["LOST_WALL_LEFT_DISTANCE"] or stdev(self.left_distances) > self.config[
+            "LOST_WALL_LEFT_STDEV"]):
             min_left = -1
 
         return min_distance, angle - 90, min_right, min_left, min_front
@@ -146,7 +160,7 @@ class LidarSensor(Node):
         try:
             self.get_logger().info("Starting Ollama API call...")
             result_holder["response"] = ollama.chat(
-                model='qwen3:0.6b',
+                model='gemma2:2b-instruct-q4_0',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
@@ -187,11 +201,12 @@ class LidarSensor(Node):
             Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
         """
 
-        # Print the query to console
         self.get_logger().info("=" * 80)
         self.get_logger().info("AI QUERY:")
         self.get_logger().info(prompt)
         self.get_logger().info("=" * 80)
+
+        start_time = time.time()
 
         result = {}
         thread = threading.Thread(
@@ -205,18 +220,20 @@ class LidarSensor(Node):
 
         if thread.is_alive():
             self._log_fallback("TIMEOUT")
-            return self.calculate(scan)
+            self.ai_busy = False
+            return
 
         if "error" in result:
             self._log_fallback(f"ERROR: {result['error']}")
-            return self.calculate(scan)
+            self.ai_busy = False
+            return
 
         if "response" not in result:
             self._log_fallback("NO RESPONSE from Ollama")
-            return self.calculate(scan)
+            self.ai_busy = False
+            return
 
         try:
-            # Print the response to console
             response_content = result["response"]["message"]["content"]
             self.get_logger().info("=" * 80)
             self.get_logger().info("AI RESPONSE:")
@@ -233,7 +250,10 @@ class LidarSensor(Node):
 
             self.ai_values = (wf, angle - 90, right, left, front)
             self.last_ai_time = datetime.datetime.now()
-            
+
+            elapsed = time.time() - start_time
+            self.record_llm_latency(elapsed)
+
             self.get_logger().info("AI Response received successfully.")
 
         except Exception as e:
@@ -246,12 +266,21 @@ class LidarSensor(Node):
         with open(self.fallback_log_path, "a") as f:
             f.write(f"[{timestamp}] {reason}\n")
 
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
+
+    def get_llm_response_latencies(self):
+        return list(self.llm_response_latencies)
+
+
 def main():
     rclpy.init()
     node = LidarSensor()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()
