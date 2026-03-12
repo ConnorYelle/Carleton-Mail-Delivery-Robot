@@ -117,13 +117,11 @@ class LidarSensor(Node):
             if dist == math.inf or dist <= 0.0:
                 continue
 
-            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config[
-                "WALL_FOLLOW_MAX_ANGLE"] and dist < min_distance):
+            if (self.config["WALL_FOLLOW_MIN_ANGLE"] <= degree <= self.config["WALL_FOLLOW_MAX_ANGLE"] and dist < min_distance):
                 min_distance = dist
                 angle = degree
 
-            if ((degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config[
-                "FRONT_MAX_ANGLE"]) and dist < min_front):
+            if ((degree <= self.config["FRONT_MIN_ANGLE"] or degree >= self.config["FRONT_MAX_ANGLE"]) and dist < min_front):
                 min_front = dist
             elif (self.config["RIGHT_MIN_ANGLE"] <= degree < self.config["RIGHT_MAX_ANGLE"] and dist < min_right):
                 min_right = dist
@@ -141,14 +139,11 @@ class LidarSensor(Node):
         else:
             return -1, -1, -1, -1, -1
 
-        if (min_front >= self.config["LOST_WALL_FRONT_DISTANCE"] or stdev(self.front_distances) > self.config[
-            "LOST_WALL_FRONT_STDEV"]):
+        if (min_front >= self.config["LOST_WALL_FRONT_DISTANCE"] or stdev(self.front_distances) > self.config["LOST_WALL_FRONT_STDEV"]):
             min_front = -1
-        if (min_right >= self.config["LOST_WALL_RIGHT_DISTANCE"] or stdev(self.right_distances) > self.config[
-            "LOST_WALL_RIGHT_STDEV"]):
+        if (min_right >= self.config["LOST_WALL_RIGHT_DISTANCE"] or stdev(self.right_distances) > self.config["LOST_WALL_RIGHT_STDEV"]):
             min_right = -1
-        if (min_left >= self.config["LOST_WALL_LEFT_DISTANCE"] or stdev(self.left_distances) > self.config[
-            "LOST_WALL_LEFT_STDEV"]):
+        if (min_left >= self.config["LOST_WALL_LEFT_DISTANCE"] or stdev(self.left_distances) > self.config["LOST_WALL_LEFT_STDEV"]):
             min_left = -1
 
         return min_distance, angle - 90, min_right, min_left, min_front
@@ -171,6 +166,7 @@ class LidarSensor(Node):
 
     def calculate_ai(self, scan):
         self.used_ai = False
+
         scan_pairs = []
         step = 5
         default_dist = self.config.get("LARGE_DEFAULT_DISTANCE", 10.0)
@@ -186,19 +182,19 @@ class LidarSensor(Node):
         data_str = ", ".join(scan_pairs)
 
         prompt = f"""
-            Analyze these Lidar readings (format "angle:distance").
-            Data: [{data_str}]
+        Analyze these Lidar readings (format "angle:distance").
+        Data: [{data_str}]
 
-            Task: Find the minimum distance in the following sectors.
-            If a sector has no data, use {default_dist}.
+        Task: Find the minimum distance in the following sectors.
+        If a sector has no data, use {default_dist}.
 
-            Sectors:
-            1. Wall Follow: Angle between {self.config["WALL_FOLLOW_MIN_ANGLE"]} and {self.config["WALL_FOLLOW_MAX_ANGLE"]}.
-            2. Front: Angle <= {self.config["FRONT_MIN_ANGLE"]} OR Angle >= {self.config["FRONT_MAX_ANGLE"]}.
-            3. Right: Angle >= {self.config["RIGHT_MIN_ANGLE"]} and < {self.config["RIGHT_MAX_ANGLE"]}.
-            4. Left: Angle > {self.config["LEFT_MIN_ANGLE"]} and <= {self.config["LEFT_MAX_ANGLE"]}.
+        Sectors:
+        1. Wall Follow: Angle between {self.config["WALL_FOLLOW_MIN_ANGLE"]} and {self.config["WALL_FOLLOW_MAX_ANGLE"]}.
+        2. Front: Angle <= {self.config["FRONT_MIN_ANGLE"]} OR Angle >= {self.config["FRONT_MAX_ANGLE"]}.
+        3. Right: Angle >= {self.config["RIGHT_MIN_ANGLE"]} and < {self.config["RIGHT_MAX_ANGLE"]}.
+        4. Left: Angle > {self.config["LEFT_MIN_ANGLE"]} and <= {self.config["LEFT_MAX_ANGLE"]}.
 
-            Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
+        Return ONLY a JSON object with keys: wf_dist, wf_angle, right, left, front.
         """
 
         self.get_logger().info("=" * 80)
@@ -206,35 +202,46 @@ class LidarSensor(Node):
         self.get_logger().info(prompt)
         self.get_logger().info("=" * 80)
 
-        start_time = time.time()
-
         result = {}
+
         thread = threading.Thread(
             target=self._run_ollama,
             args=(prompt, result),
             daemon=True
         )
 
+        start_time = time.perf_counter()
+
         thread.start()
-        thread.join(timeout=10.0)
+        self.get_logger().info("Waiting for Ollama response...")
+        thread.join(timeout=20.0)
 
         if thread.is_alive():
+            elapsed = time.perf_counter() - start_time
+            self.record_llm_latency(elapsed, context="lidar_sensor_ai_timeout")
             self._log_fallback("TIMEOUT")
+            self.get_logger().warning("Ollama response timed out.")
             self.ai_busy = False
             return
 
         if "error" in result:
+            elapsed = time.perf_counter() - start_time
+            self.record_llm_latency(elapsed, context="lidar_sensor_ai_error")
             self._log_fallback(f"ERROR: {result['error']}")
+            self.get_logger().error(f"Ollama error: {result['error']}")
             self.ai_busy = False
             return
 
         if "response" not in result:
+            elapsed = time.perf_counter() - start_time
+            self.record_llm_latency(elapsed, context="lidar_sensor_ai_no_response")
             self._log_fallback("NO RESPONSE from Ollama")
             self.ai_busy = False
             return
 
         try:
             response_content = result["response"]["message"]["content"]
+
             self.get_logger().info("=" * 80)
             self.get_logger().info("AI RESPONSE:")
             self.get_logger().info(response_content)
@@ -251,13 +258,17 @@ class LidarSensor(Node):
             self.ai_values = (wf, angle - 90, right, left, front)
             self.last_ai_time = datetime.datetime.now()
 
-            elapsed = time.time() - start_time
-            self.record_llm_latency(elapsed)
+            elapsed = time.perf_counter() - start_time
+            self.record_llm_latency(elapsed, context="lidar_sensor_ai")
 
             self.get_logger().info("AI Response received successfully.")
 
         except Exception as e:
+            elapsed = time.perf_counter() - start_time
+            self.record_llm_latency(elapsed, context="lidar_sensor_ai_parse_error")
             self._log_fallback(f"AI_ERROR: {e}")
+            self.get_logger().error(f"Error parsing Ollama response: {e}")
+
         finally:
             self.ai_busy = False
 
