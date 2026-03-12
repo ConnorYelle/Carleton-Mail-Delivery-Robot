@@ -13,6 +13,7 @@ def generate_launch_description():
     use_ai_beacon = LaunchConfiguration('use_ai_beacon')
     use_ai_avoidance = LaunchConfiguration('use_ai_avoidance')
     use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
+    use_ai_turning = LaunchConfiguration('use_ai_turning')
 
     nodes = [
         Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
@@ -97,7 +98,23 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='avoidance_layer', name='avoidance_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
+
+        # Turning layer nodes - standard vs AI
+        Node(
+            package='mail-delivery-robot',
+            executable='turning_layer',
+            name='turning_layer',
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_turning)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='turning_layer_AI',
+            name='turning_layer_AI',
+            parameters=sim_time,
+            condition=IfCondition(use_ai_turning)
+        ),
+
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='dashboard_logger', name='dashboard_logger', parameters=sim_time),
 
@@ -141,6 +158,11 @@ def generate_launch_description():
             'use_ai_travel_layer',
             default_value='false',
             description='Use AI version of travel_layer'
+        ),
+        DeclareLaunchArgument(
+            'use_ai_turning',
+            default_value='false',
+            description='Use AI version of turning_layer'
         ),
         *nodes
     ])
