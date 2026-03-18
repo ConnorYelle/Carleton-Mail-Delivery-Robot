@@ -1,9 +1,9 @@
 from enum import Enum
 
 import rclpy
-from irobot_create_msgs.msg import HazardDetection, HazardDetectionVector
+from irobot_create_msgs.msg import HazardDetectionVector
 from rclpy.node import Node
-from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from std_msgs.msg import String
 
 from tools.csv_parser import loadConfig

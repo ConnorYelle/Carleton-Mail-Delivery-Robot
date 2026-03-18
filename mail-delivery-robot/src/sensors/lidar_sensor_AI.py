@@ -3,7 +3,6 @@ import json
 import math
 import os
 import threading
-import time
 from statistics import stdev
 
 import ollama

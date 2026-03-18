@@ -143,7 +143,7 @@ Most open direction: {self.get_most_space(lidarData)}
                 else "Lidar data unavailable."
             )
 
-            background = f"""
+            background = """
             You are an obstacle-avoidance controller
             for a small robot navigating narrow tunnels.
             Choose the safest movement."

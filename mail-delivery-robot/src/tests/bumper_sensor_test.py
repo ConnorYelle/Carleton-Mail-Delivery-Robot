@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import rclpy
-from rclpy.node import Node
 
 import sensors.bumper_sensor as bumper_sensor
 

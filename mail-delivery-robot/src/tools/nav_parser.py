@@ -1,5 +1,4 @@
 import csv
-import os
 import sys
 
 CONFIG_DIR = sys.path[0] + "/config/"

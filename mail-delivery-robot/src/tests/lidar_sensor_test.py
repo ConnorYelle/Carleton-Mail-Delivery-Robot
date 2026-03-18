@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import rclpy
-from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 
 import sensors.lidar_sensor as lidar_sensor

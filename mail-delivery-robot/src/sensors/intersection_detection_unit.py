@@ -1,10 +1,9 @@
-import math
 
 import rclpy
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
-from std_msgs.msg import Bool, String
+from std_msgs.msg import String
 
 from tools.csv_parser import loadConfig
 
