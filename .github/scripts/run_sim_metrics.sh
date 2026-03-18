@@ -184,7 +184,7 @@ TOPIC_PROBE_PID=$!
 
 set +e
 timeout "${RUN_TIMEOUT_SECONDS}" \
-  ros2 launch mail-delivery-robot robot.launch.py \
+  ros2 launch mail-delivery-robot container.launch.py \
   use_ai_lidar:="${USE_AI_LIDAR}" \
   use_ai_navigation:="${USE_AI_NAVIGATION}" \
   use_ai_beacon:="${USE_AI_BEACON}" \

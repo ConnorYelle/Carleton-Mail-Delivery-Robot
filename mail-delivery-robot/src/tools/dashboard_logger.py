@@ -292,9 +292,9 @@ class FileLogger:
         timestamp = datetime.now().strftime("%H:%M:%S")
         self.wall_log_file.write(f"[{timestamp}] [{tag}] {message}\n")
         self.wall_log_file.flush()
-    def write_run_file(self, data):
+    def write_run_file(self, data, prefix=""):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filepath = os.path.join(self.runs_dir, f"run_{timestamp}.txt")
+        filepath = os.path.join(self.runs_dir, f"{prefix}run_{timestamp}.txt")
         with open(filepath, "w") as f:
             for key, value in data.items():
                 f.write(f"{key}={value}\n")
@@ -306,10 +306,21 @@ class RobotGeneralLogger(Node):
     def __init__(self, ai_nodes=None):
         super().__init__('dashboard_logger')
         self.declare_parameter('log_dir', resolve_default_log_dir())
-        self.declare_parameter('max_trip_seconds', 180.0)
+        self.declare_parameter('max_trip_seconds', 235.0)
+        for key in (
+            "use_ai_lidar",
+            "use_ai_navigation",
+            "use_ai_beacon",
+            "use_ai_avoidance",
+            "use_ai_travel_layer",
+            "use_ai_sensors",
+            "use_ai_layers",
+        ):
+            self.declare_parameter(key, "")
         log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
         self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)
+        self.run_prefix = "AI_" if self._detect_ai_enabled() else "No_AI_"
         self.run_start_perf = time.perf_counter()
         self.end_reason = "unknown"
         self.metrics = [
@@ -337,6 +348,32 @@ class RobotGeneralLogger(Node):
             self.dock_metric.on_navigation_msg if self.dock_metric else (lambda msg: None),
             10)
 
+    @staticmethod
+    def _is_truthy(value):
+        if isinstance(value, bool):
+            return value
+        if value is None:
+            return False
+        return str(value).strip().lower() in {"true", "1", "yes", "y", "on"}
+
+    def _detect_ai_enabled(self):
+        keys = [
+            "use_ai_lidar",
+            "use_ai_navigation",
+            "use_ai_beacon",
+            "use_ai_avoidance",
+            "use_ai_travel_layer",
+            "use_ai_sensors",
+            "use_ai_layers",
+        ]
+        for key in keys:
+            if self._is_truthy(self.get_parameter(key).value):
+                return True
+            env_value = os.getenv(key.upper())
+            if self._is_truthy(env_value):
+                return True
+        return False
+
     def end_trip(self, reason: str = "unknown"):
         self.end_reason = reason
         data = {}
@@ -344,7 +381,7 @@ class RobotGeneralLogger(Node):
             m.end()
             data.update(m.serialize())
         data["trip_end_reason"] = self.end_reason
-        self.logger.write_run_file(data)
+        self.logger.write_run_file(data, prefix=self.run_prefix)
         self.logger.close()
 
 def main(args=None):

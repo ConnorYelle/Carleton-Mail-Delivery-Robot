@@ -35,8 +35,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
-                    use_ai_lidar, " == 'true' or ",
-                    use_ai_sensors, " == 'true'"
+                    "'", use_ai_lidar, "' == 'true' or '",
+                    use_ai_sensors, "' == 'true'"
                 ])
             )
         ),
@@ -47,8 +47,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
-                    use_ai_lidar, " == 'true' or ",
-                    use_ai_sensors, " == 'true'"
+                    "'", use_ai_lidar, "' == 'true' or '",
+                    use_ai_sensors, "' == 'true'"
                 ])
             )
         ),
@@ -59,8 +59,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
-                    use_ai_beacon, " == 'true' or ",
-                    use_ai_sensors, " == 'true'"
+                    "'", use_ai_beacon, "' == 'true' or '",
+                    use_ai_sensors, "' == 'true'"
                 ])
             )
         ),
@@ -71,8 +71,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
-                    use_ai_beacon, " == 'true' or ",
-                    use_ai_sensors, " == 'true'"
+                    "'", use_ai_beacon, "' == 'true' or '",
+                    use_ai_sensors, "' == 'true'"
                 ])
             )
         ),
@@ -84,8 +84,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
-                    use_ai_avoidance, " == 'true' or ",
-                    use_ai_layers, " == 'true'"
+                    "'", use_ai_avoidance, "' == 'true' or '",
+                    use_ai_layers, "' == 'true'"
                 ])
             )
         ),
@@ -96,8 +96,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
-                    use_ai_avoidance, " == 'true' or ",
-                    use_ai_layers, " == 'true'"
+                    "'", use_ai_avoidance, "' == 'true' or '",
+                    use_ai_layers, "' == 'true'"
                 ])
             )
         ),
@@ -109,8 +109,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
-                    use_ai_travel_layer, " == 'true' or ",
-                    use_ai_layers, " == 'true'"
+                    "'", use_ai_travel_layer, "' == 'true' or '",
+                    use_ai_layers, "' == 'true'"
                 ])
             )
         ),
@@ -121,8 +121,8 @@ def generate_launch_description():
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
-                    use_ai_travel_layer, " == 'true' or ",
-                    use_ai_layers, " == 'true'"
+                    "'", use_ai_travel_layer, "' == 'true' or '",
+                    use_ai_layers, "' == 'true'"
                 ])
             )
         ),
@@ -176,7 +176,15 @@ def generate_launch_description():
             package='mail-delivery-robot',
             executable='dashboard_logger',
             name='dashboard_logger',
-            parameters=sim_time
+            parameters=sim_time + [{
+                'use_ai_lidar': use_ai_lidar,
+                'use_ai_navigation': use_ai_navigation,
+                'use_ai_beacon': use_ai_beacon,
+                'use_ai_avoidance': use_ai_avoidance,
+                'use_ai_travel_layer': use_ai_travel_layer,
+                'use_ai_sensors': use_ai_sensors,
+                'use_ai_layers': use_ai_layers,
+            }]
         ),
 
 
