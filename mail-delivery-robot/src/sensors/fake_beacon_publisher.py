@@ -45,18 +45,33 @@ class FakeBeaconPublisher(Node):
         self.default_destination = str(self.get_parameter("default_destination").value)
         self.declare_parameter("publish_default_destination", True)
         self.publish_default_destination = bool(self.get_parameter("publish_default_destination").value)
+        self.declare_parameter("allowed_beacons", "")
+        self.allowed_beacons = self._parse_allowed_beacons(self.get_parameter("allowed_beacons").value)
         self.default_dest_timer = self.create_timer(0.5, self._publish_default_destination_once)
         self._default_destination_sent = False
 
         self.connections = loadConnections()
         self.graph = self._build_graph(self.connections)
         self.beacons = loadBeacons()
+        if self.allowed_beacons:
+            self.beacons = {mac: name for mac, name in self.beacons.items() if name in self.allowed_beacons}
         self.beacon_positions = self._load_beacon_positions()
         if self.beacon_positions:
             self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
             self.gt_pose_sub = self.create_subscription(Odometry, 'sim_ground_truth_pose', self.gt_pose_callback, 10)
 
         self.get_logger().info("FakeBeaconPublisher ready.")
+
+    @staticmethod
+    def _parse_allowed_beacons(value) -> set:
+        if value is None:
+            return set()
+        if isinstance(value, (list, tuple, set)):
+            return {str(v).strip() for v in value if str(v).strip()}
+        raw = str(value).strip()
+        if not raw:
+            return set()
+        return {part.strip() for part in raw.split(",") if part.strip()}
 
     def _publish_default_destination_once(self):
         if self._default_destination_sent or not self.publish_default_destination:
@@ -146,6 +161,8 @@ class FakeBeaconPublisher(Node):
             self.get_logger().warning(f"Failed to parse world file for beacons: {exc}")
             return {}
 
+        if self.allowed_beacons:
+            positions = {name: pos for name, pos in positions.items() if name in self.allowed_beacons}
         if not positions:
             self.get_logger().warning("No beacon poses found in world file; falling back to timed beacons.")
         else:
@@ -244,8 +261,12 @@ class FakeBeaconPublisher(Node):
             self.path_index += 1
             if self.path_index >= len(self.path):
                 return None
-
-        return self.path[self.path_index]
+        while self.path_index < len(self.path):
+            candidate = self.path[self.path_index]
+            if not self.allowed_beacons or candidate in self.allowed_beacons:
+                return candidate
+            self.path_index += 1
+        return None
 
     def _publish_path_beacon(self):
         beacon = self._next_path_beacon()
