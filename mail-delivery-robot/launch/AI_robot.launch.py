@@ -16,7 +16,7 @@ def generate_launch_description():
         Node(package='mail-delivery-robot', executable='navigation_unit_AI', name='navigation_unit_AI', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='avoidance_layer_AI', name='avoidance_layer_AI', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
+        Node(package='mail-delivery-robot', executable='docking_layer_AI', name='docking_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='travel_layer', name='travel_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
