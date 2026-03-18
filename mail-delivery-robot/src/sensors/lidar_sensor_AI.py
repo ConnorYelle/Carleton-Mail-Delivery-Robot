@@ -155,7 +155,7 @@ class LidarSensor(Node):
         try:
             self.get_logger().info("Starting Ollama API call...")
             result_holder["response"] = ollama.chat(
-                model='qwen3:0.6b',
+                model='qwen2:0.5b',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
