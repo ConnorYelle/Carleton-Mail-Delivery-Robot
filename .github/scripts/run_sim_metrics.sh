@@ -26,7 +26,7 @@ WORLD_PATCHED="/tmp/demo_video_ci.world"
 RUN_START_EPOCH="$(date +%s)"
 
 cleanup() {
-  pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
+  pkill -f "ros2 launch mail-delivery-robot container.launch.py" 2>/dev/null || true
   pkill -f "create3_gazebo.launch.py" 2>/dev/null || true
   pkill -f "robot_description.launch.py" 2>/dev/null || true
   pkill -f "gazebo.launch.py" 2>/dev/null || true
@@ -188,7 +188,7 @@ timeout "${RUN_TIMEOUT_SECONDS}" \
   use_ai_lidar:="${USE_AI_LIDAR}" \
   use_ai_navigation:="${USE_AI_NAVIGATION}" \
   use_ai_beacon:="${USE_AI_BEACON}" \
-  use_fake_beacons:="true" \
+  use_fake_beacons:="false" \
   use_ai_avoidance:="${USE_AI_AVOIDANCE}" \
   use_ai_travel_layer:="${USE_AI_TRAVEL_LAYER}" \
   2>&1 | tee /tmp/robot.log
