@@ -316,7 +316,7 @@ class RobotGeneralLogger(Node):
             "use_ai_sensors",
             "use_ai_layers",
         ):
-            self.declare_parameter(key, "")
+            self.declare_parameter(key, False)
         log_dir = os.path.abspath(self.get_parameter('log_dir').value)
         self.logger = FileLogger(log_dir)
         self.max_trip_seconds = float(self.get_parameter('max_trip_seconds').value)

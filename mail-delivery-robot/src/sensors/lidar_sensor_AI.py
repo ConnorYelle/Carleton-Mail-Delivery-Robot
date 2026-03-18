@@ -44,6 +44,11 @@ class LidarSensor(Node):
         
         self.warmup_scans = 0
 
+        self.ai_busy = False
+        self.ai_values = None
+        self.last_ai_time = None
+        self.used_ai = False
+
         # AI query cooldown tracking
         self.last_ai_query_time = 0.0
         self.ai_cooldown_seconds = 5.0

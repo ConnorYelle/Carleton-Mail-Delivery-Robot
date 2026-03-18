@@ -67,6 +67,10 @@ class BeaconSensor(Node):
     def initBeacons(self):
         '''Initializes all the beacons and their values.'''
         self.beacons = loadBeacons()
+        allowed_names = {"Nicol", "Canal"}
+        self.beacons = {
+            mac: name for mac, name in self.beacons.items() if name in allowed_names
+        }
         self.get_logger().info(f"Loaded beacons: {self.beacons}")
 
     def _finalize_scan(self):
