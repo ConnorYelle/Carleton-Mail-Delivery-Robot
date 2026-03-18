@@ -1,0 +1,37 @@
+name: Run Linter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, UVSetup ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Add uv to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          cd mail-delivery-robot
+          uv sync
+
+      - name: Run Ruff (lint)
+        run: |
+          cd mail-delivery-robot
+          uv run ruff check src
+
+      - name: Run Ruff (format check)
+        run: |
+          cd mail-delivery-robot
+          uv run ruff format --check src

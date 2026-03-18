@@ -1,10 +1,11 @@
 import os
 import re
+
 import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import BatteryState
 from jinja2 import Environment, FileSystemLoader
+from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
+from sensor_msgs.msg import BatteryState
 
 
 class ReportGenerator(Node):
@@ -14,7 +15,7 @@ class ReportGenerator(Node):
     """
 
     def __init__(self, log_dir="./tools/logs", template_dir=None):
-        super().__init__('report_generator')
+        super().__init__("report_generator")
 
         self.log_dir = log_dir
 
@@ -25,7 +26,9 @@ class ReportGenerator(Node):
 
         # Subscribe to battery state to get latest info
         qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, depth=10)
-        self.create_subscription(BatteryState, '/battery_state', self.battery_callback, qos)
+        self.create_subscription(
+            BatteryState, "/battery_state", self.battery_callback, qos
+        )
 
         # Template setup
         if template_dir is None:
@@ -77,7 +80,7 @@ class ReportGenerator(Node):
             voltage_level=self.voltage_level,
             temperature_level=self.temperature_level,
             wall_follow_time=wall_follow_time,
-            delivery_time=delivery_time
+            delivery_time=delivery_time,
         )
 
         output_path = os.path.join(self.log_dir, "robot_report.html")
@@ -93,6 +96,7 @@ def main(args=None):
 
     # If --once is passed, generate immediately and quit
     import sys
+
     if "--once" in sys.argv:
         node.generate_report()
         node.destroy_node()

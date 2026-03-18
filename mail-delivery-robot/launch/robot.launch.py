@@ -1,8 +1,10 @@
+from launch_ros.actions import Node
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
-from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
@@ -29,9 +31,9 @@ def generate_launch_description():
         ),
 
         Node(
-            package='mail-delivery-robot',
-            executable='lidar_sensor',
-            name='lidar_sensor',
+            package="mail-delivery-robot",
+            executable="lidar_sensor",
+            name="lidar_sensor",
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
@@ -41,9 +43,9 @@ def generate_launch_description():
             )
         ),
         Node(
-            package='mail-delivery-robot',
-            executable='lidar_sensor_AI',
-            name='lidar_sensor_AI',
+            package="mail-delivery-robot",
+            executable="lidar_sensor_AI",
+            name="lidar_sensor_AI",
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
@@ -78,9 +80,9 @@ def generate_launch_description():
         ),
 
         Node(
-            package='mail-delivery-robot',
-            executable='avoidance_layer',
-            name='avoidance_layer',
+            package="mail-delivery-robot",
+            executable="avoidance_layer",
+            name="avoidance_layer",
             parameters=sim_time,
             condition=UnlessCondition(
                 PythonExpression([
@@ -90,9 +92,9 @@ def generate_launch_description():
             )
         ),
         Node(
-            package='mail-delivery-robot',
-            executable='avoidance_layer_AI',
-            name='avoidance_layer_AI',
+            package="mail-delivery-robot",
+            executable="avoidance_layer_AI",
+            name="avoidance_layer_AI",
             parameters=sim_time,
             condition=IfCondition(
                 PythonExpression([
@@ -128,18 +130,18 @@ def generate_launch_description():
         ),
 
         Node(
-            package='mail-delivery-robot',
-            executable='navigation_unit',
-            name='navigation_unit',
+            package="mail-delivery-robot",
+            executable="navigation_unit",
+            name="navigation_unit",
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_navigation)
+            condition=UnlessCondition(use_ai_navigation),
         ),
         Node(
-            package='mail-delivery-robot',
-            executable='navigation_unit_AI',
-            name='navigation_unit_AI',
+            package="mail-delivery-robot",
+            executable="navigation_unit_AI",
+            name="navigation_unit_AI",
             parameters=sim_time,
-            condition=IfCondition(use_ai_navigation)
+            condition=IfCondition(use_ai_navigation),
         ),
 
         Node(
@@ -181,9 +183,9 @@ def generate_launch_description():
 
 
         Node(
-            package='mail-delivery-robot',
-            executable='metric_analyzer',
-            name='metric_analyzer',
+            package="mail-delivery-robot",
+            executable="metric_analyzer",
+            name="metric_analyzer",
             parameters=sim_time,
             condition=IfCondition(enable_metrics)
         ),

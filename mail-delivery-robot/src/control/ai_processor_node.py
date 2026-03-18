@@ -39,6 +39,7 @@ is added
 - cant easily compare "raw data" vs "AI data"
 """
 
+
 class OllamaChat:
     def __init__(self, model="qwen3", stream=False, think=False):
         self.model = model
@@ -66,6 +67,7 @@ class ai_processor_node(Node):
     basically send data to LLM and publish responses
     If you want you can have each topic have its own prompt template and output topic
     """
+
     def __init__(self):
         super().__init__("ai_processor_node")
 
@@ -80,7 +82,7 @@ class ai_processor_node(Node):
             {
                 "input": "/battery_status_text",
                 "output": "/ai/battery_advice",
-                "prompt": "Battery report: {data}. Summarize what the robot should do next."
+                "prompt": "Battery report: {data}. Summarize what the robot should do next.",
             },
             {
                 "input": "/captain_status",
@@ -88,8 +90,8 @@ class ai_processor_node(Node):
                 # for example /actions for captain change output to "output": "/actions"
                 # if want to create new topic "output": "/ai/captain_advice"
                 "output": "/ai/captain_advice",
-                "prompt": "Here are the current robot actions: {data}. Suggest the best next action."
-            }
+                "prompt": "Here are the current robot actions: {data}. Suggest the best next action.",
+            },
         ]
 
         # Initialize AI interface
@@ -108,10 +110,14 @@ class ai_processor_node(Node):
             self.create_subscription(
                 String,
                 input_topic,
-                lambda msg, it=input_topic, pt=prompt_template: self.process_message(it, pt, msg),
-                10
+                lambda msg, it=input_topic, pt=prompt_template: self.process_message(
+                    it, pt, msg
+                ),
+                10,
             )
-            self.get_logger().info(f"Listening on {input_topic}, publishing to {output_topic}")
+            self.get_logger().info(
+                f"Listening on {input_topic}, publishing to {output_topic}"
+            )
 
     def process_message(self, topic_name: str, prompt_template: str, msg: String):
         text = msg.data.strip()
@@ -134,5 +140,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

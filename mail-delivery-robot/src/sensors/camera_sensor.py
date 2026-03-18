@@ -1,11 +1,13 @@
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import Bool
-import numpy
 import cv2
-from sensor_msgs.msg import Image
-from tools.csv_parser import loadConfig
+import numpy
+import rclpy
 from cv_bridge import CvBridge
+from rclpy.node import Node
+from sensor_msgs.msg import Image
+from std_msgs.msg import Bool
+
+from tools.csv_parser import loadConfig
+
 
 class CameraSensor(Node):
     """
@@ -14,18 +16,20 @@ class CameraSensor(Node):
     @Publishers:
     - Publishes camera data to /camera_data.
     """
+
     def __init__(self):
-        super().__init__('camera_sensor')
+        super().__init__("camera_sensor")
 
         self.bridge = CvBridge()  # <-- THIS LINE is the fix
 
         self.config = loadConfig()
 
-        self.camera_data_publisher = self.create_publisher(Bool, 'camera_data', 10)
+        self.camera_data_publisher = self.create_publisher(Bool, "camera_data", 10)
 
         # Create the image subscriber to /camera/image_raw
         self.image_subscriber = self.create_subscription(
-            Image, '/camera/image_raw', self.image_callback, 10)
+            Image, "/camera/image_raw", self.image_callback, 10
+        )
 
         self.timer = self.create_timer(0.2, self.get_yellow)
 
@@ -34,8 +38,20 @@ class CameraSensor(Node):
         self.false_msg = Bool()
         self.false_msg.data = False
 
-        self.lower_yellow = numpy.array([self.config["CAMERA_MIN_HUE"], self.config["CAMERA_MIN_SATURATION"], self.config["CAMERA_MIN_VALUE"]])
-        self.upper_yellow = numpy.array([self.config["CAMERA_MAX_HUE"], self.config["CAMERA_MAX_SATURATION"], self.config["CAMERA_MAX_VALUE"]])
+        self.lower_yellow = numpy.array(
+            [
+                self.config["CAMERA_MIN_HUE"],
+                self.config["CAMERA_MIN_SATURATION"],
+                self.config["CAMERA_MIN_VALUE"],
+            ]
+        )
+        self.upper_yellow = numpy.array(
+            [
+                self.config["CAMERA_MAX_HUE"],
+                self.config["CAMERA_MAX_SATURATION"],
+                self.config["CAMERA_MAX_VALUE"],
+            ]
+        )
 
         self.image_width = int(self.config["CAMERA_IMG_WIDTH"])
         self.image_height = int(self.config["CAMERA_IMG_HEIGHT"])
@@ -49,7 +65,9 @@ class CameraSensor(Node):
         """
         try:
             # Convert ROS image message to OpenCV format
-            self.latest_image = numpy.array(self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8'))
+            self.latest_image = numpy.array(
+                self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            )
         except Exception as e:
             self.get_logger().error(f"Failed to convert image: {e}")
 
@@ -75,10 +93,12 @@ class CameraSensor(Node):
         else:
             self.camera_data_publisher.publish(self.false_msg)
 
+
 def main():
     rclpy.init()
     camera_sensor = CameraSensor()
     rclpy.spin(camera_sensor)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
