@@ -1,9 +1,11 @@
-name: Lint
+name: Run Linter
 
 on:
   workflow_dispatch:
   push:
+    branches: [ main, UVSetup ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   lint:
@@ -20,10 +22,16 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
-        run: uv sync
+        run: |
+          cd mail-delivery-robot
+          uv sync
 
-      - name: Run ruff
-        run: uv run ruffd check mail-delivery-robot/src
+      - name: Run Ruff (lint)
+        run: |
+          cd mail-delivery-robot
+          uv run ruff check src
 
       - name: Run Ruff (format check)
-        run: uv run ruff format --check mail-delivery-robot/src
+        run: |
+          cd mail-delivery-robot
+          uv run ruff format --check src
