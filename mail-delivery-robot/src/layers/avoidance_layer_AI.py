@@ -180,7 +180,7 @@ BACK, LEFT, RIGHT, or GO
             self.get_logger().info(f"Raw LLM Response: {response}")
 
             if decision not in ["LEFT", "RIGHT", "BACK", "GO"]:
-                self.get_logger().warning(f"Invalid LLM response: {decision}")
+                self.get_logger().warning(f"LLM FAILED: Invalid response: {decision}")
                 return "FAILED"
 
             self.get_logger().info(f"Ollama decided: {decision}")

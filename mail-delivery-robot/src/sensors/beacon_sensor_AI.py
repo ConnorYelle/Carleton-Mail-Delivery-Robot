@@ -167,7 +167,7 @@ class BeaconSensor(Node):
     def _run_ollama(self, prompt, result):
         try:
             result["response"] = ollama_client.chat(
-                model='gemma2:2b-instruct-q4_0',
+                model='qwen2:0.5b',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )
@@ -196,13 +196,13 @@ class BeaconSensor(Node):
         if thread.is_alive():
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai_timeout")
-            self.get_logger().warning("Ollama response timed out.")
+            self.get_logger().warning("NO RESPONSE: Ollama response timed out.")
             return None
         
         if "error" in result:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai_error")
-            self.get_logger().error(f"Ollama error: {result['error']}")
+            self.get_logger().error(f"OLLAMA ERROR: {result['error']}")
             return None
         
         try:
@@ -213,7 +213,7 @@ class BeaconSensor(Node):
         except Exception as e:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai_parse_error")
-            self.get_logger().error(f"Error parsing Ollama response: {e}")
+            self.get_logger().error(f"AI_ERROR: Error parsing Ollama response: {e}")
             return None
 
     def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
@@ -232,4 +232,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

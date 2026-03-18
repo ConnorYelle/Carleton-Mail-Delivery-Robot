@@ -45,6 +45,7 @@ class LidarSensor(Node):
         self.warmup_scans = 0
 
         self.ai_busy = False
+        self.pending_scan = None
         self.ai_values = None
         self.last_ai_time = None
         self.used_ai = False
@@ -84,6 +85,9 @@ class LidarSensor(Node):
         if not self.ai_busy:
             self.ai_busy = True
             threading.Thread(target=self.run_ai_background, args=(scan,), daemon=True).start()
+        else:
+            # Keep only the most recent scan to process after the current AI call finishes.
+            self.pending_scan = scan
 
         wf, angle, right, left, front = c_dist, c_angle, c_right, c_left, c_front
         self.used_ai = False
@@ -250,10 +254,18 @@ class LidarSensor(Node):
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
         with open(self.fallback_log_path, "a") as f:
             f.write(f"[{timestamp}] {reason}\n")
+        self.get_logger().warning(f"FALLBACK: {reason}")
 
     def run_ai_background(self, scan):
         try:
-            self.calculate_ai(scan)
+            next_scan = scan
+            while next_scan is not None:
+                self.calculate_ai(next_scan)
+                if self.pending_scan is not None:
+                    next_scan = self.pending_scan
+                    self.pending_scan = None
+                else:
+                    next_scan = None
         finally:
             self.ai_busy = False
 

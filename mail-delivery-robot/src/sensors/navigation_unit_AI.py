@@ -127,10 +127,10 @@ class NavigationUnit_AI(Node):
                     # return
 
                 else:
-                    self.get_logger().info("Ollama returned invalid direction, falling back to map-based navigation.")
+                    self.get_logger().info("FALLBACK: Ollama returned invalid direction, using map-based navigation.")
 
             except Exception as e:
-                self.get_logger().warn(f"Ollama query failed: {e}. Falling back to map-based navigation.")
+                self.get_logger().warn(f"OLLAMA ERROR: {e}. FALLBACK to map-based navigation.")
 
             # translate from old to new naming convention
             match self.direction:

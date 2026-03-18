@@ -154,7 +154,7 @@ class TravelLayerAI(Node):
         except Exception as e:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="travel_ai_query_error")
-            self.get_logger().error(f"Ollama connection failed: {e}")
+            self.get_logger().error(f"OLLAMA CONNECTION FAILED: {e}")
             return "WALL_FOLLOW"  # Safe fallback to existing behaviour
 
     def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
