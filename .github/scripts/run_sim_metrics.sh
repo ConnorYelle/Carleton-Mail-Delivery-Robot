@@ -26,7 +26,7 @@ WORLD_PATCHED="/tmp/demo_video_ci.world"
 RUN_START_EPOCH="$(date +%s)"
 
 cleanup() {
-  pkill -f "ros2 launch mail-delivery-robot robot.launch.py" 2>/dev/null || true
+  pkill -f "ros2 launch mail-delivery-robot container.launch.py" 2>/dev/null || true
   pkill -f "create3_gazebo.launch.py" 2>/dev/null || true
   pkill -f "robot_description.launch.py" 2>/dev/null || true
   pkill -f "gazebo.launch.py" 2>/dev/null || true

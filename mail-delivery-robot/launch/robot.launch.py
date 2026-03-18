@@ -14,7 +14,6 @@ def generate_launch_description():
     use_ai_lidar = LaunchConfiguration('use_ai_lidar')
     use_ai_navigation = LaunchConfiguration('use_ai_navigation')
     use_ai_beacon = LaunchConfiguration('use_ai_beacon')
-    use_fake_beacons = LaunchConfiguration('use_fake_beacons')
     use_ai_avoidance = LaunchConfiguration('use_ai_avoidance')
     use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
 
@@ -95,7 +94,6 @@ def generate_launch_description():
             executable='avoidance_layer_AI',
             name='avoidance_layer_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_avoidance)
             condition=IfCondition(
                 PythonExpression([
                     use_ai_avoidance, " == 'true' or ",
@@ -146,30 +144,6 @@ def generate_launch_description():
 
         Node(
             package='mail-delivery-robot',
-            executable='beacon_sensor',
-            name='beacon_sensor',
-            parameters=sim_time,
-            condition=IfCondition(PythonExpression([
-                "'", use_fake_beacons, "' == 'false' and '", use_ai_beacon, "' == 'false'"
-            ]))
-        ),
-        Node(
-            package='mail-delivery-robot',
-            executable='beacon_sensor_AI',
-            name='beacon_sensor_AI',
-            parameters=sim_time,
-            condition=IfCondition(PythonExpression([
-                "'", use_fake_beacons, "' == 'false' and '", use_ai_beacon, "' == 'true'"
-            ]))
-        ),
-        Node(
-            package='mail-delivery-robot',
-            executable='fake_beacon_publisher',
-            name='fake_beacon_publisher',
-            parameters=sim_time,
-            condition=IfCondition(PythonExpression(["'", use_fake_beacons, "' == 'true'"]))
-        ),
-        # Travel layer nodes - standard vs AI
             executable='bumper_sensor',
             name='bumper_sensor',
             parameters=sim_time
@@ -198,19 +172,10 @@ def generate_launch_description():
             name='general_logger',
             parameters=sim_time
         ),
-        
-        # Common nodes (always run)
-        Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='intersection_detection_unit', name='intersection_detection_unit', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='docking_layer', name='docking_layer', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
         Node(
             package='mail-delivery-robot',
             executable='dashboard_logger',
             name='dashboard_logger',
-            parameters=sim_time + [{'max_trip_seconds': 240.0}],
-        ),
             parameters=sim_time
         ),
 
@@ -241,11 +206,6 @@ def generate_launch_description():
             'use_ai_layers',
             default_value='false',
             description='Enable AI versions of BOTH avoidance and travel layers'
-        ),
-        DeclareLaunchArgument(
-            'use_fake_beacons',
-            default_value='false',
-            description='Publish simulated beacons instead of scanning Bluetooth'
         ),
         DeclareLaunchArgument(
             'enable_metrics',
