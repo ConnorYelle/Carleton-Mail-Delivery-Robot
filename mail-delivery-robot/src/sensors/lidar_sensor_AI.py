@@ -251,6 +251,12 @@ class LidarSensor(Node):
         with open(self.fallback_log_path, "a") as f:
             f.write(f"[{timestamp}] {reason}\n")
 
+    def run_ai_background(self, scan):
+        try:
+            self.calculate_ai(scan)
+        finally:
+            self.ai_busy = False
+
 def main():
     rclpy.init()
     node = LidarSensor()
