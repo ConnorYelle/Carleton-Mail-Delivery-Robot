@@ -17,3 +17,8 @@ package = false
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.5",
+]
