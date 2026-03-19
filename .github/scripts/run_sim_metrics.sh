@@ -169,7 +169,7 @@ TOPIC_PROBE_PID=$!
   published_destination_route="${DESTINATION_ROUTE}"
   echo "[metrics-runner] publishing destination route: ${published_destination_route}"
   # Keep publishing until travel_layer confirms receipt or timeout.
-  timeout 60 ros2 topic pub /destinations std_msgs/msg/String "{data: '${published_destination_route}'}" -r 1 \
+  timeout 60 ros2 topic pub /destinations std_msgs/msg/String "{data: ${published_destination_route}}" -r 1 \
     >>/tmp/destination_pub.log 2>&1 &
   DEST_PUB_PID=$!
   for i in $(seq 1 30); do
