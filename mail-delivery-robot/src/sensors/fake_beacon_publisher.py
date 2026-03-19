@@ -34,6 +34,8 @@ class FakeBeaconPublisher(Node):
         self.path = []
         self.path_index = 0
         self.robot_xy = None
+        self.current_destination = None
+        self.prev_beacon = None
         self.beacon_reach_distance = 0.9
         self.last_beacon = None
         self.last_odom_time = None
