@@ -4,13 +4,19 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 
-def bool_expr(lc_name):
+def bool_expr(lc):
     return PythonExpression([
-        f"str({lc_name}).lower() == 'true' or str({lc_name}) == 'True' or str({lc_name}) == '1'"
+        '"', lc, '".lower() in ["true","1","yes"]'
+    ])
+
+def not_bool_expr(lc):
+    return PythonExpression([
+        '"', lc, '".lower() not in ["true","1","yes"]'
     ])
 
 def generate_launch_description():
     sim_time = [{'use_sim_time': True}]
+
     enable_metrics = LaunchConfiguration('enable_metrics')
     use_ai_lidar = LaunchConfiguration('use_ai_lidar')
     use_ai_navigation = LaunchConfiguration('use_ai_navigation')
@@ -20,63 +26,60 @@ def generate_launch_description():
     use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
 
     nodes = [
-        Node(
-            package='mail-delivery-robot',
-            executable='captain',
-            name='captain',
-            parameters=sim_time
-        ),
+        Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
+
         Node(
             package='mail-delivery-robot',
             executable='lidar_sensor',
             name='lidar_sensor',
             parameters=sim_time,
-            condition=UnlessCondition(bool_expr('use_ai_lidar'))
+            condition=IfCondition(not_bool_expr(use_ai_lidar))
         ),
         Node(
             package='mail-delivery-robot',
             executable='lidar_sensor_AI',
             name='lidar_sensor_AI',
             parameters=sim_time,
-            condition=IfCondition(bool_expr('use_ai_lidar'))
+            condition=IfCondition(bool_expr(use_ai_lidar))
         ),
+
         Node(
             package='mail-delivery-robot',
             executable='avoidance_layer',
             name='avoidance_layer',
             parameters=sim_time,
-            condition=UnlessCondition(bool_expr('use_ai_avoidance'))
+            condition=IfCondition(not_bool_expr(use_ai_avoidance))
         ),
         Node(
             package='mail-delivery-robot',
             executable='avoidance_layer_AI',
             name='avoidance_layer_AI',
             parameters=sim_time,
-            condition=IfCondition(bool_expr('use_ai_avoidance'))
+            condition=IfCondition(bool_expr(use_ai_avoidance))
         ),
+
         Node(
             package='mail-delivery-robot',
             executable='navigation_unit',
             name='navigation_unit',
             parameters=sim_time,
-            condition=UnlessCondition(bool_expr('use_ai_navigation'))
+            condition=IfCondition(not_bool_expr(use_ai_navigation))
         ),
         Node(
             package='mail-delivery-robot',
             executable='navigation_unit_AI',
             name='navigation_unit_AI',
             parameters=sim_time,
-            condition=IfCondition(bool_expr('use_ai_navigation'))
+            condition=IfCondition(bool_expr(use_ai_navigation))
         ),
+
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor',
             name='beacon_sensor',
             parameters=sim_time,
             condition=IfCondition(PythonExpression([
-                "not (" + f"str(use_fake_beacons).lower() == 'true' or str(use_fake_beacons) == 'True' or str(use_fake_beacons) == '1')" +
-                " and not (" + f"str(use_ai_beacon).lower() == 'true' or str(use_ai_beacon) == 'True' or str(use_ai_beacon) == '1')" +
-                ")"
+                '(', not_bool_expr(use_fake_beacons), ') and (', not_bool_expr(use_ai_beacon), ')'
             ]))
         ),
         Node(
@@ -84,7 +87,7 @@ def generate_launch_description():
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
             parameters=sim_time + [{'use_fake_beacon_data': use_fake_beacons}],
-            condition=IfCondition(bool_expr('use_ai_beacon'))
+            condition=IfCondition(bool_expr(use_ai_beacon))
         ),
         Node(
             package='mail-delivery-robot',
@@ -96,20 +99,22 @@ def generate_launch_description():
                 'allowed_beacons': '',
                 'force_path_beacons': False,
             }],
-            condition=IfCondition(bool_expr('use_fake_beacons'))
+            condition=IfCondition(bool_expr(use_fake_beacons))
         ),
+
         Node(
             package='mail-delivery-robot',
             executable='travel_layer',
             name='travel_layer',
-            condition=UnlessCondition(bool_expr('use_ai_travel_layer'))
+            condition=IfCondition(not_bool_expr(use_ai_travel_layer))
         ),
         Node(
             package='mail-delivery-robot',
             executable='travel_layer_AI',
             name='travel_layer_AI',
-            condition=IfCondition(bool_expr('use_ai_travel_layer'))
+            condition=IfCondition(bool_expr(use_ai_travel_layer))
         ),
+
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(
             package='mail-delivery-robot',
@@ -122,10 +127,11 @@ def generate_launch_description():
             executable='docking_layer_AI',
             name='docking_layer_AI',
             parameters=sim_time,
-            condition=IfCondition(bool_expr('use_ai_travel_layer'))
+            condition=IfCondition(bool_expr(use_ai_travel_layer))
         ),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
+
         Node(
             package='mail-delivery-robot',
             executable='dashboard_logger',
@@ -145,12 +151,13 @@ def generate_launch_description():
             name='topic_logger',
             parameters=sim_time,
         ),
+
         Node(
             package='mail-delivery-robot',
             executable='metric_analyzer',
             name='metric_analyzer',
             parameters=sim_time,
-            condition=IfCondition(bool_expr('enable_metrics'))
+            condition=IfCondition(bool_expr(enable_metrics))
         )
     ]
 
