@@ -99,7 +99,9 @@ if is_fallback:
 
 summary_counts = {"Improved": 0, "Worse": 0, "Same": 0, "Increased": 0, "Decreased": 0}
 temp_body = f"## Robot Metrics Report: {report_date}\n\n"
-temp_body += f"### Run: {most_recent_run['run']}\n"
+run_label = most_recent_run.get("run_label")
+run_label_display = f" ({run_label})" if run_label else ""
+temp_body += f"### Run: {most_recent_run['run']}{run_label_display}\n"
 
 if last_run_filename:
     temp_body += "| Metric | Value | Average | Overall Status | Comparison To Previous Commit Run |\n"

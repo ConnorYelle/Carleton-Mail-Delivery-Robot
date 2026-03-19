@@ -386,6 +386,7 @@ class RobotGeneralLogger(Node):
             m.end()
             data.update(m.serialize())
         data["trip_end_reason"] = self.end_reason
+        data["run_label"] = "AI" if self.run_prefix.startswith("AI_") else "No_AI"
         self.logger.write_run_file(data, prefix=self.run_prefix)
         self.logger.close()
 
