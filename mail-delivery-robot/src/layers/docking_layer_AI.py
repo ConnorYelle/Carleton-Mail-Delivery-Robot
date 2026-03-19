@@ -6,6 +6,7 @@ from irobot_create_msgs.msg import DockStatus
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from tools.csv_parser import loadConfig
 import ollama
+import time
 
 class DockingLayerStates(Enum):
     NO_DEST = 'NO_DEST'

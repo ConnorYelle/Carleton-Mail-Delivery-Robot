@@ -123,9 +123,12 @@ class NavigationUnit_AI(Node):
                 self.get_logger().info(f"AI Decision: {ai_decision}")
 
                 if ai_decision in ['NAV_LEFT', 'NAV_RIGHT', 'NAV_PASS', 'NAV_U-TURN', 'NAV_DOCK']:
-                    self.direction = ai_decision
-                    # return
-
+                    if ai_decision == 'NAV_U-TURN' and self.current_destination != self.current_beacon:
+                        self.get_logger().info(
+                            "FALLBACK: Ignoring NAV_U-TURN during transit, using map-based navigation."
+                        )
+                    else:
+                        self.direction = ai_decision
                 else:
                     self.get_logger().info("FALLBACK: Ollama returned invalid direction, using map-based navigation.")
 
