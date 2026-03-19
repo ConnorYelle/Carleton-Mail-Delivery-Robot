@@ -121,10 +121,12 @@ ros2 launch irobot_create_common_bringup robot_description.launch.py \
 
 sleep 3
 
-echo "[metrics-runner] launching gazebo..."
-ros2 launch irobot_create_gazebo_bringup gazebo.launch.py \
+echo "[metrics-runner] launching create3 gazebo..."
+ros2 launch irobot_create_gazebo_bringup create3_gazebo.launch.py \
   world_path:="${WORLD_PATCHED}" \
-  use_gazebo_gui:=false >/tmp/gazebo.log 2>&1 &
+  use_gazebo_gui:=false \
+  use_rviz:=false \
+  spawn_beacons:=true >/tmp/gazebo.log 2>&1 &
 
 sleep "${STARTUP_DELAY_SECONDS}"
 
