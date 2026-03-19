@@ -26,7 +26,12 @@ class NavigationUnit_AI(Node):
         '''
         super().__init__('navigation_unit')
 
-        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
+        dest_qos = rclpy.qos.QoSProfile(
+            depth=1,
+            durability=rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=rclpy.qos.ReliabilityPolicy.RELIABLE,
+        )
+        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, dest_qos)
         self.beacon_data_sub = self.create_subscription(String, 'beacon_data', self.beacon_data_callback, 10)
 
         self.navigation_publisher = self.create_publisher(String, 'navigation', 10)

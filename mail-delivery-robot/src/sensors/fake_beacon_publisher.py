@@ -5,6 +5,7 @@ from collections import deque
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 
@@ -21,10 +22,15 @@ class FakeBeaconPublisher(Node):
         super().__init__('fake_beacon_publisher')
 
         self.publisher = self.create_publisher(String, 'fake_beacon_data', 10)
-        self.destinations_sub = self.create_subscription(
-            String, 'destinations', self.destinations_callback, 10
+        dest_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE,
         )
-        self.destinations_pub = self.create_publisher(String, 'destinations', 10)
+        self.destinations_sub = self.create_subscription(
+            String, 'destinations', self.destinations_callback, dest_qos
+        )
+        self.destinations_pub = self.create_publisher(String, 'destinations', dest_qos)
         self.odom_sub = None
         self.gt_pose_sub = None
 

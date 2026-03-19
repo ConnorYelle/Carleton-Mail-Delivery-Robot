@@ -42,7 +42,12 @@ class TravelLayerAI(Node):
         self.llm_response_latencies = []
 
         self.lidar_data_sub = self.create_subscription(String, 'lidar_data', self.lidar_data_callback, 10)
-        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
+        dest_qos = QoSProfile(
+            depth=1,
+            durability=rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=QoSReliabilityPolicy.RELIABLE,
+        )
+        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, dest_qos)
         self.navigation_sub = self.create_subscription(String, 'navigation', self.navigation_callback, 10)
 
         self.dock_status_sub = self.create_subscription(
