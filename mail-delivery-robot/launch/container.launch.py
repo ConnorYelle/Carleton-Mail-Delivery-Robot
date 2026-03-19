@@ -18,7 +18,6 @@ def generate_launch_description():
     nodes = [
         Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
 
-        # Lidar nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
             executable='lidar_sensor',
@@ -34,7 +33,6 @@ def generate_launch_description():
             condition=IfCondition(use_ai_lidar)
         ),
 
-        # Avoidance Layer nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
             executable='avoidance_layer',
@@ -49,7 +47,7 @@ def generate_launch_description():
             parameters=sim_time,
             condition=IfCondition(use_ai_avoidance)
         ),
-        # Navigation nodes - standard vs AI
+
         Node(
             package='mail-delivery-robot',
             executable='navigation_unit',
@@ -65,14 +63,13 @@ def generate_launch_description():
             condition=IfCondition(use_ai_navigation)
         ),
 
-        # Beacon sensor nodes - standard vs AI
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor',
             name='beacon_sensor',
             parameters=sim_time,
             condition=IfCondition(PythonExpression([
-                "'", use_fake_beacons, "' == 'false' and '", use_ai_beacon, "' == 'false'"
+                "not ", use_fake_beacons, " and not ", use_ai_beacon
             ]))
         ),
         Node(
@@ -80,23 +77,21 @@ def generate_launch_description():
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
             parameters=sim_time + [{'use_fake_beacon_data': use_fake_beacons}],
-            condition=IfCondition(PythonExpression([
-                "'", use_ai_beacon, "' == 'true'"
-            ]))
+            condition=IfCondition(use_ai_beacon)
         ),
         Node(
             package='mail-delivery-robot',
             executable='fake_beacon_publisher',
             name='fake_beacon_publisher',
             parameters=sim_time + [{
-                'default_destination': 'Nicol:Canal',
+                'default_destination': 'Canal:Nicol',
                 'publish_default_destination': True,
-                'allowed_beacons': 'Nicol,Canal',
-                'force_path_beacons': True,
+                'allowed_beacons': '',
+                'force_path_beacons': False,
             }],
-            condition=IfCondition(PythonExpression(["'", use_fake_beacons, "' == 'true'"]))
+            condition=IfCondition(use_fake_beacons)
         ),
-        # Travel layer nodes - standard vs AI
+
         Node(
             package='mail-delivery-robot',
             executable='travel_layer',
@@ -110,13 +105,23 @@ def generate_launch_description():
             condition=IfCondition(use_ai_travel_layer)
         ),
 
-        # Common nodes (always run)
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='intersection_detection_unit',
-             name='intersection_detection_unit', parameters=sim_time),
-        Node(package='mail-delivery-robot', executable='docking_layer_AI', name='docking_layer_AI', parameters=sim_time),
+        Node(
+            package='mail-delivery-robot',
+            executable='intersection_detection_unit',
+            name='intersection_detection_unit',
+            parameters=sim_time
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='docking_layer_AI',
+            name='docking_layer_AI',
+            parameters=sim_time,
+            condition=IfCondition(use_ai_travel_layer)
+        ),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
+
         Node(
             package='mail-delivery-robot',
             executable='dashboard_logger',
@@ -137,7 +142,6 @@ def generate_launch_description():
             parameters=sim_time,
         ),
 
-        # Optional: Metric Analyzer Node
         Node(
             package='mail-delivery-robot',
             executable='metric_analyzer',
@@ -151,37 +155,30 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_ai_lidar',
             default_value='false',
-            description='Use AI version of lidar_sensor'
         ),
         DeclareLaunchArgument(
             'use_ai_navigation',
             default_value='false',
-            description='Use AI version of navigation_unit'
         ),
         DeclareLaunchArgument(
             'use_ai_beacon',
             default_value='false',
-            description='Use AI version of beacon_sensor'
         ),
         DeclareLaunchArgument(
             'use_fake_beacons',
             default_value='false',
-            description='Publish simulated beacons instead of scanning Bluetooth'
         ),
         DeclareLaunchArgument(
             'enable_metrics',
             default_value='false',
-            description='Enable the metric analyzer node'
         ),
         DeclareLaunchArgument(
             'use_ai_avoidance',
             default_value='false',
-            description='Use AI version of Avoidance Layer'
         ),
         DeclareLaunchArgument(
             'use_ai_travel_layer',
             default_value='false',
-            description='Use AI version of travel_layer'
         ),
         *nodes
     ])
