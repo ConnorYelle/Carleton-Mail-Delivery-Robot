@@ -130,6 +130,12 @@ def generate_launch_description():
                 'use_ai_travel_layer': use_ai_travel_layer,
             }],
         ),
+        Node(
+            package='mail-delivery-robot',
+            executable='topic_logger',
+            name='topic_logger',
+            parameters=sim_time,
+        ),
 
         # Optional: Metric Analyzer Node
         Node(

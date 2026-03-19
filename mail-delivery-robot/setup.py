@@ -54,6 +54,7 @@ setup(
             'travel_layer_AI = layers.travel_layer_AI:main',
             'docking_layer_AI = layers.docking_layer_AI:main',
             'motion_probe = tools.motion_probe:main',
+            'topic_logger = tools.topic_logger:main',
         ],
     },
 )
