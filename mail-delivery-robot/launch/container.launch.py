@@ -4,6 +4,10 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 
+def bool_expr(lc_name):
+    return PythonExpression([
+        f"str({lc_name}).lower() == 'true' or str({lc_name}) == 'True' or str({lc_name}) == '1'"
+    ])
 
 def generate_launch_description():
     sim_time = [{'use_sim_time': True}]
@@ -16,60 +20,63 @@ def generate_launch_description():
     use_ai_travel_layer = LaunchConfiguration('use_ai_travel_layer')
 
     nodes = [
-        Node(package='mail-delivery-robot', executable='captain', name='captain', parameters=sim_time),
-
+        Node(
+            package='mail-delivery-robot',
+            executable='captain',
+            name='captain',
+            parameters=sim_time
+        ),
         Node(
             package='mail-delivery-robot',
             executable='lidar_sensor',
             name='lidar_sensor',
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_lidar)
+            condition=UnlessCondition(bool_expr('use_ai_lidar'))
         ),
         Node(
             package='mail-delivery-robot',
             executable='lidar_sensor_AI',
             name='lidar_sensor_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_lidar)
+            condition=IfCondition(bool_expr('use_ai_lidar'))
         ),
-
         Node(
             package='mail-delivery-robot',
             executable='avoidance_layer',
             name='avoidance_layer',
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_avoidance)
+            condition=UnlessCondition(bool_expr('use_ai_avoidance'))
         ),
         Node(
             package='mail-delivery-robot',
             executable='avoidance_layer_AI',
             name='avoidance_layer_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_avoidance)
+            condition=IfCondition(bool_expr('use_ai_avoidance'))
         ),
-
         Node(
             package='mail-delivery-robot',
             executable='navigation_unit',
             name='navigation_unit',
             parameters=sim_time,
-            condition=UnlessCondition(use_ai_navigation)
+            condition=UnlessCondition(bool_expr('use_ai_navigation'))
         ),
         Node(
             package='mail-delivery-robot',
             executable='navigation_unit_AI',
             name='navigation_unit_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_navigation)
+            condition=IfCondition(bool_expr('use_ai_navigation'))
         ),
-
         Node(
             package='mail-delivery-robot',
             executable='beacon_sensor',
             name='beacon_sensor',
             parameters=sim_time,
             condition=IfCondition(PythonExpression([
-                "not ", use_fake_beacons, " and not ", use_ai_beacon
+                "not (" + f"str(use_fake_beacons).lower() == 'true' or str(use_fake_beacons) == 'True' or str(use_fake_beacons) == '1')" +
+                " and not (" + f"str(use_ai_beacon).lower() == 'true' or str(use_ai_beacon) == 'True' or str(use_ai_beacon) == '1')" +
+                ")"
             ]))
         ),
         Node(
@@ -77,7 +84,7 @@ def generate_launch_description():
             executable='beacon_sensor_AI',
             name='beacon_sensor_AI',
             parameters=sim_time + [{'use_fake_beacon_data': use_fake_beacons}],
-            condition=IfCondition(use_ai_beacon)
+            condition=IfCondition(bool_expr('use_ai_beacon'))
         ),
         Node(
             package='mail-delivery-robot',
@@ -89,22 +96,20 @@ def generate_launch_description():
                 'allowed_beacons': '',
                 'force_path_beacons': False,
             }],
-            condition=IfCondition(use_fake_beacons)
+            condition=IfCondition(bool_expr('use_fake_beacons'))
         ),
-
         Node(
             package='mail-delivery-robot',
             executable='travel_layer',
             name='travel_layer',
-            condition=UnlessCondition(use_ai_travel_layer)
+            condition=UnlessCondition(bool_expr('use_ai_travel_layer'))
         ),
         Node(
             package='mail-delivery-robot',
             executable='travel_layer_AI',
             name='travel_layer_AI',
-            condition=IfCondition(use_ai_travel_layer)
+            condition=IfCondition(bool_expr('use_ai_travel_layer'))
         ),
-
         Node(package='mail-delivery-robot', executable='bumper_sensor', name='bumper_sensor', parameters=sim_time),
         Node(
             package='mail-delivery-robot',
@@ -117,11 +122,10 @@ def generate_launch_description():
             executable='docking_layer_AI',
             name='docking_layer_AI',
             parameters=sim_time,
-            condition=IfCondition(use_ai_travel_layer)
+            condition=IfCondition(bool_expr('use_ai_travel_layer'))
         ),
         Node(package='mail-delivery-robot', executable='turning_layer', name='turning_layer', parameters=sim_time),
         Node(package='mail-delivery-robot', executable='logger', name='general_logger', parameters=sim_time),
-
         Node(
             package='mail-delivery-robot',
             executable='dashboard_logger',
@@ -141,44 +145,22 @@ def generate_launch_description():
             name='topic_logger',
             parameters=sim_time,
         ),
-
         Node(
             package='mail-delivery-robot',
             executable='metric_analyzer',
             name='metric_analyzer',
             parameters=sim_time,
-            condition=IfCondition(enable_metrics)
+            condition=IfCondition(bool_expr('enable_metrics'))
         )
     ]
 
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_ai_lidar',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'use_ai_navigation',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'use_ai_beacon',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'use_fake_beacons',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'enable_metrics',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'use_ai_avoidance',
-            default_value='false',
-        ),
-        DeclareLaunchArgument(
-            'use_ai_travel_layer',
-            default_value='false',
-        ),
+        DeclareLaunchArgument('use_ai_lidar', default_value='false'),
+        DeclareLaunchArgument('use_ai_navigation', default_value='false'),
+        DeclareLaunchArgument('use_ai_beacon', default_value='false'),
+        DeclareLaunchArgument('use_fake_beacons', default_value='false'),
+        DeclareLaunchArgument('enable_metrics', default_value='false'),
+        DeclareLaunchArgument('use_ai_avoidance', default_value='false'),
+        DeclareLaunchArgument('use_ai_travel_layer', default_value='false'),
         *nodes
     ])
