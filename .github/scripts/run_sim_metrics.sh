@@ -98,6 +98,9 @@ cp "${WORLD_SOURCE}" "${WORLD_PATCHED}"
 sed -i "s|/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml|${control_yaml_path}|g" "${WORLD_PATCHED}"
 # Remove world-level gazebo_ros2_control plugin entirely; control is provided via robot_description (classic).
 sed -i "/<plugin name='gazebo_ros2_control' filename='libgazebo_ros2_control.so'>/,/<\\/plugin>/d" "${WORLD_PATCHED}"
+# Remove pre-spawned robot/dock so create3_gazebo.launch.py can spawn them with control enabled.
+sed -i "/<model name='create3'>/,/<\\/model>/d" "${WORLD_PATCHED}"
+sed -i "/<model name='standard_dock'>/,/<\\/model>/d" "${WORLD_PATCHED}"
 
 echo "[metrics-runner] starting ollama..."
 ollama serve >/tmp/ollama.log 2>&1 &
@@ -126,7 +129,7 @@ ros2 launch irobot_create_gazebo_bringup create3_gazebo.launch.py \
   world_path:="${WORLD_PATCHED}" \
   use_gazebo_gui:=false \
   use_rviz:=false \
-  spawn_beacons:=true >/tmp/gazebo.log 2>&1 &
+  spawn_beacons:=false >/tmp/gazebo.log 2>&1 &
 
 sleep "${STARTUP_DELAY_SECONDS}"
 
