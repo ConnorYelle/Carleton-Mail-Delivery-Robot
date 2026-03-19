@@ -105,7 +105,7 @@ class NavigationUnit_AI(Node):
                 self.get_logger().info("ERROR: ROBOT HAS BEEN MOVED")
                 # Finds a valid orientation for the robot.
                 beacon_orientation = self._fallback_orientation(self.current_beacon)
-            # self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
+            self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
             self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
             self.get_logger().info(f"Determined Direction: {self.direction}")
             self.can_send_direction = True
