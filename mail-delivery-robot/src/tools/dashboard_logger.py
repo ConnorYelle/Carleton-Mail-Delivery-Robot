@@ -294,10 +294,15 @@ class FileLogger:
         self.wall_log_file.flush()
     def write_run_file(self, data, prefix=""):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filepath = os.path.join(self.runs_dir, f"{prefix}run_{timestamp}.txt")
-        with open(filepath, "w") as f:
-            for key, value in data.items():
-                f.write(f"{key}={value}\n")
+        filenames = [f"{prefix}run_{timestamp}.txt"] if prefix else [f"run_{timestamp}.txt"]
+        if prefix:
+            # Also write a legacy run_*.txt file for tooling that expects it.
+            filenames.append(f"run_{timestamp}.txt")
+        for name in dict.fromkeys(filenames):
+            filepath = os.path.join(self.runs_dir, name)
+            with open(filepath, "w") as f:
+                for key, value in data.items():
+                    f.write(f"{key}={value}\n")
     def close(self):
         self.wall_log_file.close()
         open(self.wall_log_path, 'w').close()
