@@ -49,7 +49,7 @@ class FakeBeaconPublisher(Node):
         self.last_beacon_publish_time = None
         self.pose_publish_timeout_s = 8.0
         self.odom_stale_timeout_s = 2.0
-        self.declare_parameter("default_destination", "Nicol:Canal")
+        self.declare_parameter("default_destination", "Canal:Nicol")
         self.default_destination = str(self.get_parameter("default_destination").value)
         self.declare_parameter("publish_default_destination", True)
         self.publish_default_destination = bool(self.get_parameter("publish_default_destination").value)
