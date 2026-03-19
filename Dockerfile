@@ -3,6 +3,9 @@ FROM osrf/ros:humble-desktop-full
 RUN apt-get update && apt-get install -y \
     ros-humble-irobot-create-msgs \
     ros-humble-irobot-create-gazebo-bringup \
+    ros-humble-gazebo-ros2-control \
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
     ros-humble-gazebo-ros-pkgs \
     ros-humble-gazebo-msgs \
     ros-humble-control-msgs \
