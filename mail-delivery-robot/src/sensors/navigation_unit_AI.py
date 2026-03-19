@@ -26,7 +26,12 @@ class NavigationUnit_AI(Node):
         '''
         super().__init__('navigation_unit')
 
-        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, 10)
+        dest_qos = rclpy.qos.QoSProfile(
+            depth=1,
+            durability=rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=rclpy.qos.ReliabilityPolicy.RELIABLE,
+        )
+        self.destinations_sub = self.create_subscription(String, 'destinations', self.destinations_callback, dest_qos)
         self.beacon_data_sub = self.create_subscription(String, 'beacon_data', self.beacon_data_callback, 10)
 
         self.navigation_publisher = self.create_publisher(String, 'navigation', 10)
@@ -55,6 +60,12 @@ class NavigationUnit_AI(Node):
         self.no_msg = String()
         self.no_msg.data = 'NONE'
 
+    def _fallback_orientation(self, beacon: str) -> str:
+        for i in range(1, 5):
+            if self.map.exists(beacon + str(i)):
+                return str(i)
+        return "1"
+
     def destinations_callback(self, data):
         # works
         '''
@@ -80,18 +91,21 @@ class NavigationUnit_AI(Node):
         self.current_beacon = data.data.split(',')[0]
 
         if self.current_beacon == self.prev_beacon:
-            # self.get_logger().info("============Same beacon as before, no movement detected.=============")
+            if self.direction is None:
+                beacon_orientation = self._fallback_orientation(self.current_beacon)
+                self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
+                self.get_logger().info(
+                    f"Initial direction from {self.current_beacon}: {self.direction} (orientation {beacon_orientation})"
+                )
+                self.can_send_direction = True
             return
         else:
-            beacon_orientation = self.beacon_connections[self.current_beacon][self.prev_beacon]
+            beacon_orientation = self.beacon_connections.get(self.current_beacon, {}).get(self.prev_beacon, "-")
             if beacon_orientation == "-":
                 self.get_logger().info("ERROR: ROBOT HAS BEEN MOVED")
                 # Finds a valid orientation for the robot.
-                for i in range(1, 5):
-                    if self.map.exists(self.current_beacon + str(i)):
-                        beacon_orientation = str(i)
-                        break
-            # self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
+                beacon_orientation = self._fallback_orientation(self.current_beacon)
+            self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
             self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
             self.get_logger().info(f"Determined Direction: {self.direction}")
             self.can_send_direction = True
@@ -115,13 +129,11 @@ class NavigationUnit_AI(Node):
 
                 if ai_decision in ['NAV_LEFT', 'NAV_RIGHT', 'NAV_PASS', 'NAV_U-TURN', 'NAV_DOCK']:
                     self.direction = ai_decision
-                    # return
-
                 else:
-                    self.get_logger().info("Ollama returned invalid direction, falling back to map-based navigation.")
+                    self.get_logger().info("FALLBACK: Ollama returned invalid direction, using map-based navigation.")
 
             except Exception as e:
-                self.get_logger().warn(f"Ollama query failed: {e}. Falling back to map-based navigation.")
+                self.get_logger().warn(f"OLLAMA ERROR: {e}. FALLBACK to map-based navigation.")
 
             # translate from old to new naming convention
             match self.direction:
@@ -141,16 +153,26 @@ class NavigationUnit_AI(Node):
 
     def query_ollama(self, current_beacon: str, destination: str):
         start = time.perf_counter()
-        graph = build_nav_graph(self)
-        result = graph.invoke({
-            "current_beacon": current_beacon,
-            "destination": destination
-        })
-        elapsed = time.perf_counter() - start
-        self.llm_response_latencies.append(elapsed)
-        decision = result["direction"]
-        self.get_logger().info(f"Ollama decision: {decision} (latency={elapsed:.3f}s)")
-        return decision
+        try:
+            graph = build_nav_graph(self)
+            result = graph.invoke({
+                "current_beacon": current_beacon,
+                "destination": destination
+            })
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="query_ollama")
+            decision = result["direction"]
+            self.get_logger().info(f"Ollama decision: {decision}")
+            return decision
+        except Exception:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="query_ollama_error")
+            raise
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
 
     def get_llm_response_latencies(self):
         return list(self.llm_response_latencies)

@@ -6,6 +6,7 @@ from irobot_create_msgs.msg import DockStatus
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from tools.csv_parser import loadConfig
 import ollama
+import time
 
 class DockingLayerStates(Enum):
     NO_DEST = 'NO_DEST'
@@ -40,6 +41,7 @@ class DockingLayerAI(Node):
         self.current_llm_decision = None
         self.docking_attempts = 0
         self.max_docking_attempts = 3
+        self.llm_response_latencies = []
 
         self.config = loadConfig()
 
@@ -142,6 +144,7 @@ class DockingLayerAI(Node):
         @return: The LLM's decision
         '''
         self.get_logger().info(f"Querying Ollama for docking decision: {situation}")
+        start = time.perf_counter()
         try:
             context = self.get_docking_context()
 
@@ -173,12 +176,24 @@ class DockingLayerAI(Node):
                 }
             ])
 
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="ai_docking_query")
             decision = response['message']['content'].strip().upper()
             self.get_logger().info(f"Ollama docking decision: {decision}")
             return decision
         except Exception as e:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="ai_docking_query_error")
             self.get_logger().error(f"Ollama connection failed: {e}")
             return "FALLBACK"  # Will use original logic
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
+
+    def get_llm_response_latencies(self):
+        return list(self.llm_response_latencies)
 
     def fallback_docking_logic(self):
         '''
@@ -216,6 +231,7 @@ class DockingLayerAI(Node):
             # Handle LLM decision or fallback
             if self.current_llm_decision == "FALLBACK":
                 # Use original logic
+                self.get_logger().warning("FALLBACK: Using rule-based docking logic.")
                 decision = self.fallback_docking_logic()
             else:
                 decision = self.current_llm_decision

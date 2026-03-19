@@ -56,7 +56,11 @@ class BeaconSensor(Node):
     def checkForBeacons(self):
 
         # Perform scan
-        devices = self.scanner.scan(self.config["BEACON_SCAN_DURATION"])
+        try:
+            devices = self.scanner.scan(self.config["BEACON_SCAN_DURATION"])
+        except Exception as e:
+            self.get_logger().error(f"Bluetooth scan failed: {e}")
+            return
 
         beaconData = String()
         self.scan_counter += 1

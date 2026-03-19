@@ -9,9 +9,26 @@ GITHUB_EVENT_PATH = os.environ.get("GITHUB_EVENT_PATH")
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 LOG_DIR = "mail-delivery-robot/tools/logs/runs"
 METADATA_KEYS = ["run", "date", "trip_start_time", "trip_end_time", "docked"]
-METRIC_RULES = {"delivery_time": "lower", "battery_used": "lower", "wall_follow_time": "higher"}
+METRIC_RULES = {
+    "delivery_time": "lower",
+    "battery_used": "lower",
+    "wall_follow_time": "higher",
+    "ai_fallback_count": "lower",
+}
 EXCLUDE_METRICS = ["battery_start", "battery_end", "voltage_level", "temperature_level"]
 IN_DE_METRICS = ["lidar_front_avg", "wall_distance_avg"]
+
+
+def get_metric_rule(metric_name: str) -> str:
+    # LLM response latency metrics: lower is better.
+    if re.search(r"_llm_response_(avg_s|max_s)$", metric_name):
+        return "lower"
+    # LLM response throughput metric: higher is better.
+    if re.search(r"_llm_response_count$", metric_name):
+        return "higher"
+    if re.search(r"(^ai_fallback_count$|_ai_fallback_count$)", metric_name):
+        return "lower"
+    return METRIC_RULES.get(metric_name, "higher")
 
 if not GITHUB_EVENT_PATH or not os.path.exists(GITHUB_EVENT_PATH):
     exit(0)
@@ -39,30 +56,26 @@ if not runs:
 df = pd.DataFrame(runs)
 numeric_cols = df.select_dtypes(include=["number"]).columns
 metrics = [c for c in numeric_cols if c not in METADATA_KEYS and c not in EXCLUDE_METRICS]
+non_numeric_metrics = [
+    c for c in df.columns
+    if c not in METADATA_KEYS and c not in EXCLUDE_METRICS and c not in metrics
+]
 
 with open(GITHUB_EVENT_PATH) as f:
     event = json.load(f)
 
 commit_hash = "Unknown"
-target_date = None
 
 if "pull_request" in event:
-    target_date = event["pull_request"]["created_at"][:10].replace("-", "")
     commit_hash = event["pull_request"]["head"]["sha"][:7]
 elif "commits" in event:
-    target_date = event["commits"][-1]["timestamp"][:10].replace("-", "")
     commit_hash = event.get("after", event["commits"][-1]["id"])[:7]
 
-if target_date and target_date in df["date"].values:
-    day_runs = df[df["date"] == target_date].copy()
-    report_date = target_date
-    is_fallback = False
-else:
-    day_runs = pd.DataFrame([df.iloc[-1]])
-    report_date = day_runs.iloc[0]["date"]
-    is_fallback = True
-
-most_recent_run = day_runs.sort_values("run", ascending=False).iloc[0]
+# Always report the newest available run file in the dataset.
+most_recent_run = df.sort_values("run", ascending=False).iloc[0]
+report_date = most_recent_run["date"]
+day_runs = df[df["date"] == report_date].copy()
+is_fallback = False
 
 avg_source = df[df["run"] != most_recent_run["run"]]
 avg = avg_source[metrics].mean() if not avg_source.empty else df[metrics].mean()
@@ -86,7 +99,9 @@ if is_fallback:
 
 summary_counts = {"Improved": 0, "Worse": 0, "Same": 0, "Increased": 0, "Decreased": 0}
 temp_body = f"## Robot Metrics Report: {report_date}\n\n"
-temp_body += f"### Run: {most_recent_run['run']}\n"
+run_label = most_recent_run.get("run_label")
+run_label_display = f" ({run_label})" if run_label else ""
+temp_body += f"### Run: {most_recent_run['run']}{run_label_display}\n"
 
 if last_run_filename:
     temp_body += "| Metric | Value | Average | Overall Status | Comparison To Previous Commit Run |\n"
@@ -98,6 +113,11 @@ else:
 compare_run = None
 if last_run_filename and last_run_filename in df["run"].values and most_recent_run["run"] != last_run_filename:
     compare_run = df[df["run"] == last_run_filename].iloc[0]
+elif len(df) > 1:
+    # Fallback: compare with the latest different run available in dataset.
+    fallback_candidates = df[df["run"] != most_recent_run["run"]].sort_values("run", ascending=False)
+    if not fallback_candidates.empty:
+        compare_run = fallback_candidates.iloc[0]
 
 for m in metrics:
     if m not in most_recent_run:
@@ -108,8 +128,13 @@ for m in metrics:
         continue
 
     avg_val = avg[m]
+    if pd.isna(avg_val):
+        avg_val = df[m].mean(skipna=True)
+    has_avg = not pd.isna(avg_val)
 
-    if m in IN_DE_METRICS:
+    if not has_avg:
+        status = "No baseline"
+    elif m in IN_DE_METRICS:
         if abs(val - avg_val) < 0.001:
             status = "Same"
         elif val > avg_val:
@@ -117,7 +142,7 @@ for m in metrics:
         else:
             status = "Decreased"
     else:
-        rule = METRIC_RULES.get(m, "higher")
+        rule = get_metric_rule(m)
         if abs(val - avg_val) < 0.001:
             status = "Same"
         elif (rule == "lower" and val < avg_val) or (rule == "higher" and val > avg_val):
@@ -125,7 +150,8 @@ for m in metrics:
         else:
             status = "Worse"
 
-    summary_counts[status] += 1
+    if status in summary_counts:
+        summary_counts[status] += 1
 
     if last_run_filename:
         if compare_run is None or m not in compare_run or pd.isna(compare_run[m]):
@@ -140,7 +166,7 @@ for m in metrics:
                 else:
                     comparison = "Decreased"
             else:
-                rule = METRIC_RULES.get(m, "higher")
+                rule = get_metric_rule(m)
                 if abs(val - prev_val) < 0.001:
                     comparison = "Same"
                 elif (rule == "lower" and val < prev_val) or (rule == "higher" and val > prev_val):
@@ -148,9 +174,38 @@ for m in metrics:
                 else:
                     comparison = "Worse"
 
-        temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} | {comparison} |\n"
+        avg_display = f"{avg_val:.2f}" if has_avg else "N/A"
+        temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} | {comparison} |\n"
     else:
-        temp_body += f"| {m} | {val:.2f} | {avg_val:.2f} | {status} |\n"
+        avg_display = f"{avg_val:.2f}" if has_avg else "N/A"
+        temp_body += f"| {m} | {val:.2f} | {avg_display} | {status} |\n"
+
+if non_numeric_metrics:
+    temp_body += "\n### Non-Numeric Metrics\n"
+    if last_run_filename:
+        temp_body += "| Metric | Value | Previous Run Value |\n"
+        temp_body += "|--------|-------|--------------------|\n"
+    else:
+        temp_body += "| Metric | Value |\n"
+        temp_body += "|--------|-------|\n"
+
+    for m in non_numeric_metrics:
+        if m not in most_recent_run:
+            continue
+
+        val = most_recent_run[m]
+        if pd.isna(val):
+            continue
+
+        current_display = str(val)
+        if last_run_filename:
+            if compare_run is None or m not in compare_run or pd.isna(compare_run[m]):
+                prev_display = "No run"
+            else:
+                prev_display = str(compare_run[m])
+            temp_body += f"| {m} | {current_display} | {prev_display} |\n"
+        else:
+            temp_body += f"| {m} | {current_display} |\n"
 
 summary_line = f"**Summary:** {summary_counts['Improved']} Improved, {summary_counts['Worse']} Worse, {summary_counts['Same']} Same, {summary_counts['Increased']} Increased, {summary_counts['Decreased']} Decreased\n\n"
 full_md = md_header + summary_line + temp_body

@@ -1,0 +1,84 @@
+name: PR Simulation Metrics
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  run-sim-and-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Restore persisted simulation runs
+        id: runs_cache_restore
+        uses: actions/cache/restore@v5
+        with:
+          path: mail-delivery-robot/tools/logs/runs
+          key: sim-runs-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          restore-keys: |
+            sim-runs-pr-${{ github.event.pull_request.number }}-
+
+      - name: Prepare logs directory
+        run: |
+          mkdir -p mail-delivery-robot/tools/logs/runs
+
+      - name: Build Docker image
+        run: docker build -t carleton-mail-robot-ci:latest .
+
+      - name: Run simulation and produce metrics
+        run: |
+          docker run --rm --privileged \
+            -e RUN_TIMEOUT_SECONDS=300 \
+            -e STARTUP_DELAY_SECONDS=15 \
+            -e TZ=America/Toronto \
+            -v "${{ github.workspace }}/mail-delivery-robot/tools/logs:/ros2_ws/src/carleton_mail_robot/mail-delivery-robot/tools/logs" \
+            carleton-mail-robot-ci:latest \
+            bash -lc "/ros2_ws/src/carleton_mail_robot/.github/scripts/run_sim_metrics.sh"
+
+      - name: Resolve latest run file
+        id: latest_run
+        run: |
+          latest="$(ls -1t mail-delivery-robot/tools/logs/runs/run_*.txt | head -n1 || true)"
+          if [ -z "${latest}" ]; then
+            echo "No run files found."
+            exit 1
+          fi
+          echo "path=${latest}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: simulation-metrics-run
+          path: ${{ steps.latest_run.outputs.path }}
+      
+      - name: Upload all simulation runs artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: simulation-runs-history
+          path: mail-delivery-robot/tools/logs/runs
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install report dependencies
+        run: pip install pandas PyGithub
+
+      - name: Comment metrics on PR (shared formatter)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/post_report.py
+
+      - name: Save persisted simulation runs
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: mail-delivery-robot/tools/logs/runs
+          key: ${{ steps.runs_cache_restore.outputs.cache-primary-key }}

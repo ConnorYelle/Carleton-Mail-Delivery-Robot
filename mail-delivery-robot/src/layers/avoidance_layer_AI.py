@@ -5,6 +5,7 @@ from sensors.bumper_sensor import Bump_Event
 from enum import Enum
 from tools.csv_parser import loadConfig
 import ollama
+import time
 
 
 class AvoidanceLayerStates(Enum):
@@ -21,6 +22,7 @@ class AvoidanceLayerAI(Node):
         self.bump_data = False
         self.latest_lidar = None
         self.current_llm_decision = None
+        self.llm_response_latencies = []
 
         self.config = loadConfig()
 
@@ -128,6 +130,7 @@ Most open direction: {self.get_most_space(lidarData)}
     def ai_avoidance_query(self):
 
         self.get_logger().info("Querying Ollama for collision resolution...")
+        start = time.perf_counter()
 
         try:
             lidar_text = (
@@ -169,21 +172,33 @@ BACK, LEFT, RIGHT, or GO
                     }
                 ]
             )
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="ai_avoidance_query")
             self.get_logger().info(f"Background: {background}")
             self.get_logger().info(f"Prompt: {prompt}")
             decision = response['message']['content'].strip().upper()
             self.get_logger().info(f"Raw LLM Response: {response}")
 
             if decision not in ["LEFT", "RIGHT", "BACK", "GO"]:
-                self.get_logger().warning(f"Invalid LLM response: {decision}")
+                self.get_logger().warning(f"LLM FAILED: Invalid response: {decision}")
                 return "FAILED"
 
             self.get_logger().info(f"Ollama decided: {decision}")
             return decision
 
         except Exception as e:
+            elapsed = time.perf_counter() - start
+            self.record_llm_latency(elapsed, context="ai_avoidance_query_error")
             self.get_logger().error(f"Ollama connection failed: {e}")
             return "FAILED"
+
+    def record_llm_latency(self, elapsed_s: float, context: str = "llm_call"):
+        self.llm_response_latencies.append(elapsed_s)
+        # Keep `latency=<number>s` format so dashboard_logger can parse from /rosout.
+        self.get_logger().info(f"{context}: latency={elapsed_s:.3f}s")
+
+    def get_llm_response_latencies(self):
+        return list(self.llm_response_latencies)
 
     def rule_based_avoidance(self):
 
