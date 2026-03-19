@@ -49,6 +49,8 @@ class FakeBeaconPublisher(Node):
         self.publish_default_destination = bool(self.get_parameter("publish_default_destination").value)
         self.declare_parameter("allowed_beacons", "")
         self.allowed_beacons = self._parse_allowed_beacons(self.get_parameter("allowed_beacons").value)
+        self.declare_parameter("force_path_beacons", False)
+        self.force_path_beacons = bool(self.get_parameter("force_path_beacons").value)
         self.default_dest_timer = self.create_timer(0.5, self._publish_default_destination_once)
         self._default_destination_sent = False
 
@@ -197,13 +199,13 @@ class FakeBeaconPublisher(Node):
 
         if self.timer is not None:
             self.timer.cancel()
-        if self.beacon_positions:
+        if self.beacon_positions and not self.force_path_beacons:
             self.timer = self.create_timer(0.5, self.publish_next)
         else:
             self.timer = self.create_timer(self.publish_interval_s, self.publish_next)
 
     def publish_next(self):
-        if self.beacon_positions:
+        if self.beacon_positions and not self.force_path_beacons:
             if self.robot_xy is None:
                 return
             now = self.get_clock().now()

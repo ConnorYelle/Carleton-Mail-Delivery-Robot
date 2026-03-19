@@ -92,6 +92,7 @@ def generate_launch_description():
                 'default_destination': 'Nicol:Canal',
                 'publish_default_destination': True,
                 'allowed_beacons': 'Nicol,Canal',
+                'force_path_beacons': True,
             }],
             condition=IfCondition(PythonExpression(["'", use_fake_beacons, "' == 'true'"]))
         ),
