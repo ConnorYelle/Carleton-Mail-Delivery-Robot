@@ -202,7 +202,7 @@ if [[ "${launch_status}" -ne 0 && "${launch_status}" -ne 124 ]]; then
 fi
 
 latest_run=""
-for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/run_*.txt 2>/dev/null || true); do
+for candidate in $(ls -1t "${RUNS_DIR}"/run_*.txt "${RUNS_DIR}"/*run_*.txt "${INSTALL_RUNS_DIR}"/run_*.txt "${INSTALL_RUNS_DIR}"/*run_*.txt 2>/dev/null || true); do
   file_epoch="$(stat -c %Y "${candidate}" 2>/dev/null || echo 0)"
   if [[ "${file_epoch}" -ge "${RUN_START_EPOCH}" ]]; then
     latest_run="${candidate}"
