@@ -14,6 +14,10 @@ from tools.csv_parser import loadBeacons
 
 
 class FakeBeaconPublisher(Node):
+    '''
+    Publishes simulated beacon_data so navigation can progress in sim
+    without Bluetooth hardware.
+    '''
     def __init__(self):
         super().__init__('fake_beacon_publisher')
 
@@ -45,7 +49,6 @@ class FakeBeaconPublisher(Node):
         self.last_beacon_publish_time = None
         self.pose_publish_timeout_s = 8.0
         self.odom_stale_timeout_s = 2.0
-
         self.declare_parameter("default_destination", "Canal:Nicol")
         self.default_destination = str(self.get_parameter("default_destination").value)
         self.declare_parameter("publish_default_destination", True)
@@ -54,7 +57,6 @@ class FakeBeaconPublisher(Node):
         self.allowed_beacons = self._parse_allowed_beacons(self.get_parameter("allowed_beacons").value)
         self.declare_parameter("force_path_beacons", False)
         self.force_path_beacons = bool(self.get_parameter("force_path_beacons").value)
-
         self.default_dest_timer = self.create_timer(0.5, self._publish_default_destination_once)
         self._default_destination_sent = False
 
@@ -63,7 +65,6 @@ class FakeBeaconPublisher(Node):
         self.beacons = loadBeacons()
         if self.allowed_beacons:
             self.beacons = {mac: name for mac, name in self.beacons.items() if name in self.allowed_beacons}
-
         self.beacon_positions = self._load_beacon_positions()
         if self.beacon_positions:
             self.odom_sub = self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
@@ -92,6 +93,7 @@ class FakeBeaconPublisher(Node):
         self.destinations_pub.publish(msg)
         self._default_destination_sent = True
         self.default_dest_timer.cancel()
+        self.get_logger().info(f"Published default destination: {msg.data}")
 
     def _build_graph(self, connections: dict) -> dict:
         graph = {}
@@ -143,6 +145,7 @@ class FakeBeaconPublisher(Node):
     def _load_beacon_positions(self) -> dict:
         world_path = self._resolve_world_path()
         if not world_path:
+            self.get_logger().warning("No world file found; falling back to timed beacons.")
             return {}
 
         model_to_beacon = {mac.replace(":", "_"): name for mac, name in self.beacons.items()}
@@ -152,12 +155,9 @@ class FakeBeaconPublisher(Node):
             root = tree.getroot()
             for model in root.iter("model"):
                 model_name = model.attrib.get("name")
-                if not model_name:
+                if not model_name or model_name not in model_to_beacon:
                     continue
-                key = model_name.replace(":", "_")
-                if key not in model_to_beacon:
-                    continue
-                if key in positions:
+                if model_name in positions:
                     continue
                 pose_el = model.find("pose")
                 if pose_el is None or not pose_el.text:
@@ -166,22 +166,27 @@ class FakeBeaconPublisher(Node):
                 if len(parts) < 2:
                     continue
                 x, y = float(parts[0]), float(parts[1])
-                positions[model_to_beacon[key]] = (x, y)
-        except Exception:
+                positions[model_to_beacon[model_name]] = (x, y)
+        except Exception as exc:
+            self.get_logger().warning(f"Failed to parse world file for beacons: {exc}")
             return {}
 
         if self.allowed_beacons:
             positions = {name: pos for name, pos in positions.items() if name in self.allowed_beacons}
+        if not positions:
+            self.get_logger().warning("No beacon poses found in world file; falling back to timed beacons.")
+        else:
+            self.get_logger().info(f"Loaded {len(positions)} beacon poses from world file.")
         return positions
 
     def odom_callback(self, msg: Odometry):
         position = msg.pose.pose.position
         self.robot_xy = (position.x, position.y)
-        now = self.get_clock().now()
-        self.last_odom_time = now
-        self.last_pose_time = now
+        self.last_odom_time = self.get_clock().now()
+        self.last_pose_time = self.last_odom_time
 
     def gt_pose_callback(self, msg: Odometry):
+        # Use ground-truth pose when /odom is missing in sim.
         position = msg.pose.pose.position
         self.robot_xy = (position.x, position.y)
         self.last_pose_time = self.get_clock().now()
@@ -189,13 +194,14 @@ class FakeBeaconPublisher(Node):
     def destinations_callback(self, msg: String):
         parts = msg.data.split(':')
         if len(parts) < 2:
+            self.get_logger().warning(f"Invalid destination payload: {msg.data}")
             return
         source = parts[0].strip()
         destination = parts[1].strip()
 
-        self.current_destination = destination
         self.path = self._find_path(source, destination)
         self.path_index = 0
+        self.get_logger().info(f"Simulated beacon path: {self.path}")
 
         if self.timer is not None:
             self.timer.cancel()
@@ -216,33 +222,26 @@ class FakeBeaconPublisher(Node):
                 self._publish_path_beacon()
                 return
 
-            valid_beacons = set(self.path[self.path_index:]) if self.path else set()
-
             closest_beacon = None
             closest_distance = None
             for name, pos in self.beacon_positions.items():
-                if valid_beacons and name not in valid_beacons:
-                    continue
                 dx = self.robot_xy[0] - pos[0]
                 dy = self.robot_xy[1] - pos[1]
                 distance = math.hypot(dx, dy)
                 if closest_distance is None or distance < closest_distance:
                     closest_distance = distance
                     closest_beacon = name
-
             if closest_beacon is None or closest_distance is None:
                 return
-
             if closest_distance > self.beacon_reach_distance:
+                # If we're not close to any beacon for too long, fall back.
                 if self.last_beacon_publish_time is not None:
                     idle_s = (now - self.last_beacon_publish_time).nanoseconds / 1e9
                     if idle_s > self.pose_publish_timeout_s:
                         self._publish_path_beacon()
                 return
-
             if closest_beacon == self.last_beacon:
                 return
-
             beacon = closest_beacon
         else:
             beacon = self._next_path_beacon()
@@ -252,8 +251,7 @@ class FakeBeaconPublisher(Node):
         msg = String()
         msg.data = f"{beacon},{self.fake_rssi}"
         self.publisher.publish(msg)
-
-        self.prev_beacon = beacon
+        self.get_logger().info(f"Published fake beacon: {msg.data}")
         self.last_beacon = beacon
         self.last_beacon_publish_time = self.get_clock().now()
 
@@ -268,11 +266,11 @@ class FakeBeaconPublisher(Node):
         if self.path_index >= len(self.path):
             return None
 
+        # Skip the source beacon; navigation already knows it as prev_beacon.
         if self.path_index == 0:
             self.path_index += 1
             if self.path_index >= len(self.path):
                 return None
-
         while self.path_index < len(self.path):
             candidate = self.path[self.path_index]
             if not self.allowed_beacons or candidate in self.allowed_beacons:
@@ -284,15 +282,12 @@ class FakeBeaconPublisher(Node):
         beacon = self._next_path_beacon()
         if beacon is None:
             return
-
         msg = String()
         msg.data = f"{beacon},{self.fake_rssi}"
         self.publisher.publish(msg)
-
-        self.prev_beacon = beacon
+        self.get_logger().info(f"Published fallback beacon: {msg.data}")
         self.last_beacon = beacon
         self.last_beacon_publish_time = self.get_clock().now()
-
         self.path_index += 1
         if self.path_index >= len(self.path) and self.timer is not None:
             self.timer.cancel()
