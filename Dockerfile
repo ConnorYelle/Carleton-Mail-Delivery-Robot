@@ -1,5 +1,5 @@
 FROM osrf/ros:humble-desktop-full
-
+#test running sim
 RUN apt-get update && apt-get install -y \
     ros-humble-irobot-create-msgs \
     ros-humble-irobot-create-gazebo-bringup \
