@@ -1,0 +1,38 @@
+[INFO] [launch]: All log files can be found below /root/.ros/log/2026-03-24-20-38-37-299624-936e84dd7562-608
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [joint_state_publisher-1]: process started with pid [611]
+[INFO] [robot_state_publisher-2]: process started with pid [613]
+[robot_state_publisher-2] [WARN] [1774399117.716916506] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1774399117.717350463] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-2] [INFO] [1774399117.717453114] [robot_state_publisher]: got segment bump_front_center
+[robot_state_publisher-2] [INFO] [1774399117.717466048] [robot_state_publisher]: got segment bump_front_left
+[robot_state_publisher-2] [INFO] [1774399117.717475015] [robot_state_publisher]: got segment bump_front_right
+[robot_state_publisher-2] [INFO] [1774399117.717483080] [robot_state_publisher]: got segment bump_left
+[robot_state_publisher-2] [INFO] [1774399117.717491105] [robot_state_publisher]: got segment bump_right
+[robot_state_publisher-2] [INFO] [1774399117.717499090] [robot_state_publisher]: got segment bumper
+[robot_state_publisher-2] [INFO] [1774399117.717506644] [robot_state_publisher]: got segment button_1
+[robot_state_publisher-2] [INFO] [1774399117.717514598] [robot_state_publisher]: got segment button_2
+[robot_state_publisher-2] [INFO] [1774399117.717522333] [robot_state_publisher]: got segment button_power
+[robot_state_publisher-2] [INFO] [1774399117.717530037] [robot_state_publisher]: got segment camera_link
+[robot_state_publisher-2] [INFO] [1774399117.717538092] [robot_state_publisher]: got segment camera_link_optical
+[robot_state_publisher-2] [INFO] [1774399117.717546227] [robot_state_publisher]: got segment cliff_front_left
+[robot_state_publisher-2] [INFO] [1774399117.717554332] [robot_state_publisher]: got segment cliff_front_right
+[robot_state_publisher-2] [INFO] [1774399117.717562768] [robot_state_publisher]: got segment cliff_side_left
+[robot_state_publisher-2] [INFO] [1774399117.717570973] [robot_state_publisher]: got segment cliff_side_right
+[robot_state_publisher-2] [INFO] [1774399117.717579068] [robot_state_publisher]: got segment front_caster_link
+[robot_state_publisher-2] [INFO] [1774399117.717587684] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-2] [INFO] [1774399117.717595759] [robot_state_publisher]: got segment ir_intensity_front_center_left
+[robot_state_publisher-2] [INFO] [1774399117.717604907] [robot_state_publisher]: got segment ir_intensity_front_center_right
+[robot_state_publisher-2] [INFO] [1774399117.717613292] [robot_state_publisher]: got segment ir_intensity_front_left
+[robot_state_publisher-2] [INFO] [1774399117.717621287] [robot_state_publisher]: got segment ir_intensity_front_right
+[robot_state_publisher-2] [INFO] [1774399117.717629743] [robot_state_publisher]: got segment ir_intensity_left
+[robot_state_publisher-2] [INFO] [1774399117.717637587] [robot_state_publisher]: got segment ir_intensity_right
+[robot_state_publisher-2] [INFO] [1774399117.717645772] [robot_state_publisher]: got segment ir_intensity_side_left
+[robot_state_publisher-2] [INFO] [1774399117.717653918] [robot_state_publisher]: got segment ir_omni
+[robot_state_publisher-2] [INFO] [1774399117.717661672] [robot_state_publisher]: got segment left_wheel
+[robot_state_publisher-2] [INFO] [1774399117.717670037] [robot_state_publisher]: got segment lidar_frame
+[robot_state_publisher-2] [INFO] [1774399117.717678253] [robot_state_publisher]: got segment mouse
+[robot_state_publisher-2] [INFO] [1774399117.717686037] [robot_state_publisher]: got segment right_wheel
+[robot_state_publisher-2] [INFO] [1774399117.717693972] [robot_state_publisher]: got segment wheel_drop_left
+[robot_state_publisher-2] [INFO] [1774399117.717702348] [robot_state_publisher]: got segment wheel_drop_right
+[joint_state_publisher-1] [INFO] [1774399117.980585763] [joint_state_publisher]: Waiting for robot_description to be published on the robot_description topic...
