@@ -1,26 +1,5 @@
-=== 20:38:55 ===
+=== 21:03:09 ===
 --- ros2 node list ---
-WARNING: Be aware that there are nodes in the graph that share an exact name, which can have unintended side effects.
-/d0_6a_d2_02_42_eb
-/df_2b_70_a8_21_90
-/e2_77_fc_f9_04_93
-/e4_87_91_3d_1e_d7
-/ea_2f_93_a6_98_20
-/ee_16_86_9a_c2_a8
-/fb_ef_5c_de_ef_e4
-/fc_e2_2e_62_9b_3d
-/hazards_vector_publisher
-/ir_intensity_vector_publisher
-/joint_state_publisher
-/joint_state_publisher
-/kidnap_estimator_publisher
-/mock_publisher
-/motion_control
-/robot_state
-/robot_state_publisher
-/robot_state_publisher
-/ui_mgr
-/wheel_status_publisher
 --- ros2 topic list ---
 /actions
 /battery_state
@@ -79,7 +58,7 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-data: 1.25498366355896:-0.00195893375239109:1.3359506130218506:-1:-1
+data: 1.2549837827682495:-0.00195893375239109:1.335951328277588:-1:-1
 ---
 (no message)
 --- /actions info ---
@@ -94,15 +73,7 @@ Type: geometry_msgs/msg/Twist
 Publisher count: 2
 Subscription count: 2
 --- /cmd_vel sample ---
-linear:
-  x: 0.2
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.36749792558583216
----
+(no message)
 --- /odom info ---
 Type: nav_msgs/msg/Odometry
 Publisher count: 1
@@ -110,27 +81,28 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:39:25 ===
+=== 21:03:41 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 4
 --- /destinations sample ---
-data: Nicol:Canal
----
+(no message)
 --- /lidar_data info ---
 Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-(no message)
+data: 1.006163239479065:-0.00195893375239109:1.0710986852645874:-1:3.0276525020599365
+---
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
 Subscription count: 4
 --- /actions sample ---
-data: 2:NONE
+data: 3:WALL_FOLLOW,0.4,-3.418984380767186e-05
 ---
+(no message)
 --- /cmd_vel info ---
 Type: geometry_msgs/msg/Twist
 Publisher count: 2
@@ -145,7 +117,6 @@ angular:
   y: 0.0
   z: -3.418984380767186e-05
 ---
-(no message)
 --- /odom info ---
 Type: nav_msgs/msg/Odometry
 Publisher count: 1
@@ -153,7 +124,7 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:39:50 ===
+=== 21:04:05 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
@@ -165,7 +136,41 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-data: 0.683900773525238:-16.547561044178607:-1:-1:-1
+data: 0.6236197352409363:-0.00195893375239109:0.6638660430908203:-1:-1
+---
+--- /actions info ---
+Type: std_msgs/msg/String
+Publisher count: 4
+Subscription count: 4
+--- /actions sample ---
+data: 1:NONE
+---
+--- /cmd_vel info ---
+Type: geometry_msgs/msg/Twist
+Publisher count: 2
+Subscription count: 2
+--- /cmd_vel sample ---
+(no message)
+--- /odom info ---
+Type: nav_msgs/msg/Odometry
+Publisher count: 1
+Subscription count: 5
+--- /odom sample ---
+(no message)
+
+=== 21:04:29 ===
+--- /destinations info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 4
+--- /destinations sample ---
+(no message)
+--- /lidar_data info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 5
+--- /lidar_data sample ---
+data: 0.9888200163841248:-13.03788786923971:1.3535101413726807:-1:1.5142858028411865
 ---
 --- /actions info ---
 Type: std_msgs/msg/String
@@ -188,7 +193,7 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:40:14 ===
+=== 21:04:54 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
@@ -201,21 +206,29 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-data: 1.0532468557357788:-0.00195893375239109:1.1214507818222046:0.8113256096839905:-1
+data: 0.8736076354980469:59.66248504020882:-1:-1:-1
 ---
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
 Subscription count: 4
 --- /actions sample ---
-data: 3:WALL_FOLLOW,0.4,-3.418984380767186e-05
+data: 3:WALL_FOLLOW,0.2,1.0413068038735054
 ---
 --- /cmd_vel info ---
 Type: geometry_msgs/msg/Twist
 Publisher count: 2
 Subscription count: 2
 --- /cmd_vel sample ---
-(no message)
+linear:
+  x: 0.2
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+---
 --- /odom info ---
 Type: nav_msgs/msg/Odometry
 Publisher count: 1
@@ -223,7 +236,7 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:40:38 ===
+=== 21:05:17 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
@@ -235,45 +248,7 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-data: 1.1365406513214111:-11.032360340703207:1.645111083984375:-1:1.9683183431625366
----
 (no message)
---- /actions info ---
-Type: std_msgs/msg/String
-Publisher count: 4
-Subscription count: 4
---- /actions sample ---
-data: 3:WALL_FOLLOW,0.2,0.13997804460557894
----
---- /cmd_vel info ---
-Type: geometry_msgs/msg/Twist
-Publisher count: 2
-Subscription count: 2
---- /cmd_vel sample ---
-(no message)
---- /odom info ---
-Type: nav_msgs/msg/Odometry
-Publisher count: 1
-Subscription count: 5
---- /odom sample ---
-(no message)
-
-=== 20:41:03 ===
---- /destinations info ---
-Type: std_msgs/msg/String
-Publisher count: 1
-Subscription count: 4
---- /destinations sample ---
-data: Nicol:Canal
----
-(no message)
---- /lidar_data info ---
-Type: std_msgs/msg/String
-Publisher count: 1
-Subscription count: 5
---- /lidar_data sample ---
-data: 0.7412550449371338:-0.00195893375239109:0.7890953421592712:1.669946312904358:-1
----
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
@@ -292,9 +267,110 @@ Type: nav_msgs/msg/Odometry
 Publisher count: 1
 Subscription count: 5
 --- /odom sample ---
-(no message)
+header:
+  stamp:
+    sec: 303
+    nanosec: 893000000
+  frame_id: odom
+child_frame_id: base_link
+pose:
+  pose:
+    position:
+      x: 7.140376649536144
+      y: -1.5685401972189263
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: -0.9772717267923748
+      w: 0.21199049981602902
+  covariance:
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.01
+twist:
+  twist:
+    linear:
+      x: -1.1078604573041422e-07
+      y: 0.0
+      z: 0.0
+    angular:
+      x: 0.0
+      y: 0.0
+      z: 3.1362554321306605e-05
+  covariance:
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.001
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.01
+---
 
-=== 20:41:26 ===
+=== 21:05:40 ===
 --- ros2 node list ---
 WARNING: Be aware that there are nodes in the graph that share an exact name, which can have unintended side effects.
 /avoidance_layer_AI
@@ -414,74 +490,8 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-(no message)
---- /actions info ---
-Type: std_msgs/msg/String
-Publisher count: 4
-Subscription count: 4
---- /actions sample ---
-data: 2:NONE
+data: 0.16914327442646027:23.061607644417478:0.16914327442646027:4.390938758850098:-1
 ---
---- /cmd_vel info ---
-Type: geometry_msgs/msg/Twist
-Publisher count: 2
-Subscription count: 2
---- /cmd_vel sample ---
-(no message)
---- /odom info ---
-Type: nav_msgs/msg/Odometry
-Publisher count: 1
-Subscription count: 5
---- /odom sample ---
-(no message)
-
-=== 20:41:52 ===
---- /destinations info ---
-Type: std_msgs/msg/String
-Publisher count: 2
-Subscription count: 4
---- /destinations sample ---
-data: Nicol:Canal
----
---- /lidar_data info ---
-Type: std_msgs/msg/String
-Publisher count: 1
-Subscription count: 5
---- /lidar_data sample ---
-(no message)
---- /actions info ---
-Type: std_msgs/msg/String
-Publisher count: 4
-Subscription count: 4
---- /actions sample ---
-data: 2:NONE
----
---- /cmd_vel info ---
-Type: geometry_msgs/msg/Twist
-Publisher count: 2
-Subscription count: 2
---- /cmd_vel sample ---
-(no message)
---- /odom info ---
-Type: nav_msgs/msg/Odometry
-Publisher count: 1
-Subscription count: 5
---- /odom sample ---
-(no message)
-
-=== 20:42:16 ===
---- /destinations info ---
-Type: std_msgs/msg/String
-Publisher count: 1
-Subscription count: 4
---- /destinations sample ---
-(no message)
---- /lidar_data info ---
-Type: std_msgs/msg/String
-Publisher count: 1
-Subscription count: 5
---- /lidar_data sample ---
-(no message)
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
@@ -502,15 +512,14 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:42:40 ===
+=== 21:06:05 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
-Publisher count: 1
+Publisher count: 2
 Subscription count: 4
 --- /destinations sample ---
 data: Nicol:Canal
 ---
-(no message)
 --- /lidar_data info ---
 Type: std_msgs/msg/String
 Publisher count: 1
@@ -529,7 +538,15 @@ Type: geometry_msgs/msg/Twist
 Publisher count: 2
 Subscription count: 2
 --- /cmd_vel sample ---
-(no message)
+linear:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+---
 --- /odom info ---
 Type: nav_msgs/msg/Odometry
 Publisher count: 1
@@ -537,27 +554,28 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:43:04 ===
+=== 21:06:27 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 4
 --- /destinations sample ---
-(no message)
+data: Nicol:Canal
+---
 --- /lidar_data info ---
 Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-(no message)
+data: 0.16926729679107666:22.560225762283352:0.16926729679107666:4.455138683319092:-1
+---
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
-Subscription count: 3
+Subscription count: 4
 --- /actions sample ---
 data: 2:NONE
 ---
-(no message)
 --- /cmd_vel info ---
 Type: geometry_msgs/msg/Twist
 Publisher count: 2
@@ -571,21 +589,21 @@ Subscription count: 5
 --- /odom sample ---
 header:
   stamp:
-    sec: 401
-    nanosec: 381000000
+    sec: 353
+    nanosec: 506000000
   frame_id: odom
 child_frame_id: base_link
 pose:
   pose:
     position:
-      x: 3.4767482513409402
-      y: -2.342692957428338
+      x: 7.140378498184384
+      y: -1.568539358443211
       z: 0.0
     orientation:
       x: 0.0
       y: 0.0
-      z: -0.9995801317238414
-      w: 0.028975166314413537
+      z: -0.977126713536809
+      w: 0.21265790766570306
   covariance:
   - 0.001
   - 0.0
@@ -626,13 +644,13 @@ pose:
 twist:
   twist:
     linear:
-      x: -2.0390624597641906e-08
+      x: 6.872227358987235e-08
       y: 0.0
       z: 0.0
     angular:
       x: 0.0
       y: 0.0
-      z: -2.0320165213581292e-06
+      z: 4.0835546668944654e-05
   covariance:
   - 0.001
   - 0.0
@@ -672,7 +690,42 @@ twist:
   - 0.01
 ---
 
-=== 20:43:28 ===
+=== 21:06:50 ===
+--- /destinations info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 4
+--- /destinations sample ---
+data: Nicol:Canal
+---
+(no message)
+--- /lidar_data info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 5
+--- /lidar_data sample ---
+(no message)
+--- /actions info ---
+Type: std_msgs/msg/String
+Publisher count: 4
+Subscription count: 4
+--- /actions sample ---
+data: 1:NONE
+---
+--- /cmd_vel info ---
+Type: geometry_msgs/msg/Twist
+Publisher count: 2
+Subscription count: 2
+--- /cmd_vel sample ---
+(no message)
+--- /odom info ---
+Type: nav_msgs/msg/Odometry
+Publisher count: 1
+Subscription count: 5
+--- /odom sample ---
+(no message)
+
+=== 21:07:14 ===
 --- /destinations info ---
 Type: std_msgs/msg/String
 Publisher count: 1
@@ -684,8 +737,51 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 5
 --- /lidar_data sample ---
-data: 0.7412465214729309:-0.00195893375239109:0.789040207862854:1.6700527667999268:-1
+(no message)
+--- /actions info ---
+Type: std_msgs/msg/String
+Publisher count: 4
+Subscription count: 3
+--- /actions sample ---
+data: 2:NONE
 ---
+--- /cmd_vel info ---
+Type: geometry_msgs/msg/Twist
+Publisher count: 2
+Subscription count: 2
+--- /cmd_vel sample ---
+linear:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+---
+(no message)
+--- /odom info ---
+Type: nav_msgs/msg/Odometry
+Publisher count: 1
+Subscription count: 5
+--- /odom sample ---
+(no message)
+
+=== 21:07:37 ===
+--- /destinations info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 4
+--- /destinations sample ---
+(no message)
+--- /lidar_data info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 5
+--- /lidar_data sample ---
+data: 0.16907113790512085:22.560225762283352:0.16907113790512085:4.586422920227051:-1
+---
+(no message)
 --- /actions info ---
 Type: std_msgs/msg/String
 Publisher count: 4
@@ -705,7 +801,7 @@ Subscription count: 5
 --- /odom sample ---
 (no message)
 
-=== 20:43:52 ===
+=== 21:08:01 ===
 --- ros2 node list ---
 WARNING: Be aware that there are nodes in the graph that share an exact name, which can have unintended side effects.
 /avoidance_layer_AI
@@ -818,3 +914,16 @@ Type: std_msgs/msg/String
 Publisher count: 1
 Subscription count: 4
 --- /destinations sample ---
+(no message)
+--- /lidar_data info ---
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 5
+--- /lidar_data sample ---
+data: 0.16898846626281738:22.560225762283352:0.16898846626281738:4.63585901260376:-1
+---
+--- /actions info ---
+Type: std_msgs/msg/String
+Publisher count: 4
+Subscription count: 3
+--- /actions sample ---
