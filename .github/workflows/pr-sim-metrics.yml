@@ -4,30 +4,35 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
+    branches-ignore:
+      - main
+    paths-ignore:
+      - 'mail-delivery-robot/tools/logs/**'
 
 jobs:
   run-sim-and-comment:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: true
 
       - name: Restore persisted simulation runs
         id: runs_cache_restore
         uses: actions/cache/restore@v5
         with:
           path: mail-delivery-robot/tools/logs/runs
-          key: sim-runs-${{ github.event.pull_request.number || github.ref_name }}-${{ github.run_id }}
+          key: sim-runs-pr-${{ github.event.pull_request.number || github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            sim-runs-${{ github.event.pull_request.number || github.ref_name }}-
+            sim-runs-pr-${{ github.event.pull_request.number || github.ref_name }}-
 
       - name: Prepare logs directory
-        run: |
-          mkdir -p mail-delivery-robot/tools/logs/runs
+        run: mkdir -p mail-delivery-robot/tools/logs/runs
 
       - name: Build Docker image
         run: docker build -t carleton-mail-robot-ci:latest .
@@ -47,7 +52,6 @@ jobs:
         run: |
           latest="$(ls -1t mail-delivery-robot/tools/logs/runs/run_*.txt | head -n1 || true)"
           if [ -z "${latest}" ]; then
-            echo "No run files found."
             exit 1
           fi
           echo "path=${latest}" >> "$GITHUB_OUTPUT"
@@ -63,6 +67,19 @@ jobs:
         with:
           name: simulation-runs-history
           path: mail-delivery-robot/tools/logs/runs
+
+      - name: Commit and push simulation runs
+        if: always() && github.event_name == 'push'
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add mail-delivery-robot/tools/logs/runs
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Add simulation run logs for ${GITHUB_REF_NAME}"
+          git pull --rebase
+          git push
 
       - name: Set up Python
         uses: actions/setup-python@v6
