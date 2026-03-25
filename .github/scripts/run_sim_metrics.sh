@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RUN_TIMEOUT_SECONDS="${RUN_TIMEOUT_SECONDS:-240}"
-STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-15}"
+STARTUP_DELAY_SECONDS="${STARTUP_DELAY_SECONDS:-25}"
 USE_AI_LIDAR="${USE_AI_LIDAR:-true}"
 USE_AI_NAVIGATION="${USE_AI_NAVIGATION:-true}"
 USE_AI_BEACON="${USE_AI_BEACON:-true}"
@@ -128,8 +128,8 @@ ros2 launch irobot_create_gazebo_bringup create3_gazebo.launch.py \
   world_path:="${WORLD_PATCHED}" \
   use_gazebo_gui:=false \
   use_rviz:=false \
-  spawn_dock:=false \
-  spawn_beacons:=false >/tmp/gazebo.log 2>&1 &
+  spawn_dock:=true \
+  spawn_beacons:=true >/tmp/gazebo.log 2>&1 &
 
 sleep "${STARTUP_DELAY_SECONDS}"
 
@@ -193,7 +193,7 @@ timeout "${RUN_TIMEOUT_SECONDS}" \
   use_ai_lidar:="${USE_AI_LIDAR}" \
   use_ai_navigation:="${USE_AI_NAVIGATION}" \
   use_ai_beacon:="${USE_AI_BEACON}" \
-  use_fake_beacons:="true" \
+  use_fake_beacons:="false" \
   use_ai_avoidance:="${USE_AI_AVOIDANCE}" \
   use_ai_travel_layer:="${USE_AI_TRAVEL_LAYER}" \
   2>&1 | tee /tmp/robot.log
