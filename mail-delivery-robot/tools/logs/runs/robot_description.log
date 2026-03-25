@@ -1,38 +1,38 @@
-[INFO] [launch]: All log files can be found below /root/.ros/log/2026-03-24-21-02-51-697951-10e077f68ee5-609
+[INFO] [launch]: All log files can be found below /root/.ros/log/2026-03-24-21-20-29-075658-137adb853946-607
 [INFO] [launch]: Default logging verbosity is set to INFO
-[INFO] [joint_state_publisher-1]: process started with pid [612]
-[INFO] [robot_state_publisher-2]: process started with pid [614]
-[robot_state_publisher-2] [WARN] [1774400572.103190443] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
-[robot_state_publisher-2] [INFO] [1774400572.103568412] [robot_state_publisher]: got segment base_link
-[robot_state_publisher-2] [INFO] [1774400572.103651157] [robot_state_publisher]: got segment bump_front_center
-[robot_state_publisher-2] [INFO] [1774400572.103661954] [robot_state_publisher]: got segment bump_front_left
-[robot_state_publisher-2] [INFO] [1774400572.103670757] [robot_state_publisher]: got segment bump_front_right
-[robot_state_publisher-2] [INFO] [1774400572.103678649] [robot_state_publisher]: got segment bump_left
-[robot_state_publisher-2] [INFO] [1774400572.103686180] [robot_state_publisher]: got segment bump_right
-[robot_state_publisher-2] [INFO] [1774400572.103693771] [robot_state_publisher]: got segment bumper
-[robot_state_publisher-2] [INFO] [1774400572.103701223] [robot_state_publisher]: got segment button_1
-[robot_state_publisher-2] [INFO] [1774400572.103709295] [robot_state_publisher]: got segment button_2
-[robot_state_publisher-2] [INFO] [1774400572.103717047] [robot_state_publisher]: got segment button_power
-[robot_state_publisher-2] [INFO] [1774400572.103725389] [robot_state_publisher]: got segment camera_link
-[robot_state_publisher-2] [INFO] [1774400572.103733451] [robot_state_publisher]: got segment camera_link_optical
-[robot_state_publisher-2] [INFO] [1774400572.103741533] [robot_state_publisher]: got segment cliff_front_left
-[robot_state_publisher-2] [INFO] [1774400572.103749836] [robot_state_publisher]: got segment cliff_front_right
-[robot_state_publisher-2] [INFO] [1774400572.103758299] [robot_state_publisher]: got segment cliff_side_left
-[robot_state_publisher-2] [INFO] [1774400572.103766010] [robot_state_publisher]: got segment cliff_side_right
-[robot_state_publisher-2] [INFO] [1774400572.103773512] [robot_state_publisher]: got segment front_caster_link
-[robot_state_publisher-2] [INFO] [1774400572.103780803] [robot_state_publisher]: got segment imu_link
-[robot_state_publisher-2] [INFO] [1774400572.103788214] [robot_state_publisher]: got segment ir_intensity_front_center_left
-[robot_state_publisher-2] [INFO] [1774400572.103796256] [robot_state_publisher]: got segment ir_intensity_front_center_right
-[robot_state_publisher-2] [INFO] [1774400572.103804058] [robot_state_publisher]: got segment ir_intensity_front_left
-[robot_state_publisher-2] [INFO] [1774400572.103811779] [robot_state_publisher]: got segment ir_intensity_front_right
-[robot_state_publisher-2] [INFO] [1774400572.103819892] [robot_state_publisher]: got segment ir_intensity_left
-[robot_state_publisher-2] [INFO] [1774400572.103827824] [robot_state_publisher]: got segment ir_intensity_right
-[robot_state_publisher-2] [INFO] [1774400572.103835766] [robot_state_publisher]: got segment ir_intensity_side_left
-[robot_state_publisher-2] [INFO] [1774400572.103844228] [robot_state_publisher]: got segment ir_omni
-[robot_state_publisher-2] [INFO] [1774400572.103852621] [robot_state_publisher]: got segment left_wheel
-[robot_state_publisher-2] [INFO] [1774400572.103860673] [robot_state_publisher]: got segment lidar_frame
-[robot_state_publisher-2] [INFO] [1774400572.103868845] [robot_state_publisher]: got segment mouse
-[robot_state_publisher-2] [INFO] [1774400572.103877228] [robot_state_publisher]: got segment right_wheel
-[robot_state_publisher-2] [INFO] [1774400572.103885661] [robot_state_publisher]: got segment wheel_drop_left
-[robot_state_publisher-2] [INFO] [1774400572.103893913] [robot_state_publisher]: got segment wheel_drop_right
-[joint_state_publisher-1] [INFO] [1774400572.362325163] [joint_state_publisher]: Waiting for robot_description to be published on the robot_description topic...
+[INFO] [joint_state_publisher-1]: process started with pid [610]
+[INFO] [robot_state_publisher-2]: process started with pid [612]
+[robot_state_publisher-2] [WARN] [1774401629.487480737] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1774401629.487849134] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-2] [INFO] [1774401629.487949321] [robot_state_publisher]: got segment bump_front_center
+[robot_state_publisher-2] [INFO] [1774401629.487961804] [robot_state_publisher]: got segment bump_front_left
+[robot_state_publisher-2] [INFO] [1774401629.487971002] [robot_state_publisher]: got segment bump_front_right
+[robot_state_publisher-2] [INFO] [1774401629.487979688] [robot_state_publisher]: got segment bump_left
+[robot_state_publisher-2] [INFO] [1774401629.487987613] [robot_state_publisher]: got segment bump_right
+[robot_state_publisher-2] [INFO] [1774401629.487995558] [robot_state_publisher]: got segment bumper
+[robot_state_publisher-2] [INFO] [1774401629.488003552] [robot_state_publisher]: got segment button_1
+[robot_state_publisher-2] [INFO] [1774401629.488011267] [robot_state_publisher]: got segment button_2
+[robot_state_publisher-2] [INFO] [1774401629.488018891] [robot_state_publisher]: got segment button_power
+[robot_state_publisher-2] [INFO] [1774401629.488026726] [robot_state_publisher]: got segment camera_link
+[robot_state_publisher-2] [INFO] [1774401629.488034781] [robot_state_publisher]: got segment camera_link_optical
+[robot_state_publisher-2] [INFO] [1774401629.488043196] [robot_state_publisher]: got segment cliff_front_left
+[robot_state_publisher-2] [INFO] [1774401629.488051271] [robot_state_publisher]: got segment cliff_front_right
+[robot_state_publisher-2] [INFO] [1774401629.488059847] [robot_state_publisher]: got segment cliff_side_left
+[robot_state_publisher-2] [INFO] [1774401629.488068233] [robot_state_publisher]: got segment cliff_side_right
+[robot_state_publisher-2] [INFO] [1774401629.488076418] [robot_state_publisher]: got segment front_caster_link
+[robot_state_publisher-2] [INFO] [1774401629.488085034] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-2] [INFO] [1774401629.488093310] [robot_state_publisher]: got segment ir_intensity_front_center_left
+[robot_state_publisher-2] [INFO] [1774401629.488102197] [robot_state_publisher]: got segment ir_intensity_front_center_right
+[robot_state_publisher-2] [INFO] [1774401629.488110732] [robot_state_publisher]: got segment ir_intensity_front_left
+[robot_state_publisher-2] [INFO] [1774401629.488119349] [robot_state_publisher]: got segment ir_intensity_front_right
+[robot_state_publisher-2] [INFO] [1774401629.488128075] [robot_state_publisher]: got segment ir_intensity_left
+[robot_state_publisher-2] [INFO] [1774401629.488136761] [robot_state_publisher]: got segment ir_intensity_right
+[robot_state_publisher-2] [INFO] [1774401629.488167538] [robot_state_publisher]: got segment ir_intensity_side_left
+[robot_state_publisher-2] [INFO] [1774401629.488176335] [robot_state_publisher]: got segment ir_omni
+[robot_state_publisher-2] [INFO] [1774401629.488184670] [robot_state_publisher]: got segment left_wheel
+[robot_state_publisher-2] [INFO] [1774401629.488193347] [robot_state_publisher]: got segment lidar_frame
+[robot_state_publisher-2] [INFO] [1774401629.488202113] [robot_state_publisher]: got segment mouse
+[robot_state_publisher-2] [INFO] [1774401629.488210949] [robot_state_publisher]: got segment right_wheel
+[robot_state_publisher-2] [INFO] [1774401629.488220117] [robot_state_publisher]: got segment wheel_drop_left
+[robot_state_publisher-2] [INFO] [1774401629.488228512] [robot_state_publisher]: got segment wheel_drop_right
+[joint_state_publisher-1] [INFO] [1774401629.763347949] [joint_state_publisher]: Waiting for robot_description to be published on the robot_description topic...
