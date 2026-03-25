@@ -57,6 +57,8 @@ class TravelLayerAI(Node):
 
         self.action_publisher = self.create_publisher(String, 'actions', 10)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         self.go_msg = String()
         self.go_msg.data = '3:GO'
         self.no_msg = String()

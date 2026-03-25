@@ -30,6 +30,8 @@ class LidarSensor(Node):
         self.publisher_ = self.create_publisher(String, 'lidar_data', 10)
         self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         # Subscriber
         self.create_subscription(
             LaserScan,

@@ -56,6 +56,8 @@ class DockingLayerAI(Node):
         # Publisher
         self.action_publisher = self.create_publisher(String, 'actions', 10)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         # Action messages
         self.no_msg = String()
         self.no_msg.data = '1:NONE'

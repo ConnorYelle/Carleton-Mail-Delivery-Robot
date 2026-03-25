@@ -25,6 +25,8 @@ def build_nav_graph(node):
         """
         node.get_logger().info(f"Prompt to LLM: {prompt}")
 
+        node.audio_publisher.publish("Thinking")
+
         response = ollama.generate(
             model='qwen2:0.5b',
             prompt=prompt

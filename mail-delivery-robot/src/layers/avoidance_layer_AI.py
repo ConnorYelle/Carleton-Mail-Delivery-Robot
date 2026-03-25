@@ -36,6 +36,8 @@ class AvoidanceLayerAI(Node):
         # Publisher
         self.action_publisher = self.create_publisher(String, 'actions', 10)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         # Predefined action messages
         self.wait_msg = String()
         self.wait_msg.data = '0:WAIT'

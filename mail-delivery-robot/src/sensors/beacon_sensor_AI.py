@@ -42,6 +42,8 @@ class BeaconSensor(Node):
         # Publisher
         self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         # Scanner
         self.scanner = Scanner().withDelegate(ScanDelegate())
 

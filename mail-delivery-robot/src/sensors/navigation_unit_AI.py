@@ -37,6 +37,8 @@ class NavigationUnit_AI(Node):
         self.navigation_publisher = self.create_publisher(String, 'navigation', 10)
         self.navigation_timer = self.create_timer(1, self.update_navigation)
 
+        self.audio_publisher = self.create_publisher(String, 'llm_audio_event', 10)
+
         self.beacon_connections = loadConnections()
         self.map = Map()
 
@@ -128,8 +130,10 @@ class NavigationUnit_AI(Node):
                 self.get_logger().info(f"AI Decision: {ai_decision}")
 
                 if ai_decision in ['NAV_LEFT', 'NAV_RIGHT', 'NAV_PASS', 'NAV_U-TURN', 'NAV_DOCK']:
+                    self.audio_publisher.publish("Response")
                     self.direction = ai_decision
                 else:
+                    self.audio_publisher.publish("Failure")
                     self.get_logger().info("FALLBACK: Ollama returned invalid direction, using map-based navigation.")
 
             except Exception as e:
