@@ -224,35 +224,52 @@ class AIFallbackMetric(Metric):
 class RosoutLLMResponseTimeMetric(Metric):
     topic_name = "/rosout"
     topic_type = Log
-    listen_qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=200)
+    listen_qos = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=200
+    )
 
     def __init__(self):
-        self.samples = []
         self.samples_by_node = {}
-        self.latency_pattern = re.compile(r"latency=([\d.]+)s")
+        self.latency_pattern = re.compile(
+            r"(?P<context>\w+): latency=(?P<latency>[\d.]+)s"
+        )
 
     def update(self, msg: Log):
-        match = self.latency_pattern.search(msg.msg)
+        text = msg.msg or ""
+        match = self.latency_pattern.search(text)
         if not match:
             return
+
         try:
-            latency = float(match.group(1))
+            latency = float(match.group("latency"))
         except (TypeError, ValueError):
             return
 
         node_name = (msg.name or "ai_node").strip()
-        self.samples.append(latency)
+
         if node_name not in self.samples_by_node:
             self.samples_by_node[node_name] = []
+
         self.samples_by_node[node_name].append(latency)
 
     def serialize(self):
         payload = {}
+
         for node_name, samples in self.samples_by_node.items():
-            key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(node_name)).strip("_").lower() or "ai_node"
-            payload[f"{key_prefix}_llm_response_avg_s"] = round(mean(samples), 3)
-            payload[f"{key_prefix}_llm_response_max_s"] = round(max(samples), 3)
-            payload[f"{key_prefix}_llm_response_count"] = len(samples)
+            key_prefix = re.sub(r"_AI.*$", "", node_name).lower()
+
+            if not samples:
+                continue
+
+            if len(samples) == 1:
+                payload[f"{key_prefix}_llm_latency_s"] = round(samples[0], 3)
+            else:
+                payload[f"{key_prefix}_llm_avg_s"] = round(mean(samples), 3)
+                payload[f"{key_prefix}_llm_max_s"] = round(max(samples), 3)
+                payload[f"{key_prefix}_llm_count"] = len(samples)
+
         return payload
 
 def make_llm_response_time_metric(ai_node: Any) -> Metric:
