@@ -26,6 +26,21 @@ For a detailed document which describes the design and implementation of the pro
 
 ## Setting up and Running the Project
 
+Before each of these commands it is necessary to source and colcon build
+- colcon build --symlink-install
+- source /opt/ros/humble/setup.bash
+- source ~/testing_ws/install/setup.bash
+
+Command to run ai launch:
+- ros2 launch mail-delivery-robot robot.launch.py reset:=true use_ai_layers:=true
+- use_ai_layers can be substituted for use_ai_navigation, lidar, avoidance, etc..
+
+Command to publish destination:
+- ros2 topic pub --once /destinations std_msgs/msg/String "{data: 'Nicol:Canal'}"     --qos-reliability reliable --qos-durability transient_local
+
+Command to run Gazebo:
+- ./runGazebo.sh 
+
 
 Please see appendices B and C of the [Final Report](https://github.com/UMNIYAH/Mail-Delivery-Robot/blob/main/documents/SYSC%204907%20Project%20Proposal%20Mail%20Delivery%20Robot.pdf) for instructions on how to set up and run the project.
 
