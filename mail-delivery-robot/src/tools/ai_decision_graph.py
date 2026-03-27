@@ -26,7 +26,7 @@ def build_nav_graph(node):
         node.get_logger().info(f"Prompt to LLM: {prompt}")
 
         response = ollama.generate(
-            model='qwen2:0.5b',
+            model='gemma3:1b',
             prompt=prompt
         )
 

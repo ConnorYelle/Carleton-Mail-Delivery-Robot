@@ -56,7 +56,7 @@ class LidarSensor(Node):
         self.is_querying = False
 
         # Fallback logging
-        self.fallback_log_path = "/home/hari-admin/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
+        self.fallback_log_path = "/home/capstone-guest/testing_ws/Carleton-Mail-Delivery-Robot/mail-delivery-robot/src/tools/logs/ai_fallback_log.txt"
         os.makedirs(os.path.dirname(self.fallback_log_path), exist_ok=True)
 
         self.get_logger().info("LidarSensor AI node started")
@@ -155,7 +155,7 @@ class LidarSensor(Node):
         try:
             self.get_logger().info("Starting Ollama API call...")
             result_holder["response"] = ollama.chat(
-                model='qwen2:0.5b',
+                model='gemma3:1b',
                 messages=[{'role': 'user', 'content': prompt}],
                 format='json',
             )

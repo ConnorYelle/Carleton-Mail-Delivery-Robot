@@ -160,7 +160,7 @@ BACK, LEFT, RIGHT, or GO
 """
 
             response = ollama.chat(
-                model='qwen2:0.5b',
+                model='gemma3:1b',
                 messages=[
                     {
                         "role": "system",

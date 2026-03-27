@@ -41,7 +41,6 @@ echo "===== Launching Create3 Gazebo Simulation ====="
 
 ros2 launch irobot_create_gazebo_bringup create3_gazebo.launch.py \
   world_path:=$HOME/.gazebo/worlds/demo_video.world \
-  spawn_beacons:=true \
   x:=5.586507 \
   y:=-3.07 \
   z:=0.00

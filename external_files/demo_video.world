@@ -1588,7 +1588,7 @@
         <frame_id>wheel_drop_right</frame_id>
       </plugin>
       <plugin name='gazebo_ros2_control' filename='libgazebo_ros2_control.so'>
-        <parameters>/home/hari-admin/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml</parameters>
+        <parameters>/home/capstone-guest/testing_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml</parameters>
         <ros>
           <remapping>~/odom:=odom</remapping>
           <remapping>/tf:=tf</remapping>

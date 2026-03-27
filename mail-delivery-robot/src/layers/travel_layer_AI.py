@@ -128,7 +128,7 @@ class TravelLayerAI(Node):
                 else "Lidar data unavailable."
             )
 
-            response = ollama.chat(model='qwen2:0.5b', messages=[
+            response = ollama.chat(model='gemma3:1b', messages=[
                 {
                     "role": "system",
                     "content": (
