@@ -53,7 +53,7 @@ class BeaconSensor(Node):
 
         # Optional simulated data input
         self.rf_beacon_sub = self.create_subscription(
-            String, 'rf_scan', self.rf_beacon_callback, 10
+            String, 'rf_signal', self.rf_beacon_callback, 10
         )
 
         self.scan_counter = 0
@@ -119,10 +119,11 @@ class BeaconSensor(Node):
             parts = msg.data.split(";")
             if len(parts) < 2:
                 return
-            
+                
             beacon_part = parts[0].strip()
             signal_part = parts[1].strip()
             
+            self.get_logger().info(f"Parsed beacon_part: {beacon_part}, signal_part: {signal_part}")
             # Extract beacon ID
             if not beacon_part.startswith("Beacon="):
                 return
@@ -141,6 +142,7 @@ class BeaconSensor(Node):
             self.scan[beacon_name] = []
         self.scan[beacon_name].append(beacon_rssi)
         self.scan_counter += 1
+        self.get_logger().info(f'Scan counter: {self.scan_counter}, received beacon: {beacon_name} with RSSI: {beacon_rssi}')
         if self.scan_counter >= self.config["BEACON_SCAN_COUNT"]:
             self._finalize_scan()
 
@@ -155,8 +157,6 @@ class BeaconSensor(Node):
         except Exception as e:
             self.get_logger().error(f"Bluetooth scan failed: {e}")
             return
-
-        self.scan_counter += 1
 
         # Check if any device matches a known beacon
         for dev in devices:

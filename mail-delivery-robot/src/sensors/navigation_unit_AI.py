@@ -83,12 +83,15 @@ class NavigationUnit_AI(Node):
         # No trip was defined
         # self.get_logger().info(f"Beacon Data Received: {data.data}")
         # self.get_logger().info(f"Current Destination: {self.current_destination}, Previous Beacon: {self.prev_beacon}")
-        if self.current_destination is None or self.prev_beacon is None:
+        self.get_logger().info(f"Received beacon data: {data.data}")
+        self.get_logger().info(f"Current Destination: {self.current_destination}, Previous Beacon: {self.prev_beacon}")
+        if self.current_destination is None:
             return
 
         beacon_orientation = "0"
 
         self.current_beacon = data.data.split(',')[0]
+        self.get_logger().info(f"Current Beacon from data: {self.current_beacon}")
 
         if self.current_beacon == self.prev_beacon:
             if self.direction is None:
