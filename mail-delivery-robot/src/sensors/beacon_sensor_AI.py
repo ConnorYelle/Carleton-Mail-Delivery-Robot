@@ -36,8 +36,8 @@ class BeaconSensor(Node):
 
         # Load the global config.
         self.config = loadConfig()
-        self.declare_parameter("use_fake_beacon_data", True)
-        self.use_fake_beacon_data = bool(self.get_parameter("use_fake_beacon_data").value)
+        self.declare_parameter("use_rf_beacon_data", True)
+        self.use_rf_beacon_data = bool(self.get_parameter("use_rf_beacon_data").value)
 
         # Publisher
         self.publisher_ = self.create_publisher(String, 'beacon_data', 10)
@@ -52,8 +52,8 @@ class BeaconSensor(Node):
         )
 
         # Optional simulated data input
-        self.fake_beacon_sub = self.create_subscription(
-            String, 'fake_beacon_data', self.fake_beacon_callback, 10
+        self.rf_beacon_sub = self.create_subscription(
+            String, 'rf_scan', self.rf_beacon_callback, 10
         )
 
         self.scan_counter = 0
@@ -61,7 +61,7 @@ class BeaconSensor(Node):
 
         self.get_logger().info("BeaconSensor node started.")
         self.get_logger().info(f"BEACON_SCAN_COUNT = {self.config['BEACON_SCAN_COUNT']}")
-        self.get_logger().info(f"use_fake_beacon_data = {self.use_fake_beacon_data}")
+        self.get_logger().info(f"use_rf_beacon_data = {self.use_rf_beacon_data}")
         self.llm_response_latencies = []
 
     def initBeacons(self):
@@ -110,17 +110,33 @@ class BeaconSensor(Node):
         self.scan = dict()
         self.scan_counter = 0
 
-    def fake_beacon_callback(self, msg: String):
-        if not self.use_fake_beacon_data:
+    def rf_beacon_callback(self, msg: String):
+        if not self.use_rf_beacon_data:
             return
-        parts = msg.data.split(",")
-        if len(parts) < 2:
-            return
-        beacon_name = parts[0].strip()
+        
+        # Parse format: Beacon=<id>;SignalStrength=<value>
         try:
-            beacon_rssi = abs(int(float(parts[1].strip())))
-        except Exception:
+            parts = msg.data.split(";")
+            if len(parts) < 2:
+                return
+            
+            beacon_part = parts[0].strip()
+            signal_part = parts[1].strip()
+            
+            # Extract beacon ID
+            if not beacon_part.startswith("Beacon="):
+                return
+            beacon_name = beacon_part.split("=", 1)[1].strip()
+            
+            # Extract signal strength (convert to absolute value)
+            if not signal_part.startswith("SignalStrength="):
+                return
+            signal_strength = float(signal_part.split("=", 1)[1].strip())
+            beacon_rssi = abs(int(signal_strength))
+        except Exception as e:
+            self.get_logger().debug(f"Failed to parse beacon data: {msg.data}, error: {e}")
             return
+        
         if beacon_name not in self.scan:
             self.scan[beacon_name] = []
         self.scan[beacon_name].append(beacon_rssi)
@@ -131,7 +147,7 @@ class BeaconSensor(Node):
     def checkForBeacons(self):
         self.get_logger().info(f"Scan count: {self.scan_counter} / {self.config['BEACON_SCAN_COUNT']}")
 
-        if self.use_fake_beacon_data:
+        if not self.use_rf_beacon_data:
             return
 
         try:
@@ -177,6 +193,9 @@ class BeaconSensor(Node):
     def pick_beacon_ai(self):
         self.get_logger().info(">>> pick_beacon_ai CALLED <<<")
         start = time.perf_counter()
+
+        self.get_logger().info(f"Preparing prompt for AI with scan data: {self.scan}")
+
         prompt = "Choose the best (strongest) beacon based on RSSI.\n" \
         "Lower RSSI values indicate stronger signals.\n" \
         "Beacon data:\n"
@@ -187,6 +206,7 @@ class BeaconSensor(Node):
         prompt += """Return only a JSON object with the following structure: {"best_beacon": "BEACON_NAME"}"""
 
         result = {}
+        self.get_logger().info(f"Sending prompt to Ollama:\n{prompt}")
         thread = threading.Thread(target=self._run_ollama, args=(prompt, result), daemon=True)
 
         thread.start()
@@ -209,7 +229,19 @@ class BeaconSensor(Node):
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai")
             content = json.loads(result["response"]["message"]["content"])
-            return content.get("best_beacon", None)
+            self.get_logger().info(f"Ollama response content: {content}")
+            
+            beacon_value = content.get("best_beacon", None)
+            
+            # Ensure we return a string, not a dict
+            if isinstance(beacon_value, dict):
+                beacon_value = beacon_value.get("name", None)
+            
+            if isinstance(beacon_value, str) and beacon_value:
+                return beacon_value.strip()
+            else:
+                self.get_logger().warning(f"Invalid beacon value from AI: {beacon_value}")
+                return None
         except Exception as e:
             elapsed = time.perf_counter() - start
             self.record_llm_latency(elapsed, context="pick_beacon_ai_parse_error")
