@@ -39,12 +39,22 @@ class Map:
         @param source: the source of the trip.
         @param destination: the destination of the trip.
         '''
+        return self.routing_map[source][destination]
+    
+    def getDirectionAI(self, source, destination):
+        '''
+        General method to return the value from a given key in a key-value pair.
+
+        @param source: the source of the trip.
+        @param destination: the destination of the trip.
+        '''
         mac_address = source[:-1]
         source_name = beacon_ids.get(mac_address, None)
         check_id = source_name + source[-1]
         if source_name is None or check_id not in self.routing_map:
             return 'GO'
         return self.routing_map[source_name + source[-1]][destination]
+
 
     def exists(self, location):
         '''

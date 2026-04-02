@@ -24,7 +24,7 @@ class NavigationUnit_AI(Node):
         The constructor for the node.
         Defines the necessary publishers and subscribers.
         '''
-        super().__init__('navigation_unit')
+        super().__init__('navigation_unit_AI')
 
         dest_qos = rclpy.qos.QoSProfile(
             depth=1,
@@ -96,7 +96,7 @@ class NavigationUnit_AI(Node):
         if self.current_beacon == self.prev_beacon:
             if self.direction is None:
                 beacon_orientation = self._fallback_orientation(self.current_beacon)
-                self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
+                self.direction = self.map.getDirectionAI(self.current_beacon + beacon_orientation, self.current_destination)
                 self.get_logger().info(
                     f"Initial direction from {self.current_beacon}: {self.direction} (orientation {beacon_orientation})"
                 )
@@ -109,7 +109,7 @@ class NavigationUnit_AI(Node):
                 # Finds a valid orientation for the robot.
                 beacon_orientation = self._fallback_orientation(self.current_beacon)
             self.get_logger().info(f"Current Beacon: {self.current_beacon}, Prev Beacon: {self.prev_beacon}, Destination: {self.current_destination}, Beacon Orientation: {beacon_orientation}")
-            self.direction = self.map.getDirection(self.current_beacon + beacon_orientation, self.current_destination)
+            self.direction = self.map.getDirectionAI(self.current_beacon + beacon_orientation, self.current_destination)
             self.get_logger().info(f"Determined Direction: {self.direction}")
             self.can_send_direction = True
         self.prev_beacon = self.current_beacon
