@@ -148,7 +148,7 @@ class DockingLayerAI(Node):
         try:
             context = self.get_docking_context()
 
-            response = ollama.chat(model='gemma2:2b-instruct-q4_0', messages=[
+            response = ollama.chat(model='qwen2:0.5b', messages=[
                 {
                     "role": "system",
                     "content": (

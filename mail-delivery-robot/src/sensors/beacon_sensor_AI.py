@@ -59,6 +59,8 @@ class BeaconSensor(Node):
         self.scan_counter = 0
         self.scan = dict()
 
+        self.last_ai_query_time = 0.0  # Track last AI query time for throttling
+
         self.get_logger().info("BeaconSensor node started.")
         self.get_logger().info(f"BEACON_SCAN_COUNT = {self.config['BEACON_SCAN_COUNT']}")
         self.get_logger().info(f"use_rf_beacon_data = {self.use_rf_beacon_data}")
@@ -76,7 +78,15 @@ class BeaconSensor(Node):
     def _finalize_scan(self):
         # After enough scans, pick the best beacon
         self.get_logger().info(">>> REACHED AI BLOCK IN checkForBeacons() <<<")
-        best_beacon = self.pick_beacon_ai()
+        
+        import time
+        current_time = time.time()
+        if current_time - self.last_ai_query_time < 10.0:
+            self.get_logger().info("AI query throttled: less than 10 seconds since last query, using traditional method.")
+            best_beacon = ""
+        else:
+            self.last_ai_query_time = current_time
+            best_beacon = self.pick_beacon_ai()
 
         if best_beacon is None or best_beacon not in self.scan:
             self.get_logger().info("AI did not return a valid beacon, falling back to traditional method.")
@@ -232,6 +242,8 @@ class BeaconSensor(Node):
             self.get_logger().info(f"Ollama response content: {content}")
             
             beacon_value = content.get("best_beacon", None)
+            if beacon_value is None:
+                beacon_value = content.get("beacon_name", None)  # Try alternative key for backward compatibility
             
             # Ensure we return a string, not a dict
             if isinstance(beacon_value, dict):

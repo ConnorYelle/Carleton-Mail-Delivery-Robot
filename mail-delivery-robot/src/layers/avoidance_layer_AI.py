@@ -146,18 +146,18 @@ Most open direction: {self.get_most_space(lidarData)}
             """
 
             prompt = f"""
-The robot has collided with an obstacle.
+                The robot has collided with an obstacle.
 
-{lidar_text}
+                {lidar_text}
 
-Rules:
-- Do NOT choose the closest obstacle direction.
-- Prefer the most open direction.
-- If FRONT is most open, choose GO.
+                Rules:
+                - Do NOT choose the closest obstacle direction.
+                - Prefer the most open direction.
+                - If FRONT is most open, choose GO.
 
-Respond with ONLY ONE word:
-BACK, LEFT, RIGHT, or GO
-"""
+                Respond with ONLY ONE word:
+                BACK, LEFT, RIGHT, or GO
+                """
 
             response = ollama.chat(
                 model='gemma3:1b',

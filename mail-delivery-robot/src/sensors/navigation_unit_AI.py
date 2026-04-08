@@ -45,6 +45,7 @@ class NavigationUnit_AI(Node):
         self.prev_beacon = None
         self.direction = None
         self.can_send_direction = False
+        self.last_direction_update_beacon = None  # Track which beacon we last queried for
         self.llm_response_latencies = []
 
         self.left_msg = String()
@@ -93,6 +94,12 @@ class NavigationUnit_AI(Node):
         self.current_beacon = data.data.split(',')[0]
         self.get_logger().info(f"Current Beacon from data: {self.current_beacon}")
 
+        # Only query Ollama when we detect a NEW beacon (robot movement)
+        # not on every beacon_data update to avoid constant direction changes
+        if self.current_beacon == self.last_direction_update_beacon:
+            self.get_logger().info(f"Already computed direction for beacon {self.current_beacon}, skipping LLM query")
+            return
+
         if self.current_beacon == self.prev_beacon:
             if self.direction is None:
                 beacon_orientation = self._fallback_orientation(self.current_beacon)
@@ -101,6 +108,7 @@ class NavigationUnit_AI(Node):
                     f"Initial direction from {self.current_beacon}: {self.direction} (orientation {beacon_orientation})"
                 )
                 self.can_send_direction = True
+                self.last_direction_update_beacon = self.current_beacon
             return
         else:
             beacon_orientation = self.beacon_connections.get(self.current_beacon, {}).get(self.prev_beacon, "-")
@@ -112,6 +120,7 @@ class NavigationUnit_AI(Node):
             self.direction = self.map.getDirectionAI(self.current_beacon + beacon_orientation, self.current_destination)
             self.get_logger().info(f"Determined Direction: {self.direction}")
             self.can_send_direction = True
+            self.last_direction_update_beacon = self.current_beacon
         self.prev_beacon = self.current_beacon
 
     def update_navigation(self):

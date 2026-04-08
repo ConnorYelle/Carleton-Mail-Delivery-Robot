@@ -54,6 +54,14 @@ class Map:
         if source_name is None or check_id not in self.routing_map:
             return 'GO'
         return self.routing_map[source_name + source[-1]][destination]
+    
+    def get_beacon_name(self, mac_address):
+        '''
+        Helper method to get the beacon name from a MAC address.
+
+        @param mac_address: the MAC address of the beacon.
+        '''
+        return beacon_ids.get(mac_address, None)
 
 
     def exists(self, location):

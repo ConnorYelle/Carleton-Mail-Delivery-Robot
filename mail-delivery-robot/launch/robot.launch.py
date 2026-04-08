@@ -19,6 +19,7 @@ def generate_launch_description():
 
     use_ai_sensors = LaunchConfiguration('use_ai_sensors')
     use_ai_layers = LaunchConfiguration('use_ai_layers')
+    use_ai_docking = LaunchConfiguration('use_ai_docking')
 
     nodes = [
         Node(
@@ -158,7 +159,15 @@ def generate_launch_description():
             package='mail-delivery-robot',
             executable='docking_layer',
             name='docking_layer',
-            parameters=sim_time
+            parameters=sim_time,
+            condition=UnlessCondition(use_ai_docking)
+        ),
+        Node(
+            package='mail-delivery-robot',
+            executable='docking_layer_AI',
+            name='docking_layer_AI',
+            parameters=sim_time,
+            condition=IfCondition(use_ai_docking)
         ),
         Node(
             package='mail-delivery-robot',
@@ -184,6 +193,7 @@ def generate_launch_description():
                 'use_ai_travel_layer': use_ai_travel_layer,
                 'use_ai_sensors': use_ai_sensors,
                 'use_ai_layers': use_ai_layers,
+                'use_ai_docking': use_ai_docking,
             }]
         ),
 
@@ -218,6 +228,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_metrics',
             default_value='false'
+        ),
+        DeclareLaunchArgument
+        (
+            'use_ai_docking',
+            default_value='false',
+            description='Enable AI version of docking layer'
         ),
 
         *nodes

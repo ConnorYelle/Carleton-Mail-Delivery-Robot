@@ -3112,66 +3112,12 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='e2_77_fc_f9_04_93'>
-        <pose>0 0 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>0 0 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='e4_87_91_3d_1e_d7'>
-        <pose>3 0 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>3 0 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='ea_2f_93_a6_98_20'>
-        <pose>1 0 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>1 0 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='ee_16_86_9a_c2_a8'>
-        <pose>0 1 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>0 1 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='fb_ef_5c_de_ef_e4'>
-        <pose>3 1 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>3 1 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='fc_e2_2e_62_9b_3d'>
-        <pose>2 0 0.1 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>2 0 0.1 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
+
+
+
+
+
+
       <model name='ground'>
         <pose>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -3291,155 +3237,11 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='ea_2f_93_a6_98_20'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>1 0 0.1 0 -0 0</pose>
-    </model>
-    <model name='ee_16_86_9a_c2_a8'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>0 1 0.1 0 -0 0</pose>
-    </model>
-    <model name='fc_e2_2e_62_9b_3d'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>2 0 0.1 0 -0 0</pose>
-    </model>
-    <model name='fb_ef_5c_de_ef_e4'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>3 1 0.1 0 -0 0</pose>
-    </model>
-    <model name='e2_77_fc_f9_04_93'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>0 0 0.1 0 -0 0</pose>
-    </model>
-    <model name='e4_87_91_3d_1e_d7'>
-      <static>1</static>
-      <link name='link'>
-        <visual name='beacon_visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.05</radius>
-              <length>0.1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Red</name>
-            </script>
-          </material>
-          <laser_retro>0</laser_retro>
-          <transparency>0</transparency>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>3 0 0.1 0 -0 0</pose>
-    </model>
+
+
+
+
+
+
   </world>
 </sdf>
