@@ -1,118 +1,118 @@
-[INFO] [launch]: All log files can be found below /root/.ros/log/2026-03-24-21-37-24-971607-58c430a70531-636
+[INFO] [launch]: All log files can be found below /root/.ros/log/2026-04-09-00-18-48-296927-23be34bad9d9-634
 [INFO] [launch]: Default logging verbosity is set to INFO
-[INFO] [gzserver-1]: process started with pid [640]
-[INFO] [robot_state_publisher-2]: process started with pid [642]
-[INFO] [static_transform_publisher-3]: process started with pid [644]
-[INFO] [spawn_entity.py-4]: process started with pid [646]
-[INFO] [joint_state_publisher-5]: process started with pid [648]
-[INFO] [robot_state_publisher-6]: process started with pid [650]
-[INFO] [spawn_entity.py-7]: process started with pid [652]
-[INFO] [spawner-8]: process started with pid [654]
-[INFO] [hazards_vector_publisher-9]: process started with pid [658]
-[INFO] [ir_intensity_vector_publisher-10]: process started with pid [664]
-[INFO] [motion_control-11]: process started with pid [671]
-[INFO] [wheel_status_publisher-12]: process started with pid [674]
-[INFO] [mock_publisher-13]: process started with pid [684]
-[INFO] [robot_state-14]: process started with pid [687]
-[INFO] [kidnap_estimator_publisher-15]: process started with pid [689]
-[INFO] [ui_mgr-16]: process started with pid [694]
-[INFO] [rf_beacon_publisher_node-17]: process started with pid [702]
-[INFO] [rf_beacon_publisher_node-18]: process started with pid [708]
-[INFO] [rf_beacon_publisher_node-19]: process started with pid [714]
-[INFO] [rf_beacon_publisher_node-20]: process started with pid [716]
-[INFO] [rf_beacon_publisher_node-21]: process started with pid [719]
-[INFO] [rf_beacon_publisher_node-22]: process started with pid [721]
-[INFO] [rf_beacon_publisher_node-23]: process started with pid [728]
-[INFO] [rf_beacon_publisher_node-24]: process started with pid [731]
-[static_transform_publisher-3] [WARN] [1774402645.442107061] []: Old-style arguments are deprecated; see --help for new-style arguments
-[static_transform_publisher-3] [INFO] [1774402645.486959784] [tf_odom_std_dock_link_publisher]: Spinning until stopped - publishing transform
+[INFO] [gzserver-1]: process started with pid [638]
+[INFO] [robot_state_publisher-2]: process started with pid [640]
+[INFO] [static_transform_publisher-3]: process started with pid [642]
+[INFO] [spawn_entity.py-4]: process started with pid [644]
+[INFO] [joint_state_publisher-5]: process started with pid [646]
+[INFO] [robot_state_publisher-6]: process started with pid [648]
+[INFO] [spawn_entity.py-7]: process started with pid [650]
+[INFO] [spawner-8]: process started with pid [652]
+[INFO] [hazards_vector_publisher-9]: process started with pid [654]
+[INFO] [ir_intensity_vector_publisher-10]: process started with pid [656]
+[INFO] [motion_control-11]: process started with pid [660]
+[INFO] [wheel_status_publisher-12]: process started with pid [665]
+[INFO] [mock_publisher-13]: process started with pid [667]
+[INFO] [robot_state-14]: process started with pid [678]
+[INFO] [kidnap_estimator_publisher-15]: process started with pid [684]
+[INFO] [ui_mgr-16]: process started with pid [688]
+[INFO] [rf_beacon_publisher_node-17]: process started with pid [690]
+[INFO] [rf_beacon_publisher_node-18]: process started with pid [692]
+[INFO] [rf_beacon_publisher_node-19]: process started with pid [697]
+[INFO] [rf_beacon_publisher_node-20]: process started with pid [699]
+[INFO] [rf_beacon_publisher_node-21]: process started with pid [701]
+[INFO] [rf_beacon_publisher_node-22]: process started with pid [712]
+[INFO] [rf_beacon_publisher_node-23]: process started with pid [718]
+[INFO] [rf_beacon_publisher_node-24]: process started with pid [730]
+[static_transform_publisher-3] [WARN] [1775708328.775677375] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-3] [INFO] [1775708328.837087660] [tf_odom_std_dock_link_publisher]: Spinning until stopped - publishing transform
 [static_transform_publisher-3] translation: ('0.157000', '0.000000', '0.000000')
 [static_transform_publisher-3] rotation: ('0.000000', '0.000000', '1.000000', '0.000000')
 [static_transform_publisher-3] from 'odom' to 'std_dock_link'
-[hazards_vector_publisher-9] [INFO] [1774402645.609447474] [hazards_vector_publisher]: Advertised topic: hazard_detection
-[hazards_vector_publisher-9] [INFO] [1774402645.623762059] [hazards_vector_publisher]: Subscription to topic: _internal/bumper/event
-[hazards_vector_publisher-9] [INFO] [1774402645.627282804] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_front_left/event
-[hazards_vector_publisher-9] [INFO] [1774402645.647945086] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_front_right/event
-[hazards_vector_publisher-9] [INFO] [1774402645.678238078] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_side_left/event
-[hazards_vector_publisher-9] [INFO] [1774402645.678732880] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_side_right/event
-[hazards_vector_publisher-9] [INFO] [1774402645.679115724] [hazards_vector_publisher]: Subscription to topic: _internal/wheel_drop/left_wheel/event
-[hazards_vector_publisher-9] [INFO] [1774402645.679490834] [hazards_vector_publisher]: Subscription to topic: _internal/wheel_drop/right_wheel/event
-[hazards_vector_publisher-9] [INFO] [1774402645.679881633] [hazards_vector_publisher]: Subscription to topic: _internal/backup_limit
-[ui_mgr-16] [INFO] [1774402645.786174983] [ui_mgr]: Advertised button topic: interface_buttons
-[ui_mgr-16] [INFO] [1774402645.837973787] [ui_mgr]: Subscription to topic: cmd_lightring
-[ui_mgr-16] [INFO] [1774402645.839354893] [ui_mgr]: Subscription to topic: cmd_audio
-[kidnap_estimator_publisher-15] [INFO] [1774402645.863471687] [kidnap_estimator_publisher]: Advertised topic: kidnap_status
-[robot_state_publisher-2] [WARN] [1774402645.871719267] [kdl_parser]: The root link std_dock_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
-[robot_state_publisher-2] [INFO] [1774402645.871806921] [dock_state_publisher]: got segment green_buoy_link
-[robot_state_publisher-2] [INFO] [1774402645.871863536] [dock_state_publisher]: got segment halo_link
-[robot_state_publisher-2] [INFO] [1774402645.871875398] [dock_state_publisher]: got segment red_buoy_link
-[robot_state_publisher-2] [INFO] [1774402645.871884025] [dock_state_publisher]: got segment std_dock_link
-[robot_state_publisher-2] [INFO] [1774402645.871892260] [dock_state_publisher]: got segment yellow_buoy_link
-[mock_publisher-13] [INFO] [1774402645.911706998] [mock_publisher]: Advertised mocked topic: slip_status
-[kidnap_estimator_publisher-15] [INFO] [1774402645.948878990] [kidnap_estimator_publisher]: Subscription to topic: hazard_detection
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.956893253] [ir_intensity_vector_publisher]: Advertised topic: ir_intensity
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.975773865] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_center_left
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.976948731] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_center_right
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.977439727] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_left
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.977916115] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_right
-[ir_intensity_vector_publisher-10] [INFO] [1774402645.987530645] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_left
-[ir_intensity_vector_publisher-10] [INFO] [1774402646.014205411] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_right
-[robot_state_publisher-6] [WARN] [1774402646.017249147] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
-[robot_state_publisher-6] [INFO] [1774402646.017441987] [robot_state_publisher]: got segment base_link
-[robot_state_publisher-6] [INFO] [1774402646.017507178] [robot_state_publisher]: got segment bump_front_center
-[robot_state_publisher-6] [INFO] [1774402646.017518419] [robot_state_publisher]: got segment bump_front_left
-[robot_state_publisher-6] [INFO] [1774402646.017527697] [robot_state_publisher]: got segment bump_front_right
-[robot_state_publisher-6] [INFO] [1774402646.017536233] [robot_state_publisher]: got segment bump_left
-[robot_state_publisher-6] [INFO] [1774402646.017544768] [robot_state_publisher]: got segment bump_right
-[robot_state_publisher-6] [INFO] [1774402646.017553535] [robot_state_publisher]: got segment bumper
-[robot_state_publisher-6] [INFO] [1774402646.017561930] [robot_state_publisher]: got segment button_1
-[robot_state_publisher-6] [INFO] [1774402646.017569925] [robot_state_publisher]: got segment button_2
-[robot_state_publisher-6] [INFO] [1774402646.017577950] [robot_state_publisher]: got segment button_power
-[robot_state_publisher-6] [INFO] [1774402646.017585985] [robot_state_publisher]: got segment camera_link
-[robot_state_publisher-6] [INFO] [1774402646.017594271] [robot_state_publisher]: got segment camera_link_optical
-[robot_state_publisher-6] [INFO] [1774402646.017602236] [robot_state_publisher]: got segment cliff_front_left
-[robot_state_publisher-6] [INFO] [1774402646.017610882] [robot_state_publisher]: got segment cliff_front_right
-[robot_state_publisher-6] [INFO] [1774402646.017619698] [robot_state_publisher]: got segment cliff_side_left
-[ir_intensity_vector_publisher-10] [INFO] [1774402646.027387564] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_side_left
-[robot_state-14] [INFO] [1774402646.046062822] [robot_state]: Advertised topic: battery_state
-[robot_state_publisher-6] [INFO] [1774402646.017628605] [robot_state_publisher]: got segment cliff_side_right
-[robot_state_publisher-6] [INFO] [1774402646.055117045] [robot_state_publisher]: got segment front_caster_link
-[robot_state_publisher-6] [INFO] [1774402646.055130340] [robot_state_publisher]: got segment imu_link
-[robot_state_publisher-6] [INFO] [1774402646.055139998] [robot_state_publisher]: got segment ir_intensity_front_center_left
-[robot_state_publisher-6] [INFO] [1774402646.055149495] [robot_state_publisher]: got segment ir_intensity_front_center_right
-[robot_state_publisher-6] [INFO] [1774402646.055158502] [robot_state_publisher]: got segment ir_intensity_front_left
-[robot_state_publisher-6] [INFO] [1774402646.055167238] [robot_state_publisher]: got segment ir_intensity_front_right
-[robot_state_publisher-6] [INFO] [1774402646.055176145] [robot_state_publisher]: got segment ir_intensity_left
-[robot_state_publisher-6] [INFO] [1774402646.055184871] [robot_state_publisher]: got segment ir_intensity_right
-[robot_state_publisher-6] [INFO] [1774402646.055194349] [robot_state_publisher]: got segment ir_intensity_side_left
-[robot_state_publisher-6] [INFO] [1774402646.055202885] [robot_state_publisher]: got segment ir_omni
-[robot_state_publisher-6] [INFO] [1774402646.055211661] [robot_state_publisher]: got segment left_wheel
-[robot_state_publisher-6] [INFO] [1774402646.055220247] [robot_state_publisher]: got segment lidar_frame
-[robot_state_publisher-6] [INFO] [1774402646.055228603] [robot_state_publisher]: got segment mouse
-[robot_state_publisher-6] [INFO] [1774402646.055237870] [robot_state_publisher]: got segment right_wheel
-[robot_state_publisher-6] [INFO] [1774402646.055246837] [robot_state_publisher]: got segment wheel_drop_left
-[robot_state_publisher-6] [INFO] [1774402646.055255262] [robot_state_publisher]: got segment wheel_drop_right
-[wheel_status_publisher-12] [INFO] [1774402646.106068822] [wheel_status_publisher]: Advertised topic: wheel_vels
-[wheel_status_publisher-12] [INFO] [1774402646.107204990] [wheel_status_publisher]: Advertised topic: wheel_ticks
-[robot_state-14] [INFO] [1774402646.156269738] [robot_state]: Subscription to topic: dock_status
-[robot_state-14] [INFO] [1774402646.172115348] [robot_state]: Advertised topic: stop_status
-[robot_state-14] [INFO] [1774402646.248530087] [robot_state]: Subscription to topic: odom
-[motion_control-11] [INFO] [1774402646.502326542] [motion_control]: Enabling REFLEX_BUMP
-[motion_control-11] [INFO] [1774402646.502607455] [motion_control]: Enabling REFLEX_CLIFF
-[motion_control-11] [INFO] [1774402646.503067894] [motion_control]: Enabling REFLEX_STUCK
-[motion_control-11] [INFO] [1774402646.503509057] [motion_control]: Enabling REFLEX_WHEEL_DROP
-[joint_state_publisher-5] [INFO] [1774402646.605955401] [joint_state_publisher]: Waiting for robot_description to be published on the robot_description topic...
-[spawner-8] [INFO] [1774402647.062838836] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
-[spawn_entity.py-7] [INFO] [1774402647.237716555] [spawn_create3]: Spawn Entity started
-[spawn_entity.py-7] [INFO] [1774402647.238326071] [spawn_create3]: Loading entity published on topic robot_description
-[spawn_entity.py-7] [INFO] [1774402647.242129725] [spawn_create3]: Waiting for entity xml on robot_description
-[spawn_entity.py-7] [INFO] [1774402647.253300156] [spawn_create3]: Waiting for service /spawn_entity, timeout = 30
-[spawn_entity.py-7] [INFO] [1774402647.253930121] [spawn_create3]: Waiting for service /spawn_entity
-[spawn_entity.py-4] [INFO] [1774402647.256382541] [spawn_standard_dock]: Spawn Entity started
-[spawn_entity.py-4] [INFO] [1774402647.257139513] [spawn_standard_dock]: Loading entity published on topic standard_dock_description
-[spawn_entity.py-4] [INFO] [1774402647.262375858] [spawn_standard_dock]: Waiting for entity xml on standard_dock_description
-[spawn_entity.py-4] [INFO] [1774402647.468377508] [spawn_standard_dock]: Waiting for service /spawn_entity, timeout = 30
-[spawn_entity.py-4] [INFO] [1774402647.469068196] [spawn_standard_dock]: Waiting for service /spawn_entity
+[hazards_vector_publisher-9] [INFO] [1775708328.977389624] [hazards_vector_publisher]: Advertised topic: hazard_detection
+[hazards_vector_publisher-9] [INFO] [1775708328.979050330] [hazards_vector_publisher]: Subscription to topic: _internal/bumper/event
+[hazards_vector_publisher-9] [INFO] [1775708328.982649470] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_front_left/event
+[hazards_vector_publisher-9] [INFO] [1775708328.985209052] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_front_right/event
+[hazards_vector_publisher-9] [INFO] [1775708328.985988495] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_side_left/event
+[hazards_vector_publisher-9] [INFO] [1775708328.987057508] [hazards_vector_publisher]: Subscription to topic: _internal/cliff_side_right/event
+[hazards_vector_publisher-9] [INFO] [1775708328.988976977] [hazards_vector_publisher]: Subscription to topic: _internal/wheel_drop/left_wheel/event
+[hazards_vector_publisher-9] [INFO] [1775708328.991680207] [hazards_vector_publisher]: Subscription to topic: _internal/wheel_drop/right_wheel/event
+[hazards_vector_publisher-9] [INFO] [1775708328.992142368] [hazards_vector_publisher]: Subscription to topic: _internal/backup_limit
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.012385075] [ir_intensity_vector_publisher]: Advertised topic: ir_intensity
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.035084355] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_center_left
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.035658676] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_center_right
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.036085762] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_left
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.036558353] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_front_right
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.036954051] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_left
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.076999690] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_right
+[robot_state_publisher-2] [WARN] [1775708329.105001599] [kdl_parser]: The root link std_dock_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1775708329.105105373] [dock_state_publisher]: got segment green_buoy_link
+[robot_state_publisher-2] [INFO] [1775708329.105160436] [dock_state_publisher]: got segment halo_link
+[robot_state_publisher-2] [INFO] [1775708329.105169463] [dock_state_publisher]: got segment red_buoy_link
+[robot_state_publisher-2] [INFO] [1775708329.105177327] [dock_state_publisher]: got segment std_dock_link
+[robot_state_publisher-2] [INFO] [1775708329.105184661] [dock_state_publisher]: got segment yellow_buoy_link
+[ir_intensity_vector_publisher-10] [INFO] [1775708329.165957931] [ir_intensity_vector_publisher]: Subscription to topic: _internal/ir_intensity_side_left
+[wheel_status_publisher-12] [INFO] [1775708329.169027080] [wheel_status_publisher]: Advertised topic: wheel_vels
+[wheel_status_publisher-12] [INFO] [1775708329.169847039] [wheel_status_publisher]: Advertised topic: wheel_ticks
+[robot_state-14] [INFO] [1775708329.216931304] [robot_state]: Advertised topic: battery_state
+[robot_state-14] [INFO] [1775708329.283992735] [robot_state]: Subscription to topic: dock_status
+[robot_state-14] [INFO] [1775708329.310904348] [robot_state]: Advertised topic: stop_status
+[mock_publisher-13] [INFO] [1775708329.356306918] [mock_publisher]: Advertised mocked topic: slip_status
+[robot_state-14] [INFO] [1775708329.356902555] [robot_state]: Subscription to topic: odom
+[kidnap_estimator_publisher-15] [INFO] [1775708329.394337765] [kidnap_estimator_publisher]: Advertised topic: kidnap_status
+[kidnap_estimator_publisher-15] [INFO] [1775708329.396275237] [kidnap_estimator_publisher]: Subscription to topic: hazard_detection
+[ui_mgr-16] [INFO] [1775708329.475119438] [ui_mgr]: Advertised button topic: interface_buttons
+[ui_mgr-16] [INFO] [1775708329.509631394] [ui_mgr]: Subscription to topic: cmd_lightring
+[ui_mgr-16] [INFO] [1775708329.524870876] [ui_mgr]: Subscription to topic: cmd_audio
+[robot_state_publisher-6] [WARN] [1775708329.539548992] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-6] [INFO] [1775708329.540161093] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-6] [INFO] [1775708329.540223779] [robot_state_publisher]: got segment bump_front_center
+[robot_state_publisher-6] [INFO] [1775708329.540233748] [robot_state_publisher]: got segment bump_front_left
+[robot_state_publisher-6] [INFO] [1775708329.540241152] [robot_state_publisher]: got segment bump_front_right
+[robot_state_publisher-6] [INFO] [1775708329.540248416] [robot_state_publisher]: got segment bump_left
+[robot_state_publisher-6] [INFO] [1775708329.540255649] [robot_state_publisher]: got segment bump_right
+[robot_state_publisher-6] [INFO] [1775708329.540262963] [robot_state_publisher]: got segment bumper
+[robot_state_publisher-6] [INFO] [1775708329.540270707] [robot_state_publisher]: got segment button_1
+[robot_state_publisher-6] [INFO] [1775708329.540278592] [robot_state_publisher]: got segment button_2
+[robot_state_publisher-6] [INFO] [1775708329.540286056] [robot_state_publisher]: got segment button_power
+[robot_state_publisher-6] [INFO] [1775708329.540293720] [robot_state_publisher]: got segment camera_link
+[robot_state_publisher-6] [INFO] [1775708329.540301144] [robot_state_publisher]: got segment camera_link_optical
+[robot_state_publisher-6] [INFO] [1775708329.540308718] [robot_state_publisher]: got segment cliff_front_left
+[robot_state_publisher-6] [INFO] [1775708329.540315130] [robot_state_publisher]: got segment cliff_front_right
+[robot_state_publisher-6] [INFO] [1775708329.540326912] [robot_state_publisher]: got segment cliff_side_left
+[robot_state_publisher-6] [INFO] [1775708329.540334095] [robot_state_publisher]: got segment cliff_side_right
+[robot_state_publisher-6] [INFO] [1775708329.540363400] [robot_state_publisher]: got segment front_caster_link
+[robot_state_publisher-6] [INFO] [1775708329.540373008] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-6] [INFO] [1775708329.540380953] [robot_state_publisher]: got segment ir_intensity_front_center_left
+[robot_state_publisher-6] [INFO] [1775708329.540388517] [robot_state_publisher]: got segment ir_intensity_front_center_right
+[robot_state_publisher-6] [INFO] [1775708329.540395991] [robot_state_publisher]: got segment ir_intensity_front_left
+[robot_state_publisher-6] [INFO] [1775708329.540406510] [robot_state_publisher]: got segment ir_intensity_front_right
+[robot_state_publisher-6] [INFO] [1775708329.540413674] [robot_state_publisher]: got segment ir_intensity_left
+[robot_state_publisher-6] [INFO] [1775708329.540420626] [robot_state_publisher]: got segment ir_intensity_right
+[robot_state_publisher-6] [INFO] [1775708329.540427740] [robot_state_publisher]: got segment ir_intensity_side_left
+[robot_state_publisher-6] [INFO] [1775708329.540434863] [robot_state_publisher]: got segment ir_omni
+[robot_state_publisher-6] [INFO] [1775708329.540441646] [robot_state_publisher]: got segment left_wheel
+[robot_state_publisher-6] [INFO] [1775708329.540448559] [robot_state_publisher]: got segment lidar_frame
+[robot_state_publisher-6] [INFO] [1775708329.540455471] [robot_state_publisher]: got segment mouse
+[robot_state_publisher-6] [INFO] [1775708329.540462945] [robot_state_publisher]: got segment right_wheel
+[robot_state_publisher-6] [INFO] [1775708329.540470279] [robot_state_publisher]: got segment wheel_drop_left
+[robot_state_publisher-6] [INFO] [1775708329.540477543] [robot_state_publisher]: got segment wheel_drop_right
+[motion_control-11] [INFO] [1775708329.571054590] [motion_control]: Enabling REFLEX_BUMP
+[motion_control-11] [INFO] [1775708329.572787691] [motion_control]: Enabling REFLEX_CLIFF
+[motion_control-11] [INFO] [1775708329.583781344] [motion_control]: Enabling REFLEX_STUCK
+[motion_control-11] [INFO] [1775708329.583989201] [motion_control]: Enabling REFLEX_WHEEL_DROP
+[joint_state_publisher-5] [INFO] [1775708329.997676402] [joint_state_publisher]: Waiting for robot_description to be published on the robot_description topic...
+[spawner-8] [INFO] [1775708330.376630127] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawn_entity.py-7] [INFO] [1775708330.390451075] [spawn_create3]: Spawn Entity started
+[spawn_entity.py-7] [INFO] [1775708330.390864716] [spawn_create3]: Loading entity published on topic robot_description
+[spawn_entity.py-7] [INFO] [1775708330.395162476] [spawn_create3]: Waiting for entity xml on robot_description
+[spawn_entity.py-4] [INFO] [1775708330.398043239] [spawn_standard_dock]: Spawn Entity started
+[spawn_entity.py-4] [INFO] [1775708330.398778831] [spawn_standard_dock]: Loading entity published on topic standard_dock_description
+[spawn_entity.py-4] [INFO] [1775708330.403183984] [spawn_standard_dock]: Waiting for entity xml on standard_dock_description
+[spawn_entity.py-7] [INFO] [1775708330.406425103] [spawn_create3]: Waiting for service /spawn_entity, timeout = 30
+[spawn_entity.py-7] [INFO] [1775708330.407078661] [spawn_create3]: Waiting for service /spawn_entity
+[spawn_entity.py-4] [INFO] [1775708330.777987976] [spawn_standard_dock]: Waiting for service /spawn_entity, timeout = 30
+[spawn_entity.py-4] [INFO] [1775708330.780138248] [spawn_standard_dock]: Waiting for service /spawn_entity
 [gzserver-1] ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
 [gzserver-1] ALSA lib conf.c:5178:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
 [gzserver-1] ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
@@ -122,85 +122,86 @@
 [gzserver-1] ALSA lib conf.c:5701:(snd_config_expand) Evaluate error: No such file or directory
 [gzserver-1] ALSA lib pcm.c:2664:(snd_pcm_open_noupdate) Unknown PCM default
 [gzserver-1] AL lib: (EE) ALCplaybackAlsa_open: Could not open playback device 'default': No such file or directory
-[gzserver-1] [INFO] [1774402648.315598724] [gazebo_ros_state]: Publishing states of gazebo models at [/model_states]
-[gzserver-1] [INFO] [1774402648.318254476] [gazebo_ros_state]: Publishing states of gazebo links at [/link_states]
-[rf_beacon_publisher_node-22] [WARN] [1774402648.348729610] [d0_6a_d2_02_42_eb]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-21] [WARN] [1774402648.349803753] [ee_16_86_9a_c2_a8]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-20] [WARN] [1774402648.349888336] [e4_87_91_3d_1e_d7]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-18] [WARN] [1774402648.349990018] [ea_2f_93_a6_98_20]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-24] [WARN] [1774402648.350549381] [fb_ef_5c_de_ef_e4]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-23] [WARN] [1774402648.350585741] [df_2b_70_a8_21_90]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-19] [WARN] [1774402648.350758663] [fc_e2_2e_62_9b_3d]: Beacon position not initialized yet.
-[rf_beacon_publisher_node-17] [WARN] [1774402648.351171622] [e2_77_fc_f9_04_93]: Beacon position not initialized yet.
-[spawn_entity.py-4] [INFO] [1774402648.512976900] [spawn_standard_dock]: Calling service /spawn_entity
-[spawn_entity.py-7] [INFO] [1774402648.515672191] [spawn_create3]: Calling service /spawn_entity
-[spawn_entity.py-4] [INFO] [1774402648.535035228] [spawn_standard_dock]: Spawn status: Entity [standard_dock] already exists.
-[spawn_entity.py-4] [ERROR] [1774402648.535706069] [spawn_standard_dock]: Spawn service failed. Exiting.
-[ERROR] [spawn_entity.py-4]: process has died [pid 646, exit code 1, cmd '/opt/ros/humble/lib/gazebo_ros/spawn_entity.py -entity standard_dock -topic standard_dock_description -x 0.157 -y 0.0 -z 0.0 -Y 3.1416 --ros-args -r __node:=spawn_standard_dock -r __ns:=/'].
-[gzserver-1] [INFO] [1774402648.935049263] [cliff_front_left]: Started plugin
-[gzserver-1] [INFO] [1774402648.958504160] [cliff_front_right]: Started plugin
-[gzserver-1] [INFO] [1774402648.981659150] [cliff_side_left]: Started plugin
-[gzserver-1] [INFO] [1774402649.008168624] [cliff_side_right]: Started plugin
-[gzserver-1] [WARN] [1774402649.219225093] [rcl]: Found remap rule '~/out:=/scan'. This syntax is deprecated. Use '--ros-args --remap ~/out:=/scan' instead.
-[gzserver-1] [WARN] [1774402649.235973654] [rcl]: Found remap rule '~/out:=/scan'. This syntax is deprecated. Use '--ros-args --remap ~/out:=/scan' instead.
-[gzserver-1] [INFO] [1774402649.275233998] [bumper_plugin]: Bumper plugin loaded correctly
-[gzserver-1] [INFO] [1774402649.351048813] [ir_intensity_front_center_left]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.370916774] [ir_intensity_front_center_right]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.404785021] [ir_intensity_front_left]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.436521338] [ir_intensity_front_right]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.466000330] [ir_intensity_left]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.496355850] [ir_intensity_right]: Starting IR Emitter Plugin!
-[spawn_entity.py-7] [INFO] [1774402649.508266840] [spawn_create3]: Spawn status: SpawnEntity: Successfully spawned entity [create3]
-[gzserver-1] [INFO] [1774402649.537382143] [ir_intensity_side_left]: Starting IR Emitter Plugin!
-[gzserver-1] [INFO] [1774402649.655438580] [wheel_drop_left_plugin]: Started wheel drop plugin
-[gzserver-1] [INFO] [1774402649.681979172] [wheel_drop_right_plugin]: Started wheel drop plugin
-[INFO] [spawn_entity.py-7]: process has finished cleanly [pid 652]
-[gzserver-1] [INFO] [1774402649.703186472] [gazebo_ros2_control]: Loading gazebo_ros2_control plugin
-[gzserver-1] [INFO] [1774402649.725706508] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in namespace: /
-[gzserver-1] [INFO] [1774402649.725801816] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in ros 2 node: gazebo_ros2_control
-[gzserver-1] [INFO] [1774402649.742683505] [gazebo_ros2_control]: connected to service!! robot_state_publisher
-[gzserver-1] [INFO] [1774402649.743720459] [gazebo_ros2_control]: Received urdf from param server, parsing...
-[gzserver-1] [INFO] [1774402649.747784648] [gazebo_ros2_control]: Loading parameter files /ros2_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml
-[gzserver-1] [INFO] [1774402649.760087170] [gazebo_ros2_control]: Loading joint: left_wheel_joint
-[gzserver-1] [INFO] [1774402649.760121193] [gazebo_ros2_control]: 	State:
-[gzserver-1] [INFO] [1774402649.760136662] [gazebo_ros2_control]: 		 velocity
-[gzserver-1] [INFO] [1774402649.760149706] [gazebo_ros2_control]: 		 position
-[gzserver-1] [INFO] [1774402649.760161007] [gazebo_ros2_control]: 	Command:
-[gzserver-1] [INFO] [1774402649.760201814] [gazebo_ros2_control]: 		 velocity
-[gzserver-1] [INFO] [1774402649.762242139] [resource_manager]: Initialize hardware 'left_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.762420191] [resource_manager]: Successful initialization of hardware 'left_wheel_controller'
-[gzserver-1] [INFO] [1774402649.762520307] [resource_manager]: 'configure' hardware 'left_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.762536968] [resource_manager]: Successful 'configure' of hardware 'left_wheel_controller'
-[gzserver-1] [INFO] [1774402649.762546296] [resource_manager]: 'activate' hardware 'left_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.762555062] [resource_manager]: Successful 'activate' of hardware 'left_wheel_controller'
-[gzserver-1] [ERROR] [1774402649.763057619] [gazebo_ros2_control]: Parameter 'hold_joints' has already been declared, parameter 'hold_joints' has already been declared
-[gzserver-1] [INFO] [1774402649.763129984] [gazebo_ros2_control]: Loading joint: right_wheel_joint
-[gzserver-1] [INFO] [1774402649.763150292] [gazebo_ros2_control]: 	State:
-[gzserver-1] [INFO] [1774402649.763162755] [gazebo_ros2_control]: 		 velocity
-[gzserver-1] [INFO] [1774402649.763173876] [gazebo_ros2_control]: 		 position
-[gzserver-1] [INFO] [1774402649.763184726] [gazebo_ros2_control]: 	Command:
-[gzserver-1] [INFO] [1774402649.763206807] [gazebo_ros2_control]: 		 velocity
-[gzserver-1] [INFO] [1774402649.765108694] [resource_manager]: Initialize hardware 'right_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.765149060] [resource_manager]: Successful initialization of hardware 'right_wheel_controller'
-[gzserver-1] [INFO] [1774402649.765165460] [resource_manager]: 'configure' hardware 'right_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.765175639] [resource_manager]: Successful 'configure' of hardware 'right_wheel_controller'
-[gzserver-1] [INFO] [1774402649.765184095] [resource_manager]: 'activate' hardware 'right_wheel_controller' 
-[gzserver-1] [INFO] [1774402649.765192691] [resource_manager]: Successful 'activate' of hardware 'right_wheel_controller'
-[gzserver-1] [INFO] [1774402649.765347512] [gazebo_ros2_control]: Loading controller_manager
-[gzserver-1] [INFO] [1774402649.829985328] [gazebo_ros2_control]: Loaded gazebo_ros2_control.
-[gzserver-1] [INFO] [1774402649.868262944] [mouse_plugin]: Starting optical mouse plugin
-[gzserver-1] [INFO] [1774402649.906069765] [ir_omni_plugin]: Starting ir opcode plugin
-[gzserver-1] [INFO] [1774402649.916164778] [controller_manager]: Loading controller 'joint_state_broadcaster'
-[spawner-8] [INFO] [1774402650.001124115] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
-[gzserver-1] [INFO] [1774402650.010330473] [controller_manager]: Configuring controller 'joint_state_broadcaster'
-[gzserver-1] [INFO] [1774402650.010577735] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
-[gzserver-1] [INFO] [1774402650.029295723] [dock_status_publisher]: Starting ir opcode plugin
-[spawner-8] [INFO] [1774402650.032809696] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
-[INFO] [spawner-8]: process has finished cleanly [pid 654]
-[INFO] [spawner-25]: process started with pid [998]
-[spawner-25] [INFO] [1774402650.783938794] [spawner_diffdrive_controller]: waiting for service /controller_manager/list_controllers to become available...
-[gzserver-1] [INFO] [1774402651.039829382] [controller_manager]: Loading controller 'diffdrive_controller'
-[spawner-25] [INFO] [1774402651.112920679] [spawner_diffdrive_controller]: [94mLoaded [1mdiffdrive_controller[0m
-[gzserver-1] [INFO] [1774402651.118268087] [controller_manager]: Configuring controller 'diffdrive_controller'
-[spawner-25] [INFO] [1774402651.133962797] [spawner_diffdrive_controller]: [92mConfigured and activated [1mdiffdrive_controller[0m
-[INFO] [spawner-25]: process has finished cleanly [pid 998]
+[spawn_entity.py-7] [INFO] [1775708331.171781065] [spawn_create3]: Calling service /spawn_entity
+[gzserver-1] [INFO] [1775708331.202602724] [gazebo_ros_state]: Publishing states of gazebo models at [/model_states]
+[gzserver-1] [INFO] [1775708331.204994904] [gazebo_ros_state]: Publishing states of gazebo links at [/link_states]
+[rf_beacon_publisher_node-18] [WARN] [1775708331.238222258] [ea_2f_93_a6_98_20]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-24] [WARN] [1775708331.238600741] [fb_ef_5c_de_ef_e4]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-19] [WARN] [1775708331.238783932] [fc_e2_2e_62_9b_3d]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-22] [WARN] [1775708331.239062020] [d0_6a_d2_02_42_eb]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-23] [WARN] [1775708331.239142243] [df_2b_70_a8_21_90]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-17] [WARN] [1775708331.239236596] [e2_77_fc_f9_04_93]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-21] [WARN] [1775708331.239309849] [ee_16_86_9a_c2_a8]: Beacon position not initialized yet.
+[rf_beacon_publisher_node-20] [WARN] [1775708331.240833667] [e4_87_91_3d_1e_d7]: Beacon position not initialized yet.
+[spawn_entity.py-4] [INFO] [1775708331.539277164] [spawn_standard_dock]: Calling service /spawn_entity
+[gzserver-1] [INFO] [1775708331.665433854] [cliff_front_left]: Started plugin
+[gzserver-1] [INFO] [1775708331.691589918] [cliff_front_right]: Started plugin
+[gzserver-1] [INFO] [1775708331.714803236] [cliff_side_left]: Started plugin
+[gzserver-1] [INFO] [1775708331.757495630] [cliff_side_right]: Started plugin
+[gzserver-1] [WARN] [1775708331.986799128] [rcl]: Found remap rule '~/out:=/scan'. This syntax is deprecated. Use '--ros-args --remap ~/out:=/scan' instead.
+[gzserver-1] [WARN] [1775708332.008600413] [rcl]: Found remap rule '~/out:=/scan'. This syntax is deprecated. Use '--ros-args --remap ~/out:=/scan' instead.
+[gzserver-1] [INFO] [1775708332.046806663] [bumper_plugin]: Bumper plugin loaded correctly
+[gzserver-1] [INFO] [1775708332.137727909] [ir_intensity_front_center_left]: Starting IR Emitter Plugin!
+[gzserver-1] [INFO] [1775708332.174923992] [ir_intensity_front_center_right]: Starting IR Emitter Plugin!
+[gzserver-1] [INFO] [1775708332.201625484] [ir_intensity_front_left]: Starting IR Emitter Plugin!
+[gzserver-1] [INFO] [1775708332.250776030] [ir_intensity_front_right]: Starting IR Emitter Plugin!
+[gzserver-1] [INFO] [1775708332.293455447] [ir_intensity_left]: Starting IR Emitter Plugin!
+[gzserver-1] [INFO] [1775708332.330980499] [ir_intensity_right]: Starting IR Emitter Plugin!
+[spawn_entity.py-7] [INFO] [1775708332.349412427] [spawn_create3]: Spawn status: SpawnEntity: Successfully spawned entity [create3]
+[gzserver-1] [INFO] [1775708332.390154400] [ir_intensity_side_left]: Starting IR Emitter Plugin!
+[spawn_entity.py-4] [INFO] [1775708332.416588894] [spawn_standard_dock]: Spawn status: Entity [standard_dock] already exists.
+[spawn_entity.py-4] [ERROR] [1775708332.417164016] [spawn_standard_dock]: Spawn service failed. Exiting.
+[gzserver-1] [INFO] [1775708332.522510168] [wheel_drop_left_plugin]: Started wheel drop plugin
+[gzserver-1] [INFO] [1775708332.565995918] [wheel_drop_right_plugin]: Started wheel drop plugin
+[INFO] [spawn_entity.py-7]: process has finished cleanly [pid 650]
+[gzserver-1] [INFO] [1775708332.586278905] [gazebo_ros2_control]: Loading gazebo_ros2_control plugin
+[gzserver-1] [INFO] [1775708332.613985344] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in namespace: /
+[gzserver-1] [INFO] [1775708332.614053060] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in ros 2 node: gazebo_ros2_control
+[gzserver-1] [INFO] [1775708332.641132993] [gazebo_ros2_control]: connected to service!! robot_state_publisher
+[gzserver-1] [INFO] [1775708332.642050774] [gazebo_ros2_control]: Received urdf from param server, parsing...
+[gzserver-1] [INFO] [1775708332.646867193] [gazebo_ros2_control]: Loading parameter files /ros2_ws/install/irobot_create_control/share/irobot_create_control/config/control.yaml
+[ERROR] [spawn_entity.py-4]: process has died [pid 644, exit code 1, cmd '/opt/ros/humble/lib/gazebo_ros/spawn_entity.py -entity standard_dock -topic standard_dock_description -x 0.157 -y 0.0 -z 0.0 -Y 3.1416 --ros-args -r __node:=spawn_standard_dock -r __ns:=/'].
+[gzserver-1] [INFO] [1775708332.661088554] [gazebo_ros2_control]: Loading joint: left_wheel_joint
+[gzserver-1] [INFO] [1775708332.661124892] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1775708332.661138006] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1775708332.661149167] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1775708332.661159346] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1775708332.661190174] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1775708332.661675027] [resource_manager]: Initialize hardware 'left_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.661817473] [resource_manager]: Successful initialization of hardware 'left_wheel_controller'
+[gzserver-1] [INFO] [1775708332.661911639] [resource_manager]: 'configure' hardware 'left_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.661927208] [resource_manager]: Successful 'configure' of hardware 'left_wheel_controller'
+[gzserver-1] [INFO] [1775708332.661935573] [resource_manager]: 'activate' hardware 'left_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.661943698] [resource_manager]: Successful 'activate' of hardware 'left_wheel_controller'
+[gzserver-1] [ERROR] [1775708332.662027084] [gazebo_ros2_control]: Parameter 'hold_joints' has already been declared, parameter 'hold_joints' has already been declared
+[gzserver-1] [INFO] [1775708332.662091464] [gazebo_ros2_control]: Loading joint: right_wheel_joint
+[gzserver-1] [INFO] [1775708332.662107684] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1775708332.662118234] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1775708332.662128393] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1775708332.662138171] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1775708332.662153800] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1775708332.664427442] [resource_manager]: Initialize hardware 'right_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.664450545] [resource_manager]: Successful initialization of hardware 'right_wheel_controller'
+[gzserver-1] [INFO] [1775708332.664465012] [resource_manager]: 'configure' hardware 'right_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.664473828] [resource_manager]: Successful 'configure' of hardware 'right_wheel_controller'
+[gzserver-1] [INFO] [1775708332.664481032] [resource_manager]: 'activate' hardware 'right_wheel_controller' 
+[gzserver-1] [INFO] [1775708332.664488455] [resource_manager]: Successful 'activate' of hardware 'right_wheel_controller'
+[gzserver-1] [INFO] [1775708332.664561331] [gazebo_ros2_control]: Loading controller_manager
+[gzserver-1] [INFO] [1775708332.737618435] [gazebo_ros2_control]: Loaded gazebo_ros2_control.
+[gzserver-1] [INFO] [1775708332.781831574] [mouse_plugin]: Starting optical mouse plugin
+[gzserver-1] [INFO] [1775708332.823031926] [ir_omni_plugin]: Starting ir opcode plugin
+[gzserver-1] [INFO] [1775708332.896897130] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[gzserver-1] [INFO] [1775708332.932964309] [dock_status_publisher]: Starting ir opcode plugin
+[spawner-8] [INFO] [1775708332.975014459] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
+[gzserver-1] [INFO] [1775708332.979513824] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[gzserver-1] [INFO] [1775708332.980468083] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[spawner-8] [INFO] [1775708332.999271679] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
+[INFO] [spawner-8]: process has finished cleanly [pid 652]
+[INFO] [spawner-25]: process started with pid [996]
+[spawner-25] [INFO] [1775708333.738200285] [spawner_diffdrive_controller]: waiting for service /controller_manager/list_controllers to become available...
+[gzserver-1] [INFO] [1775708333.996489787] [controller_manager]: Loading controller 'diffdrive_controller'
+[spawner-25] [INFO] [1775708334.073056304] [spawner_diffdrive_controller]: [94mLoaded [1mdiffdrive_controller[0m
+[gzserver-1] [INFO] [1775708334.080070417] [controller_manager]: Configuring controller 'diffdrive_controller'
+[gzserver-1] [WARN] [1775708334.096031431] [diffdrive_controller]: Can't accept new commands. subscriber is inactive
+[spawner-25] [INFO] [1775708334.106301771] [spawner_diffdrive_controller]: [92mConfigured and activated [1mdiffdrive_controller[0m
+[INFO] [spawner-25]: process has finished cleanly [pid 996]
