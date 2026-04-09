@@ -2,7 +2,7 @@
 
 This is the Gazebo environment setup for the Carleton Mail Delivery Robot 2024-2025 capstone project.
 
-The objective of this project is to create a fully autonomous robot which is capable of delivering mail between buildings on the Carleton University campus by traveling through the tunnels. The robot relies on Bluetooth beacons placed at the intersections of the tunnel system for navigation, while it relies on data from a LiDAR sensor and a camera to maneuver through intersections, around obstacles, and to perform wall following while traveling towards its destination.
+The objective of this project is to create a fully autonomous robot capable of delivering mail between buildings on the Carleton University campus by navigating through the tunnels. The robot relies on Bluetooth beacons placed at tunnel intersections for coarse navigation, while data from a LiDAR sensor enable it to maneuver through intersections, avoid obstacles, and perform wall-following as it travels toward its destination. In addition to these traditional sensors, the project integrates a large language model (LLM) into the robot’s architecture to enhance decision-making and control. The LLM is incrementally injected into key nodes, such as the navigation unit, to assist with real-time path planning, obstacle assessment, and adaptive behavior, allowing the robot to make more informed and context-aware navigation decisions.
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/ConnorYelle/Carleton-Mail-Delivery-Robot/unit-tests.yml?label=Unit%20Tests)
 
@@ -13,12 +13,6 @@ The objective of this project is to create a fully autonomous robot which is cap
 - [Owen McKibbon](https://github.com/OwenMcKibbon1)
 - [Umniyah Mohammed](https://github.com/UMNIYAH)
 - [Jonas Andaya](https://github.com/jonasandaya)
-
-## Demonstration:
-
-Demonstration videos of the project in action can be found here:
-- [Robot Demo] https://www.youtube.com/watch?v=HrFrQdZ8Tf8
-- [Gazebo Simulation Demo] https://www.youtube.com/watch?v=34wwi-BHo8g
 
 ## Documentation
 
